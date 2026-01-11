@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Create | Mahikari Admin</title>
+  <link rel="stylesheet" href="/css/style.css" />
+  <style>
+    label { display:block; margin-top:10px; }
+    input { padding:8px; width: 420px; max-width:100%; }
+    .row { margin-top: 12px; }
+  </style>
+</head>
+<body>
+
+  <header>
+    <h2>Create</h2>
+    <small><a href="/index.html">← Back</a></small>
+  </header>
+
+  <div class="card">
+    <label>Name</label>
+    <input id="name" />
+
+    <label>Email</label>
+    <input id="email" />
+
+    <label>Branch</label>
+    <input id="branch" placeholder="LA / NY / ..." />
+
+    <div class="row">
+      <button type="button" onclick="alert('次は create API に繋ぎます')">Save</button>
+      <a href="/contacts.html"><button type="button">Cancel</button></a>
+    </div>
+
+    <p style="margin-top:12px;">
+      ※ 次は「Save」ボタンで Worker の /api/hubspot/create を叩く形にします。
+    </p>
+  </div>
+
+</body>
+</html>
