@@ -1,78 +1,54 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
-<html>
+<!doctype html>
+<html lang="ja">
 <head>
-  <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-  <meta http-equiv="Content-Style-Type" content="text/css">
-  <title></title>
-  <meta name="Generator" content="Cocoa HTML Writer">
-  <meta name="CocoaVersion" content="2575.7">
-  <style type="text/css">
-    p.p1 {margin: 0.0px 0.0px 0.0px 0.0px; font: 12.0px Helvetica}
-    p.p2 {margin: 0.0px 0.0px 0.0px 0.0px; font: 12.0px Helvetica; min-height: 14.0px}
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Contacts | Mahikari Admin</title>
+  <link rel="stylesheet" href="/css/style.css" />
+  <style>
+    table { width: 100%; border-collapse: collapse; }
+    th, td { border: 1px solid #ccc; padding: 8px; text-align: left; }
+    th { background: #f3f3f3; }
+    .topbar { display:flex; gap:12px; align-items:center; margin: 12px 0; }
+    input { padding: 8px; width: 320px; max-width: 100%; }
   </style>
 </head>
 <body>
-<p class="p1">&lt;!doctype html&gt;</p>
-<p class="p1">&lt;html lang="ja"&gt;</p>
-<p class="p1">&lt;head&gt;</p>
-<p class="p1"><span class="Apple-converted-space">  </span>&lt;meta charset="utf-8" /&gt;</p>
-<p class="p1"><span class="Apple-converted-space">  </span>&lt;meta name="viewport" content="width=device-width,initial-scale=1" /&gt;</p>
-<p class="p1"><span class="Apple-converted-space">  </span>&lt;title&gt;Contacts | Mahikari Admin&lt;/title&gt;</p>
-<p class="p1"><span class="Apple-converted-space">  </span>&lt;link rel="stylesheet" href="./css/style.css" /&gt;</p>
-<p class="p1">&lt;/head&gt;</p>
-<p class="p1">&lt;body&gt;</p>
-<p class="p1"><span class="Apple-converted-space">  </span>&lt;header&gt;</p>
-<p class="p1"><span class="Apple-converted-space">    </span>&lt;a href="./index.html"&gt;← Dashboard&lt;/a&gt;</p>
-<p class="p1"><span class="Apple-converted-space">    </span>&lt;h2&gt;Contacts&lt;/h2&gt;</p>
-<p class="p1"><span class="Apple-converted-space">    </span>&lt;a href="./create.html"&gt;</p>
-<p class="p1"><span class="Apple-converted-space">      </span>&lt;button style="max-width:180px;"&gt;＋ Create&lt;/button&gt;</p>
-<p class="p1"><span class="Apple-converted-space">    </span>&lt;/a&gt;</p>
-<p class="p1"><span class="Apple-converted-space">  </span>&lt;/header&gt;</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">  </span>&lt;div class="card"&gt;</p>
-<p class="p1"><span class="Apple-converted-space">    </span>&lt;div class="row"&gt;</p>
-<p class="p1"><span class="Apple-converted-space">      </span>&lt;div&gt;</p>
-<p class="p1"><span class="Apple-converted-space">        </span>&lt;label&gt;Free search（q）&lt;/label&gt;</p>
-<p class="p1"><span class="Apple-converted-space">        </span>&lt;input id="q" placeholder="member_id / email / phone / city など" /&gt;</p>
-<p class="p1"><span class="Apple-converted-space">      </span>&lt;/div&gt;</p>
-<p class="p1"><span class="Apple-converted-space">      </span>&lt;div&gt;</p>
-<p class="p1"><span class="Apple-converted-space">        </span>&lt;label&gt;Email（完全一致）&lt;/label&gt;</p>
-<p class="p1"><span class="Apple-converted-space">        </span>&lt;input id="email" placeholder="example@gmail.com" /&gt;</p>
-<p class="p1"><span class="Apple-converted-space">      </span>&lt;/div&gt;</p>
-<p class="p1"><span class="Apple-converted-space">      </span>&lt;div&gt;</p>
-<p class="p1"><span class="Apple-converted-space">        </span>&lt;label&gt;Kamikumite ID（member_id）&lt;/label&gt;</p>
-<p class="p1"><span class="Apple-converted-space">        </span>&lt;input id="member_id" placeholder="172551 など" /&gt;</p>
-<p class="p1"><span class="Apple-converted-space">      </span>&lt;/div&gt;</p>
-<p class="p1"><span class="Apple-converted-space">    </span>&lt;/div&gt;</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">    </span>&lt;div class="row"&gt;</p>
-<p class="p1"><span class="Apple-converted-space">      </span>&lt;button id="btnSearch" style="max-width:180px;"&gt;Search&lt;/button&gt;</p>
-<p class="p1"><span class="Apple-converted-space">      </span>&lt;button id="btnClear" style="max-width:180px;"&gt;Clear&lt;/button&gt;</p>
-<p class="p1"><span class="Apple-converted-space">    </span>&lt;/div&gt;</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">    </span>&lt;small&gt;</p>
-<p class="p1"><span class="Apple-converted-space">      </span>※ 検索対象は Kamikumites / Non Kamikumites / Sleeping Kamikumites のみ</p>
-<p class="p1"><span class="Apple-converted-space">    </span>&lt;/small&gt;</p>
-<p class="p1"><span class="Apple-converted-space">  </span>&lt;/div&gt;</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">  </span>&lt;div id="status"&gt;&lt;/div&gt;</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">  </span>&lt;table&gt;</p>
-<p class="p1"><span class="Apple-converted-space">    </span>&lt;thead&gt;</p>
-<p class="p1"><span class="Apple-converted-space">      </span>&lt;tr&gt;</p>
-<p class="p1"><span class="Apple-converted-space">        </span>&lt;th&gt;ID&lt;/th&gt;</p>
-<p class="p1"><span class="Apple-converted-space">        </span>&lt;th&gt;Email&lt;/th&gt;</p>
-<p class="p1"><span class="Apple-converted-space">        </span>&lt;th&gt;Member ID&lt;/th&gt;</p>
-<p class="p1"><span class="Apple-converted-space">        </span>&lt;th&gt;Active Status&lt;/th&gt;</p>
-<p class="p1"><span class="Apple-converted-space">        </span>&lt;th&gt;Branch&lt;/th&gt;</p>
-<p class="p1"><span class="Apple-converted-space">        </span>&lt;th&gt;&lt;/th&gt;</p>
-<p class="p1"><span class="Apple-converted-space">      </span>&lt;/tr&gt;</p>
-<p class="p1"><span class="Apple-converted-space">    </span>&lt;/thead&gt;</p>
-<p class="p1"><span class="Apple-converted-space">    </span>&lt;tbody id="rows"&gt;&lt;/tbody&gt;</p>
-<p class="p1"><span class="Apple-converted-space">  </span>&lt;/table&gt;</p>
-<p class="p2"><br></p>
-<p class="p1"><span class="Apple-converted-space">  </span>&lt;script type="module" src="./js/contacts.js"&gt;&lt;/script&gt;</p>
-<p class="p1">&lt;/body&gt;</p>
-<p class="p1">&lt;/html&gt;</p>
+
+  <header>
+    <h2>Contacts</h2>
+    <small><a href="/index.html">← Back</a></small>
+  </header>
+
+  <div class="card">
+    <div class="topbar">
+      <input id="q" placeholder="Search (name / email)" />
+      <button type="button" onclick="alert('次は検索APIに繋ぎます')">Search</button>
+    </div>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Email</th>
+          <th>Branch</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody id="rows">
+        <tr>
+          <td>Sample User</td>
+          <td>sample@example.com</td>
+          <td>LA</td>
+          <td><a href="/edit.html"><button type="button">Edit</button></a></td>
+        </tr>
+      </tbody>
+    </table>
+
+    <p style="margin-top:12px;">
+      ※ まずは「表示の型」を固めました。次に Worker/API でこの表に流し込みます。
+    </p>
+  </div>
+
 </body>
 </html>
