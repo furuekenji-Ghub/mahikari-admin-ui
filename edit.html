@@ -1,21 +1,21 @@
 <!doctype html>
-<html lang="ja">
+<html lang="en">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Edit | Mahikari Admin</title>
+  <title>Edit Contact | Mahikari Admin</title>
   <link rel="stylesheet" href="/css/style.css" />
   <style>
     label { display:block; margin-top:10px; }
-    input { padding:8px; width: 420px; max-width:100%; }
-    .row { margin-top: 12px; }
+    input { padding:8px; width:420px; max-width:100%; }
+    .row { margin-top:12px; }
   </style>
 </head>
 <body>
 
   <header>
-    <h2>Edit</h2>
-    <small><a href="/contacts.html">← Back</a></small>
+    <h2>Edit Contact</h2>
+    <small><a href="/contacts.html">← Back to Contacts</a></small>
   </header>
 
   <div class="card">
@@ -29,12 +29,17 @@
     <input id="branch" value="LA" />
 
     <div class="row">
-      <button type="button" onclick="alert('次は update API に繋ぎます')">Update</button>
-      <a href="/contacts.html"><button type="button">Cancel</button></a>
+      <button type="button" onclick="alert('Next: update API')">
+        Update
+      </button>
+
+      <a href="/contacts.html">
+        <button type="button">Cancel</button>
+      </a>
     </div>
 
-    <p style="margin-top:12px;">
-      ※ 次は URL パラメータ（例: ?id=xxxx）で対象コンタクトを読み込みます。
+    <p style="margin-top:12px; font-size: 0.9em; color:#666;">
+      ※ This screen will load contact data using an ID parameter (e.g. <code>?id=123</code>)
     </p>
   </div>
 
