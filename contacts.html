@@ -21,7 +21,6 @@
     .chip { display:inline-block; padding:2px 8px; border:1px solid #ddd; border-radius:999px; font-size:12px; }
     code { background:#f3f3f3; padding:2px 6px; border-radius:6px; }
 
-    /* 操作案内 */
     .instruction {
       border: 1px solid #e5e5e5;
       background: #fafafa;
@@ -33,7 +32,7 @@
     .instruction b { color:#333; }
     .instruction .ja { margin-top:6px; color:#555; }
 
-    /* ★赤枠：Branch / Active Status / Search のみ */
+    /* 赤枠は3つだけ */
     .red-focus {
       border: 2px solid #d32f2f !important;
       border-radius: 10px;
@@ -65,6 +64,17 @@
       opacity: 0.5;
       cursor: not-allowed;
     }
+
+    /* Focus banner */
+    .focus-banner {
+      border: 1px solid #cce5ff;
+      background: #eef7ff;
+      color: #034c8c;
+      border-radius: 10px;
+      padding: 10px 12px;
+      margin-top: 10px;
+      display: none;
+    }
   </style>
 </head>
 <body>
@@ -76,11 +86,9 @@
 
 <div class="card">
 
-  <!-- Search / Filters row -->
   <div class="topbar">
     <input id="q" type="text" placeholder="Keyword (name, email)" />
 
-    <!-- 赤枠：Branch -->
     <select id="branch" class="red-focus">
       <option value="">Branch: (Any)</option>
       <option value="canada">Canada</option>
@@ -92,7 +100,6 @@
       <option value="hawaii">Hawaii</option>
     </select>
 
-    <!-- 赤枠：Active Status -->
     <select id="active_status" class="red-focus">
       <option value="">Active Status: (Any)</option>
       <option value="non_kamikumite">Non Kamikumite</option>
@@ -104,7 +111,6 @@
       <option value="sleeping_kamikumite">Sleeping Kamikumite</option>
     </select>
 
-    <!-- 赤枠：Search -->
     <button type="button" class="red-focus" onclick="doSearch()">Search</button>
 
     <button type="button" onclick="clearSearch()">Clear</button>
@@ -114,26 +120,28 @@
     <span class="chip" id="filterTag" style="display:none;"></span>
   </div>
 
-  <!-- Instruction -->
   <div class="instruction">
     <div>
-      <b>How to filter:</b>
-      Select <b>Branch</b> and <b>Active Status</b>, then click <b>Search</b>.
+      <b>How to filter:</b> Select <b>Branch</b> and <b>Active Status</b>, then click <b>Search</b>.
       Use the page buttons at the bottom to view the next 50 results.
     </div>
     <div class="ja">
-      <b>操作方法：</b>
-      まず <b>拠点（Branch）</b> と <b>ステータス（Active Status）</b> を選択し、
-      その後 <b>Search</b> を押して絞り込みます。<br>
-      51件目以降は、画面下のページ番号（<b>2</b>, <b>3</b> ...）を押すことで次の50件を閲覧できます。
+      <b>操作方法：</b> まず <b>拠点（Branch）</b> と <b>ステータス（Active Status）</b> を選択し、<b>Search</b> を押して絞り込みます。<br>
+      51件目以降は、画面下のページ番号（2, 3 ...）で次の50件へ移動できます。
     </div>
   </div>
 
-  <!-- Table -->
+  <div class="focus-banner" id="focusBanner">
+    ✅ Updated record is shown below for confirmation.  
+    Click <b>Clear</b> to return to the normal list.
+  </div>
+
   <div class="table-wrap">
     <table>
       <thead>
         <tr>
+          <!-- ✅ Edit列を一番左へ -->
+          <th>Edit</th>
           <th>Last Name</th>
           <th>First Name</th>
           <th>Middle Name</th>
@@ -154,14 +162,12 @@
           <th>Initial Notes</th>
           <th>Notes Last Updated</th>
           <th>Create Date</th>
-          <th>Action</th>
         </tr>
       </thead>
       <tbody id="rows"></tbody>
     </table>
   </div>
 
-  <!-- Pagination -->
   <div class="pager" id="pager"></div>
 
   <div class="status muted" id="status"></div>
@@ -189,9 +195,9 @@
 
   const PAGE_LIMIT = 50;
 
-  // Pagination state
-  let pageIndex = 1;             // 1-based
-  let afterTokens = { 1: null }; // page -> after token (page1=null)
+  // paging state
+  let pageIndex = 1;
+  let afterTokens = { 1: null };
   let hasNext = false;
 
   function esc(s){
@@ -232,6 +238,11 @@
     return { q, branch, active_status };
   }
 
+  function getFocusId(){
+    const u = new URL(location.href);
+    return u.searchParams.get("focus") || "";
+  }
+
   async function fetchContacts({ q, branch, active_status, after }){
     const url = new URL("/api/contacts", location.origin);
     if (q) url.searchParams.set("search", q);
@@ -248,6 +259,15 @@
     return { ok: res.ok, status: res.status, data };
   }
 
+  async function fetchContactById(id){
+    setStatus("Loading...");
+    const res = await fetch(`/api/contacts/${encodeURIComponent(id)}`);
+    const text = await res.text();
+    let data;
+    try { data = text ? JSON.parse(text) : null; } catch { data = { raw:text }; }
+    return { ok: res.ok, status: res.status, data };
+  }
+
   function renderRows(results){
     const tbody = document.getElementById("rows");
     tbody.innerHTML = "";
@@ -255,6 +275,8 @@
       const id = c.id;
       const tr = document.createElement("tr");
       tr.innerHTML = `
+        <!-- ✅ Edit列を左端 -->
+        <td><a href="/edit.html?id=${encodeURIComponent(id)}"><button type="button">Edit</button></a></td>
         <td>${esc(p(c,"lastname"))}</td>
         <td>${esc(p(c,"firstname"))}</td>
         <td>${esc(p(c,"middle_name"))}</td>
@@ -275,7 +297,6 @@
         <td>${esc(p(c,"initial_notes"))}</td>
         <td>${esc(p(c,"notes_last_updated"))}</td>
         <td>${fmtDate(p(c,"createdate"))}</td>
-        <td><a href="/edit.html?id=${encodeURIComponent(id)}"><button type="button">Edit</button></a></td>
       `;
       tbody.appendChild(tr);
     }
@@ -284,7 +305,6 @@
   }
 
   function getAfterFromPaging(data){
-    // HubSpot v3 paging: { paging: { next: { after: "..." } } }
     const after = data && data.paging && data.paging.next && data.paging.next.after;
     return after ? String(after) : null;
   }
@@ -293,7 +313,11 @@
     const el = document.getElementById("pager");
     el.innerHTML = "";
 
-    // Page buttons 1..pageIndex (+ next if available)
+    // If focus mode, hide pager
+    if (getFocusId()){
+      return;
+    }
+
     for (let p = 1; p <= pageIndex; p++){
       const b = document.createElement("button");
       b.textContent = String(p);
@@ -302,7 +326,6 @@
       el.appendChild(b);
     }
 
-    // Next page button
     const nextBtn = document.createElement("button");
     nextBtn.textContent = String(pageIndex + 1);
     nextBtn.disabled = !hasNext;
@@ -313,16 +336,12 @@
   async function gotoPage(targetPage){
     const { q, branch, active_status } = currentFilters();
 
-    // If we don't have after token for this page, we can only go forward sequentially.
-    // But our UI always enables only next page when available.
     const after = afterTokens[targetPage] ?? null;
     if (targetPage > 1 && afterTokens[targetPage] === undefined){
-      // shouldn't happen because we only enable next
       alert("Please move forward using the next page button.");
       return;
     }
 
-    // Load
     const r = await fetchContacts({ q, branch, active_status, after });
     if (!r.ok){
       if (r.status === 403 && r.data && r.data.error){
@@ -338,7 +357,6 @@
       return;
     }
 
-    // Update state
     pageIndex = targetPage;
     const nextAfter = getAfterFromPaging(r.data);
     hasNext = Boolean(nextAfter);
@@ -352,13 +370,36 @@
   }
 
   async function doSearch(){
-    // Reset paging when new search executed
+    // focus mode?
+    const focus = getFocusId();
+    const banner = document.getElementById("focusBanner");
+    // banner exists as element? (not in this version) so ignore
+
+    // Reset paging
     pageIndex = 1;
     afterTokens = { 1: null };
     hasNext = false;
 
     const { q, branch, active_status } = currentFilters();
     updateFilterTag(q, branch, active_status);
+
+    // If focus exists, show only that record
+    if (focus){
+      const focusBanner = document.getElementById("focusBanner");
+      if (focusBanner){
+        focusBanner.style.display = "block";
+      }
+      const r1 = await fetchContactById(focus);
+      if (!r1.ok){
+        alert(`Failed: ${r1.status}\n` + JSON.stringify(r1.data, null, 2));
+        renderRows([]);
+        renderPager();
+        return;
+      }
+      renderRows([{ id: focus, properties: r1.data.properties }]);
+      renderPager();
+      return;
+    }
 
     const r = await fetchContacts({ q, branch, active_status, after: null });
     if (!r.ok){
@@ -385,13 +426,18 @@
   }
 
   function clearSearch(){
+    // Clear focus if present by redirecting to plain contacts.html
+    if (getFocusId()){
+      location.href = "/contacts.html";
+      return;
+    }
     document.getElementById("q").value="";
     document.getElementById("branch").value="";
     document.getElementById("active_status").value="";
     doSearch();
   }
 
-  // initial load = page 1, no filters
+  // initial
   doSearch();
 </script>
 
