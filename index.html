@@ -3,30 +3,49 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Mahikari Admin</title>
+  <title>World Divine Light Admin</title>
   <link rel="stylesheet" href="/css/style.css" />
+  <style>
+    .desc {
+      color: #666;
+      font-size: 0.95em;
+      margin-top: 8px;
+      line-height: 1.6;
+    }
+    .desc-ja {
+      margin-top: 6px;
+      color: #555;
+    }
+  </style>
 </head>
 <body>
 
 <header>
-  <h2>Mahikari Admin</h2>
+  <h2>World Divine Light Admin</h2>
   <small>admin.mahikari.org</small>
 </header>
 
 <div class="card">
-  <p>Contacts</p>
-  <a href="/contacts.html"><button type="button">Open</button></a>
-</div>
+  <p><b>Contacts</b></p>
 
-<div class="card">
-  <p>Create Contact</p>
-  <a href="/create.html"><button type="button">Open</button></a>
-</div>
+  <!-- English description -->
+  <p class="desc">
+    Search and filter HubSpot contacts by <b>Branch</b> and <b>Active Status</b>.
+    You can open each record to <b>view</b>, <b>edit</b>, or <b>delete</b>.
+    Newly created records are shown first.
+  </p>
 
-<div class="card">
-  <p>Super Admin (Allowlist)</p>
-  <a href="/superadmin.html"><button type="button">Open</button></a>
-  <p style="color:#666;font-size:0.9em;">Super Admin only</p>
+  <!-- Japanese description -->
+  <p class="desc desc-ja">
+    HubSpot に登録されている連絡先を、<b>拠点（Branch）</b> や
+    <b>ステータス（Active Status）</b> で検索・絞り込みできます。<br>
+    各連絡先は、詳細確認・編集・削除が可能です。<br>
+    新しく登録されたデータほど、上位に表示されます。
+  </p>
+
+  <a href="/contacts.html">
+    <button type="button">Open</button>
+  </a>
 </div>
 
 </body>
