@@ -7,7 +7,8 @@
   <link rel="stylesheet" href="/css/style.css" />
   <style>
     .topbar { display:flex; gap:12px; align-items:center; margin: 12px 0; flex-wrap: wrap; }
-    input[type="text"] { padding: 8px; width: 520px; max-width: 100%; }
+    input[type="text"] { padding: 8px; width: 420px; max-width: 100%; }
+    select { padding: 8px; min-width: 220px; max-width: 100%; }
     table { width: 100%; border-collapse: collapse; }
     th, td { border: 1px solid #ccc; padding: 8px; text-align: left; vertical-align: top; }
     th { background: #f3f3f3; position: sticky; top: 0; z-index: 1; }
@@ -16,6 +17,7 @@
     .status { margin-top: 10px; }
     button { white-space: nowrap; }
     code { background:#f3f3f3; padding:2px 6px; border-radius:6px; }
+    .chip { display:inline-block; padding:2px 8px; border:1px solid #ddd; border-radius:999px; font-size:12px; color:#444; }
   </style>
 </head>
 <body>
@@ -28,11 +30,37 @@
   <div class="card">
 
     <div class="topbar">
-      <input id="q" type="text" placeholder="Search (name, email, keyword)" />
+      <input id="q" type="text" placeholder="Keyword (name, email)" />
+      <select id="branch">
+        <option value="">Branch: (Any)</option>
+        <!-- values are INTERNAL NAME -->
+        <option value="canada">Canada</option>
+        <option value="new_york">New York</option>
+        <option value="chicago">Chicago</option>
+        <option value="los_angeles">Los Angeles</option>
+        <option value="california">California</option>
+        <option value="houston">Houston</option>
+        <option value="hawaii">Hawaii</option>
+      </select>
+
+      <select id="active_status">
+        <option value="">Active Status: (Any)</option>
+        <!-- values are INTERNAL NAME -->
+        <option value="non_kamikumite">Non Kamikumite</option>
+        <option value="basic_kamikumite">Basic Kamikumite</option>
+        <option value="intermediate_kamikum">Intermediate Kami</option>
+        <option value="advanced_kamikumite">Advanced Kamikumite</option>
+        <option value="kanbu">Kanbu</option>
+        <option value="doshi">Doshi</option>
+        <option value="sleeping_kamikumite">Sleeping Kamikumite</option>
+      </select>
+
       <button type="button" onclick="doSearch()">Search</button>
       <button type="button" onclick="clearSearch()">Clear</button>
       <a href="/create.html"><button type="button">Create Contact</button></a>
+
       <span class="muted" id="count"></span>
+      <span class="chip" id="filterTag" style="display:none;"></span>
     </div>
 
     <div class="table-wrap">
@@ -98,9 +126,28 @@
   function setStatus(msg) { document.getElementById("status").textContent = msg || ""; }
   function setCount(n) { document.getElementById("count").textContent = (typeof n === "number") ? `Showing ${n} record(s)` : ""; }
 
-  async function fetchContacts(search) {
+  function updateFilterTag(q, branch, status) {
+    const tag = document.getElementById("filterTag");
+    const parts = [];
+    if (q) parts.push(`keyword="${q}"`);
+    if (branch) parts.push(`branch=${branch}`);
+    if (status) parts.push(`active_status=${status}`);
+    if (!parts.length) {
+      tag.style.display = "none";
+      tag.textContent = "";
+      return;
+    }
+    tag.style.display = "inline-block";
+    tag.textContent = "Filters: " + parts.join(" | ");
+  }
+
+  async function fetchContacts({ q, branch, active_status }) {
     const url = new URL((API_BASE || "") + "/api/contacts", location.origin);
-    if (search && search.trim()) url.searchParams.set("search", search.trim());
+
+    if (q && q.trim()) url.searchParams.set("search", q.trim());
+    if (branch) url.searchParams.set("branch", branch);
+    if (active_status) url.searchParams.set("active_status", active_status);
+
     url.searchParams.set("limit", "50");
 
     setStatus("Loading...");
@@ -153,8 +200,14 @@
     setStatus(results.length ? "" : "No results");
   }
 
-  async function load(search) {
-    const r = await fetchContacts(search);
+  async function loadCurrent() {
+    const q = document.getElementById("q").value.trim();
+    const branch = document.getElementById("branch").value;
+    const active_status = document.getElementById("active_status").value;
+
+    updateFilterTag(q, branch, active_status);
+
+    const r = await fetchContacts({ q, branch, active_status });
     if (!r.ok) {
       setStatus(`Error: ${r.status}`);
       alert(`Failed: ${r.status}\n` + JSON.stringify(r.data, null, 2));
@@ -164,13 +217,13 @@
     renderRows(results);
   }
 
-  function doSearch() {
-    const q = document.getElementById("q").value;
-    load(q);
-  }
+  function doSearch() { loadCurrent(); }
+
   function clearSearch() {
     document.getElementById("q").value = "";
-    load("");
+    document.getElementById("branch").value = "";
+    document.getElementById("active_status").value = "";
+    loadCurrent();
   }
 
   async function deleteFromList(id) {
@@ -200,12 +253,11 @@
     }
 
     setStatus("Deleted.");
-    const q = document.getElementById("q").value;
-    await load(q);
+    await loadCurrent();
   }
 
   // initial load
-  load("");
+  loadCurrent();
 </script>
 
 </body>
