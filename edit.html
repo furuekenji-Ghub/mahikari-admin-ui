@@ -23,14 +23,6 @@
   <div class="card">
     <div class="muted" id="meta"></div>
 
-    <label>Admin Token (x-admin-token)</label>
-    <input id="admin_token" type="password" placeholder="Enter admin token for Update/Delete" />
-    <div class="row">
-      <button type="button" id="saveTokenBtn">Save Token</button>
-      <button type="button" id="clearTokenBtn">Clear Token</button>
-      <span class="muted">Stored only in this browser (localStorage).</span>
-    </div>
-
     <label>Last Name</label>
     <input id="lastname" />
 
@@ -101,7 +93,7 @@
   </div>
 
 <script>
-  const API_BASE = ""; // same origin (admin.mahikari.org/api/*)
+  const API_BASE = "";
 
   const ALLOWLIST = [
     "lastname","firstname","middle_name","member_id","active_status","branch","gender","date_of_birth",
@@ -117,27 +109,10 @@
     return u.searchParams.get("id") || "";
   }
 
-  // token storage
-  function getToken() { return localStorage.getItem("ADMIN_TOKEN") || ""; }
-  function setToken(v) { localStorage.setItem("ADMIN_TOKEN", v); }
-  function clearToken() { localStorage.removeItem("ADMIN_TOKEN"); }
-
-  async function api(path, opts={}) {
-    const url = new URL((API_BASE || "") + path, location.origin);
-    const res = await fetch(url.toString(), {
-      ...opts,
-      headers: { ...(opts.headers || {}) }
-    });
-    const text = await res.text();
-    let data;
-    try { data = text ? JSON.parse(text) : null; } catch { data = { raw: text }; }
-    return { ok: res.ok, status: res.status, data };
-  }
-
   function readForm() {
     const props = {};
     for (const k of ALLOWLIST) {
-      if (k === "createdate") continue; // read-only
+      if (k === "createdate") continue;
       const el = qs(k);
       if (!el) continue;
       props[k] = (el.value ?? "").trim();
@@ -151,6 +126,15 @@
       const v = (props && props[k] != null) ? String(props[k]) : "";
       qs(k).value = v;
     }
+  }
+
+  async function api(path, opts={}) {
+    const url = new URL((API_BASE || "") + path, location.origin);
+    const res = await fetch(url.toString(), { ...opts, headers: { ...(opts.headers || {}) } });
+    const text = await res.text();
+    let data;
+    try { data = text ? JSON.parse(text) : null; } catch { data = { raw: text }; }
+    return { ok: res.ok, status: res.status, data };
   }
 
   async function loadContact(id) {
@@ -167,21 +151,12 @@
   }
 
   async function updateContact(id) {
-    const token = getToken();
-    if (!token) {
-      alert("Admin token is required to update.\nEnter token and click Save Token.");
-      return;
-    }
-
     setStatus("Updating...");
     const props = readForm();
 
     const r = await api(`/api/contacts/${encodeURIComponent(id)}`, {
       method: "PATCH",
-      headers: {
-        "content-type": "application/json",
-        "x-admin-token": token
-      },
+      headers: { "content-type": "application/json" },
       body: JSON.stringify({ properties: props })
     });
 
@@ -192,17 +167,10 @@
     }
 
     setStatus("Updated");
-    // refresh latest values from server
     await loadContact(id);
   }
 
   async function deleteContact(id) {
-    const token = getToken();
-    if (!token) {
-      alert("Admin token is required to delete.\nEnter token and click Save Token.");
-      return;
-    }
-
     const reason = prompt("Delete reason (required):");
     if (!reason) return;
 
@@ -214,7 +182,6 @@
     const r = await api(`/api/contacts/${encodeURIComponent(id)}`, {
       method: "DELETE",
       headers: {
-        "x-admin-token": token,
         "x-delete-confirm": "DELETE",
         "x-delete-reason": reason
       }
@@ -230,19 +197,6 @@
     location.href = "/contacts.html";
   }
 
-  // init token UI
-  qs("admin_token").value = getToken();
-  qs("saveTokenBtn").onclick = () => {
-    setToken(qs("admin_token").value.trim());
-    setStatus(getToken() ? "Token saved." : "Token cleared.");
-  };
-  qs("clearTokenBtn").onclick = () => {
-    clearToken();
-    qs("admin_token").value = "";
-    setStatus("Token cleared.");
-  };
-
-  // init load
   const id = getId();
   if (!id) {
     qs("meta").textContent = "Missing required parameter: ?id=CONTACT_ID";
@@ -251,7 +205,6 @@
     loadContact(id);
   }
 
-  // bind actions
   qs("updateBtn").onclick = () => updateContact(id);
   qs("deleteBtn").onclick = () => deleteContact(id);
 </script>
