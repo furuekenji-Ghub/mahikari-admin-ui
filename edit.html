@@ -6,11 +6,12 @@
   <title>Edit Contact | Mahikari Admin</title>
   <link rel="stylesheet" href="/css/style.css" />
   <style>
-    label { display:block; margin-top:10px; }
-    input { padding:8px; width:420px; max-width:100%; }
+    label { display:block; margin-top:10px; font-weight: 600; }
+    input, select { padding:8px; width:520px; max-width:100%; }
     .row { margin-top: 12px; display:flex; gap:10px; flex-wrap: wrap; align-items:center; }
     .muted { color:#666; font-size: 0.9em; }
     code { background:#f3f3f3; padding:2px 6px; border-radius:6px; }
+    .readonly { background:#f7f7f7; }
   </style>
 </head>
 <body>
@@ -36,10 +37,28 @@
     <input id="member_id" />
 
     <label>Active Status</label>
-    <input id="active_status" />
+    <select id="active_status">
+      <option value="">(Select)</option>
+      <option value="non_kamikumite">Non Kamikumite</option>
+      <option value="basic_kamikumite">Basic Kamikumite</option>
+      <option value="intermediate_kamikum">Intermediate Kamikumite</option>
+      <option value="advanced_kamikumite">Advanced Kamikumite</option>
+      <option value="kanbu">Kanbu</option>
+      <option value="doshi">Doshi</option>
+      <option value="sleeping_kamikumite">Sleeping Kamikumite</option>
+    </select>
 
     <label>Branch</label>
-    <input id="branch" />
+    <select id="branch">
+      <option value="">(Select)</option>
+      <option value="canada">Canada</option>
+      <option value="new_york">New York</option>
+      <option value="chicago">Chicago</option>
+      <option value="los_angeles">Los Angeles</option>
+      <option value="california">California</option>
+      <option value="houston">Houston</option>
+      <option value="hawaii">Hawaii</option>
+    </select>
 
     <label>Gender</label>
     <input id="gender" />
@@ -77,8 +96,11 @@
     <label>Initial Notes</label>
     <input id="initial_notes" />
 
-    <label>Notes Last Updated</label>
-    <input id="notes_last_updated" />
+    <label>Notes Last Updated (read-only)</label>
+    <input id="notes_last_updated" class="readonly" disabled />
+
+    <label>Create Date (read-only)</label>
+    <input id="createdate" class="readonly" disabled />
 
     <div class="row">
       <button type="button" id="updateBtn">Update</button>
@@ -89,17 +111,20 @@
 
     <p class="muted" style="margin-top:12px;">
       Loads from <code>/api/contacts/:id</code> and updates via <code>PATCH</code>.
+      Read-only fields are displayed but never sent on update.
     </p>
   </div>
 
 <script>
   const API_BASE = "";
 
-  const ALLOWLIST = [
+  const FIELD_KEYS = [
     "lastname","firstname","middle_name","member_id","active_status","branch","gender","date_of_birth",
     "preferred_language","email","mobilephone","address","city","state__province","zip","taking_medication",
     "medication_names","initial_notes","notes_last_updated","createdate"
   ];
+
+  const READONLY_KEYS = new Set(["notes_last_updated","createdate"]);
 
   function qs(k){ return document.getElementById(k); }
   function setStatus(msg){ qs("status").textContent = msg || ""; }
@@ -109,25 +134,6 @@
     return u.searchParams.get("id") || "";
   }
 
-  function readForm() {
-    const props = {};
-    for (const k of ALLOWLIST) {
-      if (k === "createdate") continue;
-      const el = qs(k);
-      if (!el) continue;
-      props[k] = (el.value ?? "").trim();
-    }
-    return props;
-  }
-
-  function fillForm(props) {
-    for (const k of ALLOWLIST) {
-      if (!qs(k)) continue;
-      const v = (props && props[k] != null) ? String(props[k]) : "";
-      qs(k).value = v;
-    }
-  }
-
   async function api(path, opts={}) {
     const url = new URL((API_BASE || "") + path, location.origin);
     const res = await fetch(url.toString(), { ...opts, headers: { ...(opts.headers || {}) } });
@@ -135,6 +141,26 @@
     let data;
     try { data = text ? JSON.parse(text) : null; } catch { data = { raw: text }; }
     return { ok: res.ok, status: res.status, data };
+  }
+
+  function fillForm(props) {
+    for (const k of FIELD_KEYS) {
+      const el = qs(k);
+      if (!el) continue;
+      const v = (props && props[k] != null) ? String(props[k]) : "";
+      el.value = v;
+    }
+  }
+
+  function readForm() {
+    const props = {};
+    for (const k of FIELD_KEYS) {
+      if (READONLY_KEYS.has(k)) continue; // don't send read-only
+      const el = qs(k);
+      if (!el) continue;
+      props[k] = (el.value ?? "").trim();
+    }
+    return props;
   }
 
   async function loadContact(id) {
