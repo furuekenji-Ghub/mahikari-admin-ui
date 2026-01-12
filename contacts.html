@@ -6,29 +6,27 @@
   <title>Contacts | Mahikari Admin</title>
   <link rel="stylesheet" href="/css/style.css" />
   <style>
-    table {
-      width: 100%;
-      border-collapse: collapse;
-    }
-    th, td {
-      border: 1px solid #ccc;
-      padding: 8px;
-      text-align: left;
-    }
-    th {
-      background: #f3f3f3;
-    }
     .topbar {
       display: flex;
       gap: 12px;
       align-items: center;
       margin: 12px 0;
+      flex-wrap: wrap;
     }
     input {
       padding: 8px;
       width: 320px;
       max-width: 100%;
     }
+    table { width: 100%; border-collapse: collapse; }
+    th, td { border: 1px solid #ccc; padding: 8px; text-align: left; vertical-align: top; }
+    th { background: #f3f3f3; position: sticky; top: 0; z-index: 1; }
+    .table-wrap { overflow: auto; max-height: 70vh; border: 1px solid #ddd; border-radius: 10px; }
+    .muted { color: #666; font-size: 0.9em; }
+    .right { text-align: right; }
+    button { white-space: nowrap; }
+    .status { margin-top: 10px; }
+    code { background:#f3f3f3; padding:2px 6px; border-radius:6px; }
   </style>
 </head>
 <body>
@@ -41,47 +39,177 @@
   <div class="card">
 
     <div class="topbar">
-      <input id="q" placeholder="Search by name or email" />
+      <input id="q" placeholder="Search (name, email, keyword)" />
       <button type="button" onclick="doSearch()">Search</button>
+      <button type="button" onclick="clearSearch()">Clear</button>
+
       <a href="/create.html">
         <button type="button">Create Contact</button>
       </a>
+
+      <span class="muted" id="count"></span>
     </div>
 
-    <table>
-      <thead>
-        <tr>
-          <th>Name</th>
-          <th>Email</th>
-          <th>Branch</th>
-          <th>Action</th>
-        </tr>
-      </thead>
-      <tbody id="rows">
-        <tr>
-          <td>Sample User</td>
-          <td>sample@example.com</td>
-          <td>LA</td>
-          <td>
-            <a href="/edit.html">
-              <button type="button">Edit</button>
-            </a>
-          </td>
-        </tr>
-      </tbody>
-    </table>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Last Name</th>
+            <th>First Name</th>
+            <th>Middle Name</th>
+            <th>Member ID</th>
+            <th>Active Status</th>
+            <th>Branch</th>
+            <th>Gender</th>
+            <th>Date of Birth</th>
+            <th>Preferred Language</th>
+            <th>Email</th>
+            <th>Mobile Phone</th>
+            <th>Address</th>
+            <th>City</th>
+            <th>State / Province</th>
+            <th>ZIP</th>
+            <th>Taking Medication</th>
+            <th>Medication Names</th>
+            <th>Initial Notes</th>
+            <th>Notes Last Updated</th>
+            <th>Create Date</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody id="rows"></tbody>
+      </table>
+    </div>
 
-    <p style="margin-top:12px; font-size:0.9em; color:#666;">
-      ※ This table will be populated via Worker / API in the next step.
+    <div class="status muted" id="status"></div>
+
+    <p class="muted" style="margin-top:12px;">
+      Data source: Worker <code>/api/contacts</code> (HubSpot master)
     </p>
 
   </div>
 
 <script>
+  // --- CONFIG ---
+  // If your API is on the SAME origin (recommended), leave empty and use relative paths.
+  // If you want to call a different domain, set like: "https://api.mahikari.org"
+  const API_BASE = ""; // "" = same origin (if you route /api/* to worker). Otherwise set full domain.
+
+  // --- helpers ---
+  function esc(s) {
+    return String(s ?? "")
+      .replaceAll("&", "&amp;")
+      .replaceAll("<", "&lt;")
+      .replaceAll(">", "&gt;")
+      .replaceAll('"', "&quot;")
+      .replaceAll("'", "&#39;");
+  }
+
+  function fmtDate(iso) {
+    if (!iso) return "";
+    const d = new Date(iso);
+    if (isNaN(d.getTime())) return esc(iso);
+    return d.toLocaleString();
+  }
+
+  function p(obj, key) {
+    // Worker returns: { id, properties: { ... } }
+    const v = obj && obj.properties ? obj.properties[key] : null;
+    return (v === null || v === undefined) ? "" : String(v);
+  }
+
+  function setStatus(msg) {
+    document.getElementById("status").textContent = msg || "";
+  }
+
+  function setCount(n) {
+    document.getElementById("count").textContent = (typeof n === "number") ? `Showing ${n} record(s)` : "";
+  }
+
+  // --- API calls ---
+  async function fetchContacts(search) {
+    const url = new URL((API_BASE || "") + "/api/contacts", location.origin);
+    if (search && search.trim()) url.searchParams.set("search", search.trim());
+    url.searchParams.set("limit", "50");
+
+    setStatus("Loading...");
+    const res = await fetch(url.toString(), { method: "GET" });
+
+    const text = await res.text();
+    let data;
+    try { data = text ? JSON.parse(text) : null; } catch { data = { raw: text }; }
+
+    if (!res.ok) {
+      setStatus(`Error: ${res.status}`);
+      console.error("API error", data);
+      return { ok: false, data };
+    }
+    return { ok: true, data };
+  }
+
+  function renderRows(results) {
+    const tbody = document.getElementById("rows");
+    tbody.innerHTML = "";
+
+    for (const c of results) {
+      const id = c.id;
+
+      const tr = document.createElement("tr");
+      tr.innerHTML = `
+        <td>${esc(p(c,"lastname"))}</td>
+        <td>${esc(p(c,"firstname"))}</td>
+        <td>${esc(p(c,"middle_name"))}</td>
+        <td>${esc(p(c,"member_id"))}</td>
+        <td>${esc(p(c,"active_status"))}</td>
+        <td>${esc(p(c,"branch"))}</td>
+        <td>${esc(p(c,"gender"))}</td>
+        <td>${esc(p(c,"date_of_birth"))}</td>
+        <td>${esc(p(c,"preferred_language"))}</td>
+        <td>${esc(p(c,"email"))}</td>
+        <td>${esc(p(c,"mobilephone"))}</td>
+        <td>${esc(p(c,"address"))}</td>
+        <td>${esc(p(c,"city"))}</td>
+        <td>${esc(p(c,"state__province"))}</td>
+        <td>${esc(p(c,"zip"))}</td>
+        <td>${esc(p(c,"taking_medication"))}</td>
+        <td>${esc(p(c,"medication_names"))}</td>
+        <td>${esc(p(c,"initial_notes"))}</td>
+        <td>${esc(p(c,"notes_last_updated"))}</td>
+        <td>${fmtDate(p(c,"createdate"))}</td>
+        <td>
+          <a href="/edit.html?id=${encodeURIComponent(id)}">
+            <button type="button">Edit</button>
+          </a>
+        </td>
+      `;
+      tbody.appendChild(tr);
+    }
+
+    setCount(results.length);
+    setStatus(results.length ? "" : "No results");
+  }
+
+  async function load(search) {
+    const r = await fetchContacts(search);
+    if (!r.ok) return;
+
+    const results = (r.data && r.data.results) ? r.data.results : [];
+    renderRows(results);
+  }
+
+  // --- UI handlers ---
   function doSearch() {
     const q = document.getElementById("q").value;
-    alert("Search keyword: " + q);
+    load(q);
   }
+
+  function clearSearch() {
+    document.getElementById("q").value = "";
+    load("");
+  }
+
+  // initial load
+  load("");
 </script>
 
 </body>
