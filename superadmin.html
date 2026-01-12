@@ -10,6 +10,7 @@
     .row { display:flex; gap:12px; flex-wrap:wrap; align-items:center; margin: 12px 0; }
     .muted { color:#666; font-size:0.9em; }
     code { background:#f3f3f3; padding:2px 6px; border-radius:6px; }
+    .warn { color:#b00020; font-weight:600; }
   </style>
 </head>
 <body>
@@ -21,27 +22,33 @@
 
 <div class="card">
   <p class="muted">
-    This page manages the allowlist used by the Worker.<br/>
-    API: <code>/api/admin/allowlist</code>
+    This page controls who can access the Contacts search page (<code>contacts.html</code>).<br/>
+    Only <code>@worlddivinelight.org</code> emails should be added. Contact@ is not recommended.
   </p>
 
   <div class="row">
     <button type="button" onclick="loadList()">Load allowlist</button>
     <button type="button" onclick="saveList()">Save allowlist</button>
+    <a href="/contacts.html"><button type="button">Go to Contacts</button></a>
     <span class="muted" id="status"></span>
   </div>
 
   <p class="muted">
-    Enter one email per line. Only <code>@worlddivinelight.org</code> should be used.
+    One email per line. Example:<br/>
+    <code>someone@worlddivinelight.org</code>
   </p>
 
-  <textarea id="emails" placeholder="furuek@worlddivinelight.org&#10;someone@worlddivinelight.org"></textarea>
+  <textarea id="emails" placeholder="someone@worlddivinelight.org"></textarea>
+
+  <p class="muted warn" id="error"></p>
 </div>
 
 <script>
   function setStatus(msg){ document.getElementById("status").textContent = msg || ""; }
+  function setError(msg){ document.getElementById("error").textContent = msg || ""; }
 
   async function loadList(){
+    setError("");
     setStatus("Loading...");
     const res = await fetch("/api/admin/allowlist");
     const text = await res.text();
@@ -49,19 +56,20 @@
     try { data = text ? JSON.parse(text) : null; } catch { data = { raw: text }; }
 
     if (!res.ok) {
-      setStatus("Failed: " + res.status);
+      setStatus("");
+      setError("Load failed: " + res.status + " — " + (data?.error || text));
       alert("Load failed:\n" + text);
       return;
     }
 
-    const emails = (data.allowed_emails || []).join("\n");
-    document.getElementById("emails").value = emails;
+    document.getElementById("emails").value = (data.allowed_emails || []).join("\n");
     setStatus("Loaded");
   }
 
   async function saveList(){
+    setError("");
     const raw = document.getElementById("emails").value || "";
-    const allowed_emails = raw.split("\n").map(s => s.trim()).filter(Boolean);
+    const allowed_emails = raw.split("\n").map(s => s.trim().toLowerCase()).filter(Boolean);
 
     setStatus("Saving...");
     const res = await fetch("/api/admin/allowlist", {
@@ -75,7 +83,8 @@
     try { data = text ? JSON.parse(text) : null; } catch { data = { raw: text }; }
 
     if (!res.ok) {
-      setStatus("Failed: " + res.status);
+      setStatus("");
+      setError("Save failed: " + res.status + " — " + (data?.error || text));
       alert("Save failed:\n" + text);
       return;
     }
