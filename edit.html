@@ -8,7 +8,9 @@
   <style>
     label { display:block; margin-top:10px; }
     input { padding:8px; width:420px; max-width:100%; }
-    .row { margin-top:12px; }
+    .row { margin-top:12px; display:flex; gap:10px; flex-wrap:wrap; align-items:center; }
+    .muted { color:#666; font-size: 0.9em; }
+    code { background:#f3f3f3; padding:2px 6px; border-radius:6px; }
   </style>
 </head>
 <body>
@@ -19,29 +21,200 @@
   </header>
 
   <div class="card">
-    <label>Name</label>
-    <input id="name" value="Sample User" />
+    <div class="muted" id="meta"></div>
 
-    <label>Email</label>
-    <input id="email" value="sample@example.com" />
+    <label>Last Name</label>
+    <input id="lastname" />
+
+    <label>First Name</label>
+    <input id="firstname" />
+
+    <label>Middle Name</label>
+    <input id="middle_name" />
+
+    <label>Member ID</label>
+    <input id="member_id" />
+
+    <label>Active Status</label>
+    <input id="active_status" />
 
     <label>Branch</label>
-    <input id="branch" value="LA" />
+    <input id="branch" />
+
+    <label>Gender</label>
+    <input id="gender" />
+
+    <label>Date of Birth</label>
+    <input id="date_of_birth" placeholder="YYYY-MM-DD" />
+
+    <label>Preferred Language</label>
+    <input id="preferred_language" />
+
+    <label>Email</label>
+    <input id="email" />
+
+    <label>Mobile Phone</label>
+    <input id="mobilephone" />
+
+    <label>Address</label>
+    <input id="address" />
+
+    <label>City</label>
+    <input id="city" />
+
+    <label>State / Province</label>
+    <input id="state__province" />
+
+    <label>ZIP</label>
+    <input id="zip" />
+
+    <label>Taking Medication</label>
+    <input id="taking_medication" />
+
+    <label>Medication Names</label>
+    <input id="medication_names" />
+
+    <label>Initial Notes</label>
+    <input id="initial_notes" />
+
+    <label>Notes Last Updated</label>
+    <input id="notes_last_updated" />
 
     <div class="row">
-      <button type="button" onclick="alert('Next: update API')">
-        Update
-      </button>
-
-      <a href="/contacts.html">
-        <button type="button">Cancel</button>
-      </a>
+      <button type="button" id="updateBtn">Update</button>
+      <button type="button" id="deleteBtn">Delete</button>
+      <a href="/contacts.html"><button type="button">Cancel</button></a>
+      <span class="muted" id="status"></span>
     </div>
 
-    <p style="margin-top:12px; font-size: 0.9em; color:#666;">
-      ※ This screen will load contact data using an ID parameter (e.g. <code>?id=123</code>)
+    <p class="muted" style="margin-top:12px;">
+      This page loads data from <code>/api/contacts/:id</code> and updates via <code>PATCH</code>.
     </p>
   </div>
+
+<script>
+  // If API is routed under the same domain (admin.mahikari.org/api/*), keep empty.
+  const API_BASE = "";
+
+  const ALLOWLIST = [
+    "lastname","firstname","middle_name","member_id","active_status","branch","gender","date_of_birth",
+    "preferred_language","email","mobilephone","address","city","state__province","zip","taking_medication",
+    "medication_names","initial_notes","notes_last_updated","createdate"
+  ];
+
+  function qs(k){ return document.getElementById(k); }
+  function setStatus(msg){ qs("status").textContent = msg || ""; }
+
+  function getId() {
+    const u = new URL(location.href);
+    return u.searchParams.get("id") || "";
+  }
+
+  function readForm() {
+    const props = {};
+    for (const k of ALLOWLIST) {
+      if (k === "createdate") continue; // read-only
+      const el = qs(k);
+      if (!el) continue;
+      props[k] = (el.value ?? "").trim();
+    }
+    return props;
+  }
+
+  function fillForm(props) {
+    for (const k of ALLOWLIST) {
+      if (!qs(k)) continue;
+      const v = (props && props[k] != null) ? String(props[k]) : "";
+      qs(k).value = v;
+    }
+  }
+
+  async function api(path, opts={}) {
+    const url = new URL((API_BASE || "") + path, location.origin);
+    const res = await fetch(url.toString(), {
+      ...opts,
+      headers: { ...(opts.headers || {}) }
+    });
+    const text = await res.text();
+    let data;
+    try { data = text ? JSON.parse(text) : null; } catch { data = { raw: text }; }
+    return { ok: res.ok, status: res.status, data };
+  }
+
+  async function loadContact(id) {
+    setStatus("Loading...");
+    const r = await api(`/api/contacts/${encodeURIComponent(id)}`);
+    if (!r.ok) {
+      setStatus(`Load failed (${r.status})`);
+      console.error(r);
+      return;
+    }
+    qs("meta").textContent = `Contact ID: ${id}`;
+    fillForm(r.data.properties || {});
+    setStatus("");
+  }
+
+  // Update (requires x-admin-token on Worker side)
+  async function updateContact(id) {
+    setStatus("Updating...");
+    const props = readForm();
+
+    // Optional: basic validation
+    // if (!props.email) return setStatus("Email is required");
+
+    const r = await api(`/api/contacts/${encodeURIComponent(id)}`, {
+      method: "PATCH",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ properties: props })
+    });
+
+    if (!r.ok) {
+      setStatus(`Update failed (${r.status})`);
+      alert(`Update failed: ${r.status}\n` + JSON.stringify(r.data, null, 2));
+      return;
+    }
+    setStatus("Updated");
+  }
+
+  // Delete (requires x-admin-token + confirm headers)
+  async function deleteContact(id) {
+    const reason = prompt("Delete reason (required):");
+    if (!reason) return;
+
+    if (!confirm("Are you sure you want to delete this contact?")) return;
+    if (!confirm("This action cannot be undone. Continue?")) return;
+
+    setStatus("Deleting...");
+
+    const r = await api(`/api/contacts/${encodeURIComponent(id)}`, {
+      method: "DELETE",
+      headers: {
+        "x-delete-confirm": "DELETE",
+        "x-delete-reason": reason
+      }
+    });
+
+    if (!r.ok) {
+      setStatus(`Delete failed (${r.status})`);
+      alert(`Delete failed: ${r.status}\n` + JSON.stringify(r.data, null, 2));
+      return;
+    }
+
+    setStatus("Deleted");
+    location.href = "/contacts.html";
+  }
+
+  const id = getId();
+  if (!id) {
+    qs("meta").textContent = "Missing required parameter: ?id=CONTACT_ID";
+    setStatus("No ID");
+  } else {
+    loadContact(id);
+  }
+
+  qs("updateBtn").onclick = () => updateContact(id);
+  qs("deleteBtn").onclick = () => deleteContact(id);
+</script>
 
 </body>
 </html>
