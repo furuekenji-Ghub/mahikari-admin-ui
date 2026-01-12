@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Contacts | Mahikari Admin</title>
+  <title>Contacts | World Divine Light Admin</title>
   <link rel="stylesheet" href="/css/style.css" />
   <style>
     .topbar { display:flex; gap:12px; align-items:center; margin: 12px 0; flex-wrap: wrap; }
@@ -17,6 +17,19 @@
     .status { margin-top: 10px; }
     .chip { display:inline-block; padding:2px 8px; border:1px solid #ddd; border-radius:999px; font-size:12px; }
     code { background:#f3f3f3; padding:2px 6px; border-radius:6px; }
+
+    /* NEW: instruction box */
+    .instruction {
+      border: 1px solid #e5e5e5;
+      background: #fafafa;
+      border-radius: 10px;
+      padding: 10px 12px;
+      margin-top: 8px;
+      margin-bottom: 4px;
+      line-height: 1.65;
+    }
+    .instruction b { color: #333; }
+    .instruction .ja { margin-top: 6px; color: #555; }
   </style>
 </head>
 <body>
@@ -27,6 +40,8 @@
 </header>
 
 <div class="card">
+
+  <!-- Search / Filters -->
   <div class="topbar">
     <input id="q" type="text" placeholder="Keyword (name, email)" />
 
@@ -60,6 +75,20 @@
     <span class="chip" id="filterTag" style="display:none;"></span>
   </div>
 
+  <!-- NEW: instruction near filters -->
+  <div class="instruction">
+    <div>
+      <b>How to filter:</b> Select <b>Branch</b> and <b>Active Status</b> to narrow down the list, then click <b>Search</b>.
+      (You can also enter a keyword for name/email if needed.)
+    </div>
+    <div class="ja">
+      <b>操作方法：</b> まず <b>拠点（Branch）</b> と <b>ステータス（Active Status）</b> を選んで絞り込み条件を指定してください。<br>
+      その後、右側の <b>Search</b> ボタンを押してください。<br>
+      （必要に応じて、氏名・メールでキーワード検索も可能です。）
+    </div>
+  </div>
+
+  <!-- Table -->
   <div class="table-wrap">
     <table>
       <thead>
@@ -96,6 +125,7 @@
   <p class="muted" style="margin-top:12px;">
     Data source: Worker <code>/api/contacts</code> (HubSpot master). Sorted newest first.
   </p>
+
 </div>
 
 <script>
@@ -202,7 +232,6 @@
 
     const r = await fetchContacts({ q, branch, active_status });
     if (!r.ok){
-      // nice 403 message for allowlist
       if (r.status === 403 && r.data && r.data.error){
         setStatus("");
         alert(`Failed: 403\n${r.data.error}\n\nAsk Super Admin to add your email in superadmin.html`);
