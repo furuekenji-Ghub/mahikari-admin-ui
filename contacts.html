@@ -7,8 +7,8 @@
   <link rel="stylesheet" href="/css/style.css" />
   <style>
     .topbar { display:flex; gap:12px; align-items:center; margin: 12px 0; flex-wrap: wrap; }
-    input[type="text"] { padding: 8px; width: 420px; max-width: 100%; }
-    select { padding: 8px; min-width: 220px; max-width: 100%; }
+    input[type="text"] { padding: 8px; width: 360px; max-width: 100%; }
+    select { padding: 8px; min-width: 220px; }
     table { width: 100%; border-collapse: collapse; }
     th, td { border: 1px solid #ccc; padding: 8px; text-align: left; vertical-align: top; }
     th { background: #f3f3f3; position: sticky; top: 0; z-index: 1; }
@@ -17,247 +17,278 @@
     .status { margin-top: 10px; }
     button { white-space: nowrap; }
     code { background:#f3f3f3; padding:2px 6px; border-radius:6px; }
-    .chip { display:inline-block; padding:2px 8px; border:1px solid #ddd; border-radius:999px; font-size:12px; color:#444; }
+    .chip { display:inline-block; padding:2px 8px; border:1px solid #ddd; border-radius:999px; font-size:12px; }
   </style>
 </head>
 <body>
 
-  <header>
-    <h2>Contacts</h2>
-    <small><a href="/index.html">← Back to Dashboard</a></small>
-  </header>
+<header>
+  <h2>Contacts</h2>
+  <small><a href="/index.html">← Back to Dashboard</a></small>
+</header>
 
-  <div class="card">
+<div class="card">
 
-    <div class="topbar">
-      <input id="q" type="text" placeholder="Keyword (name, email)" />
-      <select id="branch">
-        <option value="">Branch: (Any)</option>
-        <!-- values are INTERNAL NAME -->
-        <option value="canada">Canada</option>
-        <option value="new_york">New York</option>
-        <option value="chicago">Chicago</option>
-        <option value="los_angeles">Los Angeles</option>
-        <option value="california">California</option>
-        <option value="houston">Houston</option>
-        <option value="hawaii">Hawaii</option>
-      </select>
+  <!-- Search / Filters -->
+  <div class="topbar">
+    <input id="q" type="text" placeholder="Keyword (name, email)" />
 
-      <select id="active_status">
-        <option value="">Active Status: (Any)</option>
-        <!-- values are INTERNAL NAME -->
-        <option value="non_kamikumite">Non Kamikumite</option>
-        <option value="basic_kamikumite">Basic Kamikumite</option>
-        <option value="intermediate_kamikum">Intermediate Kami</option>
-        <option value="advanced_kamikumite">Advanced Kamikumite</option>
-        <option value="kanbu">Kanbu</option>
-        <option value="doshi">Doshi</option>
-        <option value="sleeping_kamikumite">Sleeping Kamikumite</option>
-      </select>
+    <select id="branch">
+      <option value="">Branch: (Any)</option>
+      <option value="canada">Canada</option>
+      <option value="new_york">New York</option>
+      <option value="chicago">Chicago</option>
+      <option value="los_angeles">Los Angeles</option>
+      <option value="california">California</option>
+      <option value="houston">Houston</option>
+      <option value="hawaii">Hawaii</option>
+    </select>
 
-      <button type="button" onclick="doSearch()">Search</button>
-      <button type="button" onclick="clearSearch()">Clear</button>
-      <a href="/create.html"><button type="button">Create Contact</button></a>
+    <select id="active_status">
+      <option value="">Active Status: (Any)</option>
+      <option value="non_kamikumite">Non Kamikumite</option>
+      <option value="basic_kamikumite">Basic Kamikumite</option>
+      <option value="intermediate_kamikum">Intermediate Kamikumite</option>
+      <option value="advanced_kamikumite">Advanced Kamikumite</option>
+      <option value="kanbu">Kanbu</option>
+      <option value="doshi">Doshi</option>
+      <option value="sleeping_kamikumite">Sleeping Kamikumite</option>
+    </select>
 
-      <span class="muted" id="count"></span>
-      <span class="chip" id="filterTag" style="display:none;"></span>
-    </div>
+    <button type="button" onclick="doSearch()">Search</button>
+    <button type="button" onclick="clearSearch()">Clear</button>
+    <a href="/create.html"><button type="button">Create Contact</button></a>
 
-    <div class="table-wrap">
-      <table>
-        <thead>
-          <tr>
-            <th>Last Name</th>
-            <th>First Name</th>
-            <th>Middle Name</th>
-            <th>Member ID</th>
-            <th>Active Status</th>
-            <th>Branch</th>
-            <th>Gender</th>
-            <th>Date of Birth</th>
-            <th>Preferred Language</th>
-            <th>Email</th>
-            <th>Mobile Phone</th>
-            <th>Address</th>
-            <th>City</th>
-            <th>State / Province</th>
-            <th>ZIP</th>
-            <th>Taking Medication</th>
-            <th>Medication Names</th>
-            <th>Initial Notes</th>
-            <th>Notes Last Updated</th>
-            <th>Create Date</th>
-            <th>Action</th>
-          </tr>
-        </thead>
-        <tbody id="rows"></tbody>
-      </table>
-    </div>
-
-    <div class="status muted" id="status"></div>
-
-    <p class="muted" style="margin-top:12px;">
-      Data source: Worker <code>/api/contacts</code> (HubSpot master)
-    </p>
-
+    <span class="muted" id="count"></span>
+    <span class="chip" id="filterTag" style="display:none;"></span>
   </div>
 
+  <!-- Table -->
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Last Name</th>
+          <th>First Name</th>
+          <th>Middle Name</th>
+          <th>Member ID</th>
+          <th>Active Status</th>
+          <th>Branch</th>
+          <th>Gender</th>
+          <th>Date of Birth</th>
+          <th>Preferred Language</th>
+          <th>Email</th>
+          <th>Mobile Phone</th>
+          <th>Address</th>
+          <th>City</th>
+          <th>State / Province</th>
+          <th>ZIP</th>
+          <th>Taking Medication</th>
+          <th>Medication Names</th>
+          <th>Initial Notes</th>
+          <th>Notes Last Updated</th>
+          <th>Create Date</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody id="rows"></tbody>
+    </table>
+  </div>
+
+  <div class="status muted" id="status"></div>
+
+  <p class="muted" style="margin-top:12px;">
+    Data source: Worker <code>/api/contacts</code> (HubSpot master)
+  </p>
+
+</div>
+
 <script>
-  const API_BASE = ""; // same origin (admin.mahikari.org/api/*)
+/* ===============================
+   Display label mappings
+   =============================== */
 
-  function esc(s) {
-    return String(s ?? "")
-      .replaceAll("&", "&amp;")
-      .replaceAll("<", "&lt;")
-      .replaceAll(">", "&gt;")
-      .replaceAll('"', "&quot;")
-      .replaceAll("'", "&#39;");
+const BRANCH_LABELS = {
+  canada: "Canada",
+  new_york: "New York",
+  chicago: "Chicago",
+  los_angeles: "Los Angeles",
+  california: "California",
+  houston: "Houston",
+  hawaii: "Hawaii",
+};
+
+const ACTIVE_STATUS_LABELS = {
+  non_kamikumite: "Non Kamikumite",
+  basic_kamikumite: "Basic Kamikumite",
+  intermediate_kamikum: "Intermediate Kamikumite",
+  advanced_kamikumite: "Advanced Kamikumite",
+  kanbu: "Kanbu",
+  doshi: "Doshi",
+  sleeping_kamikumite: "Sleeping Kamikumite",
+};
+
+const API_BASE = ""; // same origin
+
+/* ===============================
+   Helpers
+   =============================== */
+
+function esc(s) {
+  return String(s ?? "")
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#39;");
+}
+
+function fmtDate(iso) {
+  if (!iso) return "";
+  const d = new Date(iso);
+  return isNaN(d.getTime()) ? esc(iso) : d.toLocaleString();
+}
+
+function p(obj, key) {
+  const v = obj && obj.properties ? obj.properties[key] : null;
+  return (v === null || v === undefined) ? "" : String(v);
+}
+
+function labelBranch(v) {
+  return BRANCH_LABELS[v] || v || "";
+}
+
+function labelStatus(v) {
+  return ACTIVE_STATUS_LABELS[v] || v || "";
+}
+
+function setStatus(msg) {
+  document.getElementById("status").textContent = msg || "";
+}
+
+function setCount(n) {
+  document.getElementById("count").textContent =
+    (typeof n === "number") ? `Showing ${n} record(s)` : "";
+}
+
+function updateFilterTag(q, branch, status) {
+  const tag = document.getElementById("filterTag");
+  const parts = [];
+  if (q) parts.push(`keyword="${q}"`);
+  if (branch) parts.push(`branch=${labelBranch(branch)}`);
+  if (status) parts.push(`status=${labelStatus(status)}`);
+
+  if (!parts.length) {
+    tag.style.display = "none";
+    tag.textContent = "";
+    return;
   }
-  function fmtDate(iso) {
-    if (!iso) return "";
-    const d = new Date(iso);
-    return isNaN(d.getTime()) ? esc(iso) : d.toLocaleString();
+  tag.style.display = "inline-block";
+  tag.textContent = "Filters: " + parts.join(" | ");
+}
+
+/* ===============================
+   API
+   =============================== */
+
+async function fetchContacts({ q, branch, active_status }) {
+  const url = new URL((API_BASE || "") + "/api/contacts", location.origin);
+
+  if (q) url.searchParams.set("search", q);
+  if (branch) url.searchParams.set("branch", branch);
+  if (active_status) url.searchParams.set("active_status", active_status);
+  url.searchParams.set("limit", "50");
+
+  setStatus("Loading...");
+  const res = await fetch(url.toString());
+  const text = await res.text();
+  let data;
+  try { data = text ? JSON.parse(text) : null; }
+  catch { data = { raw: text }; }
+
+  if (!res.ok) return { ok: false, status: res.status, data };
+  return { ok: true, data };
+}
+
+/* ===============================
+   Render
+   =============================== */
+
+function renderRows(results) {
+  const tbody = document.getElementById("rows");
+  tbody.innerHTML = "";
+
+  results.forEach(c => {
+    const id = c.id;
+    const tr = document.createElement("tr");
+    tr.innerHTML = `
+      <td>${esc(p(c,"lastname"))}</td>
+      <td>${esc(p(c,"firstname"))}</td>
+      <td>${esc(p(c,"middle_name"))}</td>
+      <td>${esc(p(c,"member_id"))}</td>
+      <td>${esc(labelStatus(p(c,"active_status")))}</td>
+      <td>${esc(labelBranch(p(c,"branch")))}</td>
+      <td>${esc(p(c,"gender"))}</td>
+      <td>${esc(p(c,"date_of_birth"))}</td>
+      <td>${esc(p(c,"preferred_language"))}</td>
+      <td>${esc(p(c,"email"))}</td>
+      <td>${esc(p(c,"mobilephone"))}</td>
+      <td>${esc(p(c,"address"))}</td>
+      <td>${esc(p(c,"city"))}</td>
+      <td>${esc(p(c,"state__province"))}</td>
+      <td>${esc(p(c,"zip"))}</td>
+      <td>${esc(p(c,"taking_medication"))}</td>
+      <td>${esc(p(c,"medication_names"))}</td>
+      <td>${esc(p(c,"initial_notes"))}</td>
+      <td>${esc(p(c,"notes_last_updated"))}</td>
+      <td>${fmtDate(p(c,"createdate"))}</td>
+      <td>
+        <a href="/edit.html?id=${encodeURIComponent(id)}">
+          <button type="button">Edit</button>
+        </a>
+      </td>
+    `;
+    tbody.appendChild(tr);
+  });
+
+  setCount(results.length);
+  setStatus(results.length ? "" : "No results");
+}
+
+/* ===============================
+   UI actions
+   =============================== */
+
+async function loadCurrent() {
+  const q = document.getElementById("q").value.trim();
+  const branch = document.getElementById("branch").value;
+  const active_status = document.getElementById("active_status").value;
+
+  updateFilterTag(q, branch, active_status);
+
+  const r = await fetchContacts({ q, branch, active_status });
+  if (!r.ok) {
+    setStatus(`Error: ${r.status}`);
+    alert(`Failed: ${r.status}\n` + JSON.stringify(r.data, null, 2));
+    return;
   }
-  function p(obj, key) {
-    const v = obj && obj.properties ? obj.properties[key] : null;
-    return (v === null || v === undefined) ? "" : String(v);
-  }
+  renderRows(r.data.results || []);
+}
 
-  function setStatus(msg) { document.getElementById("status").textContent = msg || ""; }
-  function setCount(n) { document.getElementById("count").textContent = (typeof n === "number") ? `Showing ${n} record(s)` : ""; }
+function doSearch() { loadCurrent(); }
 
-  function updateFilterTag(q, branch, status) {
-    const tag = document.getElementById("filterTag");
-    const parts = [];
-    if (q) parts.push(`keyword="${q}"`);
-    if (branch) parts.push(`branch=${branch}`);
-    if (status) parts.push(`active_status=${status}`);
-    if (!parts.length) {
-      tag.style.display = "none";
-      tag.textContent = "";
-      return;
-    }
-    tag.style.display = "inline-block";
-    tag.textContent = "Filters: " + parts.join(" | ");
-  }
-
-  async function fetchContacts({ q, branch, active_status }) {
-    const url = new URL((API_BASE || "") + "/api/contacts", location.origin);
-
-    if (q && q.trim()) url.searchParams.set("search", q.trim());
-    if (branch) url.searchParams.set("branch", branch);
-    if (active_status) url.searchParams.set("active_status", active_status);
-
-    url.searchParams.set("limit", "50");
-
-    setStatus("Loading...");
-    const res = await fetch(url.toString());
-    const text = await res.text();
-    let data;
-    try { data = text ? JSON.parse(text) : null; } catch { data = { raw: text }; }
-
-    if (!res.ok) return { ok: false, status: res.status, data };
-    return { ok: true, status: res.status, data };
-  }
-
-  function renderRows(results) {
-    const tbody = document.getElementById("rows");
-    tbody.innerHTML = "";
-
-    results.forEach(c => {
-      const id = c.id;
-      const tr = document.createElement("tr");
-      tr.innerHTML = `
-        <td>${esc(p(c,"lastname"))}</td>
-        <td>${esc(p(c,"firstname"))}</td>
-        <td>${esc(p(c,"middle_name"))}</td>
-        <td>${esc(p(c,"member_id"))}</td>
-        <td>${esc(p(c,"active_status"))}</td>
-        <td>${esc(p(c,"branch"))}</td>
-        <td>${esc(p(c,"gender"))}</td>
-        <td>${esc(p(c,"date_of_birth"))}</td>
-        <td>${esc(p(c,"preferred_language"))}</td>
-        <td>${esc(p(c,"email"))}</td>
-        <td>${esc(p(c,"mobilephone"))}</td>
-        <td>${esc(p(c,"address"))}</td>
-        <td>${esc(p(c,"city"))}</td>
-        <td>${esc(p(c,"state__province"))}</td>
-        <td>${esc(p(c,"zip"))}</td>
-        <td>${esc(p(c,"taking_medication"))}</td>
-        <td>${esc(p(c,"medication_names"))}</td>
-        <td>${esc(p(c,"initial_notes"))}</td>
-        <td>${esc(p(c,"notes_last_updated"))}</td>
-        <td>${fmtDate(p(c,"createdate"))}</td>
-        <td>
-          <a href="/edit.html?id=${encodeURIComponent(id)}"><button type="button">Edit</button></a>
-          <button type="button" onclick="deleteFromList('${id}')">Delete</button>
-        </td>
-      `;
-      tbody.appendChild(tr);
-    });
-
-    setCount(results.length);
-    setStatus(results.length ? "" : "No results");
-  }
-
-  async function loadCurrent() {
-    const q = document.getElementById("q").value.trim();
-    const branch = document.getElementById("branch").value;
-    const active_status = document.getElementById("active_status").value;
-
-    updateFilterTag(q, branch, active_status);
-
-    const r = await fetchContacts({ q, branch, active_status });
-    if (!r.ok) {
-      setStatus(`Error: ${r.status}`);
-      alert(`Failed: ${r.status}\n` + JSON.stringify(r.data, null, 2));
-      return;
-    }
-    const results = (r.data && r.data.results) ? r.data.results : [];
-    renderRows(results);
-  }
-
-  function doSearch() { loadCurrent(); }
-
-  function clearSearch() {
-    document.getElementById("q").value = "";
-    document.getElementById("branch").value = "";
-    document.getElementById("active_status").value = "";
-    loadCurrent();
-  }
-
-  async function deleteFromList(id) {
-    const reason = prompt("Delete reason (required):");
-    if (!reason) return;
-
-    if (!confirm("Are you sure you want to delete this contact?")) return;
-    if (!confirm("This action cannot be undone. Continue?")) return;
-
-    setStatus("Deleting...");
-    const res = await fetch(`/api/contacts/${encodeURIComponent(id)}`, {
-      method: "DELETE",
-      headers: {
-        "x-delete-confirm": "DELETE",
-        "x-delete-reason": reason
-      }
-    });
-
-    const text = await res.text();
-    let data;
-    try { data = text ? JSON.parse(text) : null; } catch { data = { raw: text }; }
-
-    if (!res.ok) {
-      setStatus(`Delete failed (${res.status})`);
-      alert(`Delete failed: ${res.status}\n` + JSON.stringify(data, null, 2));
-      return;
-    }
-
-    setStatus("Deleted.");
-    await loadCurrent();
-  }
-
-  // initial load
+function clearSearch() {
+  document.getElementById("q").value = "";
+  document.getElementById("branch").value = "";
+  document.getElementById("active_status").value = "";
   loadCurrent();
+}
+
+/* ===============================
+   Init
+   =============================== */
+
+loadCurrent();
 </script>
 
 </body>
