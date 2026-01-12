@@ -17,50 +17,66 @@
     textarea { width: 100%; min-height: 120px; padding: 10px; }
     .row { display:flex; gap:10px; flex-wrap:wrap; align-items:center; margin-top:10px; }
     .pill { display:inline-block; padding:2px 8px; border:1px solid #ddd; border-radius:999px; font-size:12px; }
-    pre { white-space: pre-wrap; }
+    pre { white-space: pre-wrap; margin: 8px 0 0; }
+    .h-ja { font-size: 0.85em; font-weight: 600; color:#444; margin-left: 8px; }
+    .section-title { display:flex; align-items:baseline; gap:6px; }
   </style>
 </head>
 <body>
 
 <header>
-  <h2>Seshin Card</h2>
-  <small><a href="/contacts.html">← Back to Contacts</a></small>
+  <h2>Seshin Card <span class="h-ja">（セシンカード）</span></h2>
+  <small><a href="/contacts.html">← Back to Contacts / 連絡先一覧へ戻る</a></small>
 </header>
 
 <div class="card">
   <div class="muted" id="meta">Loading...</div>
 
-  <h3>Add a new note</h3>
-  <p class="muted">
-    Notes are saved into HubSpot as separate entries (chronological).  
-    The system automatically records who added it using your Access login.
+  <div class="section-title">
+    <h3 style="margin: 14px 0 6px;">Add a new note</h3>
+    <span class="h-ja">（新しいメモを追加）</span>
+  </div>
+
+  <p class="muted" style="margin-top:0;">
+    Notes are saved into HubSpot as separate entries (chronological). The system automatically records who added it using your Access login.
+    <br>
+    <span class="h-ja">
+      メモはHubSpotに「別々の履歴」として時系列で保存されます。追記した人は、Accessログイン情報をもとに自動で記録されます。
+    </span>
   </p>
-  <textarea id="newNote" placeholder="Type a note..."></textarea>
+
+  <textarea id="newNote" placeholder="Type a note... / メモを入力してください"></textarea>
+
   <div class="row">
-    <button type="button" id="addBtn">Add Note</button>
-    <button type="button" id="reloadBtn">Reload</button>
+    <button type="button" id="addBtn">Add Note / 追記</button>
+    <button type="button" id="reloadBtn">Reload / 再読み込み</button>
     <span class="muted" id="status"></span>
   </div>
 
   <hr />
 
-  <h3>Notes (newest first)</h3>
+  <div class="section-title">
+    <h3 style="margin: 14px 0 6px;">Notes (newest first)</h3>
+    <span class="h-ja">（メモ一覧：新しい順）</span>
+  </div>
+
   <div id="notes"></div>
 </div>
 
 <script>
   function qs(id){ return document.getElementById(id); }
   function setStatus(msg){ qs("status").textContent = msg || ""; }
+
   function esc(s){
     return String(s ?? "")
       .replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;")
       .replaceAll('"',"&quot;").replaceAll("'","&#39;");
   }
+
   function fmt(ts){
     if (!ts) return "";
     const n = Number(ts);
     if (!isNaN(n) && n > 0) return new Date(n).toLocaleString();
-    // ISO fallback
     const d = new Date(ts);
     return isNaN(d.getTime()) ? String(ts) : d.toLocaleString();
   }
@@ -75,7 +91,28 @@
     const text = await res.text();
     let data;
     try { data = text ? JSON.parse(text) : null; } catch { data = { raw: text }; }
-    return { ok: res.ok, status: res.status, data };
+    return { ok: res.ok, status: res.status, data, raw: text };
+  }
+
+  // Convert HubSpot note HTML (hs_note_body) to plain text (no tags shown)
+  function htmlToPlainText(html) {
+    if (!html) return "";
+    try {
+      // add newlines for common block tags before stripping
+      const normalized = String(html)
+        .replaceAll("<br>", "\n").replaceAll("<br/>", "\n").replaceAll("<br />", "\n")
+        .replaceAll("</p>", "\n")
+        .replaceAll("</div>", "\n")
+        .replaceAll("</li>", "\n");
+
+      const doc = new DOMParser().parseFromString(normalized, "text/html");
+      const text = (doc.body && doc.body.textContent) ? doc.body.textContent : "";
+      // clean up excessive blank lines
+      return text.replace(/\n{3,}/g, "\n\n").trim();
+    } catch {
+      // fallback: escape raw html
+      return String(html);
+    }
   }
 
   async function load(){
@@ -85,24 +122,27 @@
       return;
     }
 
-    setStatus("Loading...");
+    setStatus("Loading... / 読み込み中...");
     // contact basic info
     const c = await api(`/api/contacts/${encodeURIComponent(id)}`);
     if (!c.ok){
       setStatus("");
-      alert(`Failed: ${c.status}\n` + JSON.stringify(c.data, null, 2));
+      alert(`Failed: ${c.status}\n` + c.raw);
       return;
     }
 
     const p = c.data.properties || {};
     const name = [p.firstname, p.middle_name, p.lastname].filter(Boolean).join(" ");
-    qs("meta").innerHTML = `<span class="pill">Contact ID: ${esc(id)}</span> <b>${esc(name||"(no name)")}</b> <span class="muted">(${esc(p.email||"")})</span>`;
+    qs("meta").innerHTML =
+      `<span class="pill">Contact ID: ${esc(id)}</span> ` +
+      `<b>${esc(name||"(no name)")}</b> ` +
+      `<span class="muted">(${esc(p.email||"")})</span>`;
 
     // notes
     const n = await api(`/api/contacts/${encodeURIComponent(id)}/notes`);
     if (!n.ok){
       setStatus("");
-      alert(`Failed notes: ${n.status}\n` + JSON.stringify(n.data, null, 2));
+      alert(`Failed notes: ${n.status}\n` + n.raw);
       return;
     }
 
@@ -111,7 +151,7 @@
     box.innerHTML = "";
 
     if (!notes.length){
-      box.innerHTML = `<p class="muted">No notes found.</p>`;
+      box.innerHTML = `<p class="muted">No notes found. / メモはまだありません。</p>`;
       setStatus("");
       return;
     }
@@ -119,12 +159,14 @@
     for (const note of notes){
       const div = document.createElement("div");
       div.className = "note";
+
+      const plain = htmlToPlainText(note.hs_note_body || "");
       div.innerHTML = `
         <div class="muted">
           <span class="pill">Note ID: ${esc(note.id)}</span>
           <span style="margin-left:8px;">${esc(fmt(note.hs_timestamp || note.hs_createdate))}</span>
         </div>
-        <pre>${esc(note.hs_note_body || "")}</pre>
+        <pre>${esc(plain)}</pre>
       `;
       box.appendChild(div);
     }
@@ -136,11 +178,11 @@
     const id = getId();
     const body = (qs("newNote").value || "").trim();
     if (!body){
-      alert("Please enter a note.");
+      alert("Please enter a note. / メモを入力してください");
       return;
     }
 
-    setStatus("Saving...");
+    setStatus("Saving... / 保存中...");
     const r = await api(`/api/contacts/${encodeURIComponent(id)}/notes`, {
       method: "POST",
       headers: { "content-type": "application/json" },
@@ -149,13 +191,13 @@
 
     if (!r.ok){
       setStatus("");
-      alert(`Add note failed: ${r.status}\n` + JSON.stringify(r.data, null, 2));
+      alert(`Add note failed: ${r.status}\n` + r.raw);
       return;
     }
 
     qs("newNote").value = "";
     await load();
-    setStatus("Saved");
+    setStatus("Saved / 保存しました");
   }
 
   qs("addBtn").onclick = () => addNote();
