@@ -32,7 +32,6 @@
     .instruction b { color:#333; }
     .instruction .ja { margin-top:6px; color:#555; }
 
-    /* 赤枠は3つだけ */
     .red-focus {
       border: 2px solid #d32f2f !important;
       border-radius: 10px;
@@ -40,7 +39,6 @@
       padding: 6px 10px;
     }
 
-    /* Pagination */
     .pager {
       display: flex;
       gap: 8px;
@@ -63,17 +61,6 @@
     .pager button:disabled {
       opacity: 0.5;
       cursor: not-allowed;
-    }
-
-    /* Focus banner */
-    .focus-banner {
-      border: 1px solid #cce5ff;
-      background: #eef7ff;
-      color: #034c8c;
-      border-radius: 10px;
-      padding: 10px 12px;
-      margin-top: 10px;
-      display: none;
     }
   </style>
 </head>
@@ -131,20 +118,15 @@
     </div>
   </div>
 
-  <div class="focus-banner" id="focusBanner">
-    ✅ Updated record is shown below for confirmation.  
-    Click <b>Clear</b> to return to the normal list.
-  </div>
-
   <div class="table-wrap">
     <table>
       <thead>
         <tr>
-          <!-- ✅ Edit列を一番左へ -->
           <th>Edit</th>
-          <th>Last Name</th>
+          <th>Seshin Card</th>
           <th>First Name</th>
           <th>Middle Name</th>
+          <th>Last Name</th>
           <th>Member ID</th>
           <th>Active Status</th>
           <th>Branch</th>
@@ -169,7 +151,6 @@
   </div>
 
   <div class="pager" id="pager"></div>
-
   <div class="status muted" id="status"></div>
 
   <p class="muted" style="margin-top:12px;">
@@ -195,7 +176,6 @@
 
   const PAGE_LIMIT = 50;
 
-  // paging state
   let pageIndex = 1;
   let afterTokens = { 1: null };
   let hasNext = false;
@@ -238,11 +218,6 @@
     return { q, branch, active_status };
   }
 
-  function getFocusId(){
-    const u = new URL(location.href);
-    return u.searchParams.get("focus") || "";
-  }
-
   async function fetchContacts({ q, branch, active_status, after }){
     const url = new URL("/api/contacts", location.origin);
     if (q) url.searchParams.set("search", q);
@@ -259,27 +234,24 @@
     return { ok: res.ok, status: res.status, data };
   }
 
-  async function fetchContactById(id){
-    setStatus("Loading...");
-    const res = await fetch(`/api/contacts/${encodeURIComponent(id)}`);
-    const text = await res.text();
-    let data;
-    try { data = text ? JSON.parse(text) : null; } catch { data = { raw:text }; }
-    return { ok: res.ok, status: res.status, data };
+  function getAfterFromPaging(data){
+    const after = data && data.paging && data.paging.next && data.paging.next.after;
+    return after ? String(after) : null;
   }
 
   function renderRows(results){
     const tbody = document.getElementById("rows");
     tbody.innerHTML = "";
+
     for (const c of results){
       const id = c.id;
       const tr = document.createElement("tr");
       tr.innerHTML = `
-        <!-- ✅ Edit列を左端 -->
         <td><a href="/edit.html?id=${encodeURIComponent(id)}"><button type="button">Edit</button></a></td>
-        <td>${esc(p(c,"lastname"))}</td>
+        <td><a href="/seshin-card.html?id=${encodeURIComponent(id)}"><button type="button">Open</button></a></td>
         <td>${esc(p(c,"firstname"))}</td>
         <td>${esc(p(c,"middle_name"))}</td>
+        <td>${esc(p(c,"lastname"))}</td>
         <td>${esc(p(c,"member_id"))}</td>
         <td>${esc(labelStatus(p(c,"active_status")))}</td>
         <td>${esc(labelBranch(p(c,"branch")))}</td>
@@ -300,23 +272,14 @@
       `;
       tbody.appendChild(tr);
     }
+
     setCount(results.length);
     setStatus(results.length ? "" : "No results");
-  }
-
-  function getAfterFromPaging(data){
-    const after = data && data.paging && data.paging.next && data.paging.next.after;
-    return after ? String(after) : null;
   }
 
   function renderPager(){
     const el = document.getElementById("pager");
     el.innerHTML = "";
-
-    // If focus mode, hide pager
-    if (getFocusId()){
-      return;
-    }
 
     for (let p = 1; p <= pageIndex; p++){
       const b = document.createElement("button");
@@ -335,22 +298,19 @@
 
   async function gotoPage(targetPage){
     const { q, branch, active_status } = currentFilters();
-
     const after = afterTokens[targetPage] ?? null;
     if (targetPage > 1 && afterTokens[targetPage] === undefined){
-      alert("Please move forward using the next page button.");
+      alert("Please use next page button sequentially.");
       return;
     }
 
     const r = await fetchContacts({ q, branch, active_status, after });
     if (!r.ok){
       if (r.status === 403 && r.data && r.data.error){
-        setStatus("");
-        alert(`Failed: 403\n${r.data.error}\n\nAsk Super Admin to add your email in superadmin.html`);
+        alert(`Failed: 403\n${r.data.error}\nAsk Super Admin to add your email.`);
       } else {
         alert(`Failed: ${r.status}\n` + JSON.stringify(r.data, null, 2));
       }
-      setStatus("");
       renderRows([]);
       hasNext = false;
       renderPager();
@@ -370,12 +330,6 @@
   }
 
   async function doSearch(){
-    // focus mode?
-    const focus = getFocusId();
-    const banner = document.getElementById("focusBanner");
-    // banner exists as element? (not in this version) so ignore
-
-    // Reset paging
     pageIndex = 1;
     afterTokens = { 1: null };
     hasNext = false;
@@ -383,33 +337,13 @@
     const { q, branch, active_status } = currentFilters();
     updateFilterTag(q, branch, active_status);
 
-    // If focus exists, show only that record
-    if (focus){
-      const focusBanner = document.getElementById("focusBanner");
-      if (focusBanner){
-        focusBanner.style.display = "block";
-      }
-      const r1 = await fetchContactById(focus);
-      if (!r1.ok){
-        alert(`Failed: ${r1.status}\n` + JSON.stringify(r1.data, null, 2));
-        renderRows([]);
-        renderPager();
-        return;
-      }
-      renderRows([{ id: focus, properties: r1.data.properties }]);
-      renderPager();
-      return;
-    }
-
     const r = await fetchContacts({ q, branch, active_status, after: null });
     if (!r.ok){
       if (r.status === 403 && r.data && r.data.error){
-        setStatus("");
-        alert(`Failed: 403\n${r.data.error}\n\nAsk Super Admin to add your email in superadmin.html`);
+        alert(`Failed: 403\n${r.data.error}\nAsk Super Admin to add your email.`);
       } else {
         alert(`Failed: ${r.status}\n` + JSON.stringify(r.data, null, 2));
       }
-      setStatus("");
       renderRows([]);
       renderPager();
       return;
@@ -417,27 +351,19 @@
 
     const nextAfter = getAfterFromPaging(r.data);
     hasNext = Boolean(nextAfter);
-    if (hasNext){
-      afterTokens[2] = nextAfter;
-    }
+    if (hasNext) afterTokens[2] = nextAfter;
 
     renderRows(r.data.results || []);
     renderPager();
   }
 
   function clearSearch(){
-    // Clear focus if present by redirecting to plain contacts.html
-    if (getFocusId()){
-      location.href = "/contacts.html";
-      return;
-    }
     document.getElementById("q").value="";
     document.getElementById("branch").value="";
     document.getElementById("active_status").value="";
     doSearch();
   }
 
-  // initial
   doSearch();
 </script>
 
