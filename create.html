@@ -1,42 +1,184 @@
 <!doctype html>
-<html lang="ja">
+<html lang="en">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Create | Mahikari Admin</title>
+  <title>Create Contact | Mahikari Admin</title>
   <link rel="stylesheet" href="/css/style.css" />
   <style>
-    label { display:block; margin-top:10px; }
-    input { padding:8px; width: 420px; max-width:100%; }
-    .row { margin-top: 12px; }
+    label { display:block; margin-top:10px; font-weight: 600; }
+    input, select { padding:8px; width:520px; max-width:100%; }
+    .row { margin-top: 12px; display:flex; gap:10px; flex-wrap: wrap; align-items:center; }
+    .muted { color:#666; font-size: 0.9em; }
+    code { background:#f3f3f3; padding:2px 6px; border-radius:6px; }
   </style>
 </head>
 <body>
 
   <header>
-    <h2>Create</h2>
-    <small><a href="/index.html">← Back</a></small>
+    <h2>Create Contact</h2>
+    <small><a href="/contacts.html">← Back to Contacts</a></small>
   </header>
 
   <div class="card">
-    <label>Name</label>
-    <input id="name" />
+    <div class="muted" id="meta">
+      Create a new HubSpot contact (master). Required: <code>member_id</code>.
+    </div>
+
+    <label>Last Name</label>
+    <input id="lastname" />
+
+    <label>First Name</label>
+    <input id="firstname" />
+
+    <label>Middle Name</label>
+    <input id="middle_name" />
+
+    <label>Member ID (required)</label>
+    <input id="member_id" placeholder="e.g. 152176" />
+
+    <label>Active Status</label>
+    <select id="active_status">
+      <option value="">(Select)</option>
+      <option value="non_kamikumite">Non Kamikumite</option>
+      <option value="basic_kamikumite">Basic Kamikumite</option>
+      <option value="intermediate_kamikum">Intermediate Kamikumite</option>
+      <option value="advanced_kamikumite">Advanced Kamikumite</option>
+      <option value="kanbu">Kanbu</option>
+      <option value="doshi">Doshi</option>
+      <option value="sleeping_kamikumite">Sleeping Kamikumite</option>
+    </select>
+
+    <label>Branch</label>
+    <select id="branch">
+      <option value="">(Select)</option>
+      <option value="canada">Canada</option>
+      <option value="new_york">New York</option>
+      <option value="chicago">Chicago</option>
+      <option value="los_angeles">Los Angeles</option>
+      <option value="california">California</option>
+      <option value="houston">Houston</option>
+      <option value="hawaii">Hawaii</option>
+    </select>
+
+    <label>Gender</label>
+    <input id="gender" />
+
+    <label>Date of Birth</label>
+    <input id="date_of_birth" placeholder="YYYY-MM-DD" />
+
+    <label>Preferred Language</label>
+    <input id="preferred_language" />
 
     <label>Email</label>
     <input id="email" />
 
-    <label>Branch</label>
-    <input id="branch" placeholder="LA / NY / ..." />
+    <label>Mobile Phone</label>
+    <input id="mobilephone" />
+
+    <label>Address</label>
+    <input id="address" />
+
+    <label>City</label>
+    <input id="city" />
+
+    <label>State / Province</label>
+    <input id="state__province" />
+
+    <label>ZIP</label>
+    <input id="zip" />
+
+    <label>Taking Medication</label>
+    <input id="taking_medication" />
+
+    <label>Medication Names</label>
+    <input id="medication_names" />
+
+    <label>Initial Notes</label>
+    <input id="initial_notes" />
 
     <div class="row">
-      <button type="button" onclick="alert('次は create API に繋ぎます')">Save</button>
+      <button type="button" id="createBtn">Create</button>
       <a href="/contacts.html"><button type="button">Cancel</button></a>
+      <span class="muted" id="status"></span>
     </div>
 
-    <p style="margin-top:12px;">
-      ※ 次は「Save」ボタンで Worker の /api/hubspot/create を叩く形にします。
+    <p class="muted" style="margin-top:12px;">
+      Creates via <code>POST /api/contacts</code>. Read-only fields are not shown here.
     </p>
   </div>
+
+<script>
+  const API_BASE = "";
+
+  const FIELD_KEYS = [
+    "lastname","firstname","middle_name","member_id","active_status","branch","gender","date_of_birth",
+    "preferred_language","email","mobilephone","address","city","state__province","zip","taking_medication",
+    "medication_names","initial_notes"
+  ];
+
+  function qs(k){ return document.getElementById(k); }
+  function setStatus(msg){ qs("status").textContent = msg || ""; }
+
+  async function api(path, opts={}) {
+    const url = new URL((API_BASE || "") + path, location.origin);
+    const res = await fetch(url.toString(), { ...opts, headers: { ...(opts.headers || {}) } });
+    const text = await res.text();
+    let data;
+    try { data = text ? JSON.parse(text) : null; } catch { data = { raw: text }; }
+    return { ok: res.ok, status: res.status, data };
+  }
+
+  function readForm() {
+    const props = {};
+    for (const k of FIELD_KEYS) {
+      const el = qs(k);
+      if (!el) continue;
+      props[k] = (el.value ?? "").trim();
+    }
+    return props;
+  }
+
+  function clearForm() {
+    for (const k of FIELD_KEYS) {
+      const el = qs(k);
+      if (!el) continue;
+      el.value = "";
+    }
+    // reset selects to blank
+    qs("active_status").value = "";
+    qs("branch").value = "";
+  }
+
+  async function createContact() {
+    setStatus("Creating...");
+    const props = readForm();
+
+    if (!props.member_id || !String(props.member_id).trim()) {
+      setStatus("member_id is required");
+      alert("member_id is required");
+      return;
+    }
+
+    const r = await api("/api/contacts", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ properties: props })
+    });
+
+    if (!r.ok) {
+      setStatus(`Create failed (${r.status})`);
+      alert(`Create failed: ${r.status}\n` + JSON.stringify(r.data, null, 2));
+      return;
+    }
+
+    setStatus("Created");
+    // Option: redirect back to Contacts list
+    location.href = "/contacts.html";
+  }
+
+  qs("createBtn").onclick = () => createContact();
+</script>
 
 </body>
 </html>
