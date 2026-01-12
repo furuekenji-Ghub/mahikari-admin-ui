@@ -7,7 +7,6 @@
   <link rel="stylesheet" href="/css/style.css" />
   <style>
     .topbar { display:flex; gap:12px; align-items:center; margin: 12px 0; flex-wrap: wrap; }
-
     input[type="text"] { padding: 8px; width: 360px; max-width: 100%; }
     select { padding: 8px; min-width: 220px; }
     button { white-space: nowrap; }
@@ -22,25 +21,6 @@
     .chip { display:inline-block; padding:2px 8px; border:1px solid #ddd; border-radius:999px; font-size:12px; }
     code { background:#f3f3f3; padding:2px 6px; border-radius:6px; }
 
-    /* ===== 強調表示（赤枠） ===== */
-    .highlight-box {
-      border: 2px solid #d32f2f;
-      border-radius: 10px;
-      padding: 10px;
-      display: flex;
-      gap: 12px;
-      align-items: center;
-      flex-wrap: wrap;
-      background: #fff8f8;
-    }
-
-    .highlight-label {
-      color: #b00020;
-      font-weight: 600;
-      font-size: 0.9em;
-      margin-right: 6px;
-    }
-
     /* 操作案内 */
     .instruction {
       border: 1px solid #e5e5e5;
@@ -52,6 +32,39 @@
     }
     .instruction b { color:#333; }
     .instruction .ja { margin-top:6px; color:#555; }
+
+    /* ★赤枠：Branch / Active Status / Search のみ */
+    .red-focus {
+      border: 2px solid #d32f2f !important;
+      border-radius: 10px;
+      background: #fff8f8;
+      padding: 6px 10px;
+    }
+
+    /* Pagination */
+    .pager {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: flex-end;
+      margin-top: 12px;
+    }
+    .pager button {
+      padding: 6px 10px;
+      border-radius: 10px;
+      border: 1px solid #ccc;
+      background: #fff;
+      cursor: pointer;
+    }
+    .pager button.active {
+      border: 1px solid #111;
+      font-weight: 700;
+    }
+    .pager button:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
   </style>
 </head>
 <body>
@@ -63,16 +76,12 @@
 
 <div class="card">
 
-  <!-- 検索・絞り込み -->
+  <!-- Search / Filters row -->
   <div class="topbar">
     <input id="q" type="text" placeholder="Keyword (name, email)" />
-  </div>
 
-  <!-- ★ 赤枠で強調するエリア -->
-  <div class="highlight-box">
-    <span class="highlight-label">Filter</span>
-
-    <select id="branch">
+    <!-- 赤枠：Branch -->
+    <select id="branch" class="red-focus">
       <option value="">Branch: (Any)</option>
       <option value="canada">Canada</option>
       <option value="new_york">New York</option>
@@ -83,7 +92,8 @@
       <option value="hawaii">Hawaii</option>
     </select>
 
-    <select id="active_status">
+    <!-- 赤枠：Active Status -->
+    <select id="active_status" class="red-focus">
       <option value="">Active Status: (Any)</option>
       <option value="non_kamikumite">Non Kamikumite</option>
       <option value="basic_kamikumite">Basic Kamikumite</option>
@@ -94,7 +104,9 @@
       <option value="sleeping_kamikumite">Sleeping Kamikumite</option>
     </select>
 
-    <button type="button" onclick="doSearch()">Search</button>
+    <!-- 赤枠：Search -->
+    <button type="button" class="red-focus" onclick="doSearch()">Search</button>
+
     <button type="button" onclick="clearSearch()">Clear</button>
     <a href="/create.html"><button type="button">Create Contact</button></a>
 
@@ -102,17 +114,18 @@
     <span class="chip" id="filterTag" style="display:none;"></span>
   </div>
 
-  <!-- 操作案内（英語＋日本語） -->
+  <!-- Instruction -->
   <div class="instruction">
     <div>
       <b>How to filter:</b>
-      Select <b>Branch</b> and <b>Active Status</b> to narrow down the list,
-      then click <b>Search</b>.
+      Select <b>Branch</b> and <b>Active Status</b>, then click <b>Search</b>.
+      Use the page buttons at the bottom to view the next 50 results.
     </div>
     <div class="ja">
       <b>操作方法：</b>
-      まず <b>拠点（Branch）</b> と <b>ステータス（Active Status）</b> を選択してください。<br>
-      その後、<b>Search</b> ボタンを押すと絞り込み結果が表示されます。
+      まず <b>拠点（Branch）</b> と <b>ステータス（Active Status）</b> を選択し、
+      その後 <b>Search</b> を押して絞り込みます。<br>
+      51件目以降は、画面下のページ番号（<b>2</b>, <b>3</b> ...）を押すことで次の50件を閲覧できます。
     </div>
   </div>
 
@@ -148,10 +161,13 @@
     </table>
   </div>
 
+  <!-- Pagination -->
+  <div class="pager" id="pager"></div>
+
   <div class="status muted" id="status"></div>
 
   <p class="muted" style="margin-top:12px;">
-    Data source: Worker <code>/api/contacts</code> (HubSpot master). Sorted newest first.
+    Data source: Worker <code>/api/contacts</code> (HubSpot master). Sorted newest first. 50 results per page.
   </p>
 
 </div>
@@ -170,6 +186,13 @@
     doshi:"Doshi",
     sleeping_kamikumite:"Sleeping Kamikumite",
   };
+
+  const PAGE_LIMIT = 50;
+
+  // Pagination state
+  let pageIndex = 1;             // 1-based
+  let afterTokens = { 1: null }; // page -> after token (page1=null)
+  let hasNext = false;
 
   function esc(s){
     return String(s ?? "")
@@ -202,12 +225,20 @@
     tag.textContent="Filters: " + parts.join(" | ");
   }
 
-  async function fetchContacts({ q, branch, active_status }){
+  function currentFilters(){
+    const q = document.getElementById("q").value.trim();
+    const branch = document.getElementById("branch").value;
+    const active_status = document.getElementById("active_status").value;
+    return { q, branch, active_status };
+  }
+
+  async function fetchContacts({ q, branch, active_status, after }){
     const url = new URL("/api/contacts", location.origin);
     if (q) url.searchParams.set("search", q);
     if (branch) url.searchParams.set("branch", branch);
     if (active_status) url.searchParams.set("active_status", active_status);
-    url.searchParams.set("limit","50");
+    url.searchParams.set("limit", String(PAGE_LIMIT));
+    if (after) url.searchParams.set("after", after);
 
     setStatus("Loading...");
     const res = await fetch(url.toString());
@@ -252,13 +283,47 @@
     setStatus(results.length ? "" : "No results");
   }
 
-  async function loadCurrent(){
-    const q = document.getElementById("q").value.trim();
-    const branch = document.getElementById("branch").value;
-    const active_status = document.getElementById("active_status").value;
-    updateFilterTag(q, branch, active_status);
+  function getAfterFromPaging(data){
+    // HubSpot v3 paging: { paging: { next: { after: "..." } } }
+    const after = data && data.paging && data.paging.next && data.paging.next.after;
+    return after ? String(after) : null;
+  }
 
-    const r = await fetchContacts({ q, branch, active_status });
+  function renderPager(){
+    const el = document.getElementById("pager");
+    el.innerHTML = "";
+
+    // Page buttons 1..pageIndex (+ next if available)
+    for (let p = 1; p <= pageIndex; p++){
+      const b = document.createElement("button");
+      b.textContent = String(p);
+      if (p === pageIndex) b.classList.add("active");
+      b.onclick = () => gotoPage(p);
+      el.appendChild(b);
+    }
+
+    // Next page button
+    const nextBtn = document.createElement("button");
+    nextBtn.textContent = String(pageIndex + 1);
+    nextBtn.disabled = !hasNext;
+    nextBtn.onclick = () => gotoPage(pageIndex + 1);
+    el.appendChild(nextBtn);
+  }
+
+  async function gotoPage(targetPage){
+    const { q, branch, active_status } = currentFilters();
+
+    // If we don't have after token for this page, we can only go forward sequentially.
+    // But our UI always enables only next page when available.
+    const after = afterTokens[targetPage] ?? null;
+    if (targetPage > 1 && afterTokens[targetPage] === undefined){
+      // shouldn't happen because we only enable next
+      alert("Please move forward using the next page button.");
+      return;
+    }
+
+    // Load
+    const r = await fetchContacts({ q, branch, active_status, after });
     if (!r.ok){
       if (r.status === 403 && r.data && r.data.error){
         setStatus("");
@@ -268,20 +333,66 @@
       }
       setStatus("");
       renderRows([]);
+      hasNext = false;
+      renderPager();
       return;
     }
+
+    // Update state
+    pageIndex = targetPage;
+    const nextAfter = getAfterFromPaging(r.data);
+    hasNext = Boolean(nextAfter);
+    if (hasNext){
+      afterTokens[pageIndex + 1] = nextAfter;
+    }
+
+    updateFilterTag(q, branch, active_status);
     renderRows(r.data.results || []);
+    renderPager();
   }
 
-  function doSearch(){ loadCurrent(); }
+  async function doSearch(){
+    // Reset paging when new search executed
+    pageIndex = 1;
+    afterTokens = { 1: null };
+    hasNext = false;
+
+    const { q, branch, active_status } = currentFilters();
+    updateFilterTag(q, branch, active_status);
+
+    const r = await fetchContacts({ q, branch, active_status, after: null });
+    if (!r.ok){
+      if (r.status === 403 && r.data && r.data.error){
+        setStatus("");
+        alert(`Failed: 403\n${r.data.error}\n\nAsk Super Admin to add your email in superadmin.html`);
+      } else {
+        alert(`Failed: ${r.status}\n` + JSON.stringify(r.data, null, 2));
+      }
+      setStatus("");
+      renderRows([]);
+      renderPager();
+      return;
+    }
+
+    const nextAfter = getAfterFromPaging(r.data);
+    hasNext = Boolean(nextAfter);
+    if (hasNext){
+      afterTokens[2] = nextAfter;
+    }
+
+    renderRows(r.data.results || []);
+    renderPager();
+  }
+
   function clearSearch(){
     document.getElementById("q").value="";
     document.getElementById("branch").value="";
     document.getElementById("active_status").value="";
-    loadCurrent();
+    doSearch();
   }
 
-  loadCurrent();
+  // initial load = page 1, no filters
+  doSearch();
 </script>
 
 </body>
