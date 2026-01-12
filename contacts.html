@@ -6,26 +6,15 @@
   <title>Contacts | Mahikari Admin</title>
   <link rel="stylesheet" href="/css/style.css" />
   <style>
-    .topbar {
-      display: flex;
-      gap: 12px;
-      align-items: center;
-      margin: 12px 0;
-      flex-wrap: wrap;
-    }
-    input {
-      padding: 8px;
-      width: 320px;
-      max-width: 100%;
-    }
+    .topbar { display:flex; gap:12px; align-items:center; margin: 12px 0; flex-wrap: wrap; }
+    input[type="text"], input[type="password"] { padding: 8px; width: 320px; max-width: 100%; }
     table { width: 100%; border-collapse: collapse; }
     th, td { border: 1px solid #ccc; padding: 8px; text-align: left; vertical-align: top; }
     th { background: #f3f3f3; position: sticky; top: 0; z-index: 1; }
     .table-wrap { overflow: auto; max-height: 70vh; border: 1px solid #ddd; border-radius: 10px; }
     .muted { color: #666; font-size: 0.9em; }
-    .right { text-align: right; }
-    button { white-space: nowrap; }
     .status { margin-top: 10px; }
+    button { white-space: nowrap; }
     code { background:#f3f3f3; padding:2px 6px; border-radius:6px; }
   </style>
 </head>
@@ -39,15 +28,18 @@
   <div class="card">
 
     <div class="topbar">
-      <input id="q" placeholder="Search (name, email, keyword)" />
+      <input id="q" type="text" placeholder="Search (name, email, keyword)" />
       <button type="button" onclick="doSearch()">Search</button>
       <button type="button" onclick="clearSearch()">Clear</button>
-
-      <a href="/create.html">
-        <button type="button">Create Contact</button>
-      </a>
-
+      <a href="/create.html"><button type="button">Create Contact</button></a>
       <span class="muted" id="count"></span>
+    </div>
+
+    <div class="topbar">
+      <input id="admin_token" type="password" placeholder="Admin token (x-admin-token) for Update/Delete" />
+      <button type="button" onclick="saveToken()">Save Token</button>
+      <button type="button" onclick="clearToken()">Clear Token</button>
+      <span class="muted">Token is stored only in this browser (localStorage).</span>
     </div>
 
     <div class="table-wrap">
@@ -90,12 +82,14 @@
   </div>
 
 <script>
-  // --- CONFIG ---
-  // If your API is on the SAME origin (recommended), leave empty and use relative paths.
-  // If you want to call a different domain, set like: "https://api.mahikari.org"
-  const API_BASE = ""; // "" = same origin (if you route /api/* to worker). Otherwise set full domain.
+  const API_BASE = ""; // same origin (admin.mahikari.org/api/*)
 
-  // --- helpers ---
+  const ALLOWLIST = [
+    "lastname","firstname","middle_name","member_id","active_status","branch","gender","date_of_birth",
+    "preferred_language","email","mobilephone","address","city","state__province","zip","taking_medication",
+    "medication_names","initial_notes","notes_last_updated","createdate"
+  ];
+
   function esc(s) {
     return String(s ?? "")
       .replaceAll("&", "&amp;")
@@ -104,56 +98,63 @@
       .replaceAll('"', "&quot;")
       .replaceAll("'", "&#39;");
   }
-
   function fmtDate(iso) {
     if (!iso) return "";
     const d = new Date(iso);
-    if (isNaN(d.getTime())) return esc(iso);
-    return d.toLocaleString();
+    return isNaN(d.getTime()) ? esc(iso) : d.toLocaleString();
   }
-
   function p(obj, key) {
-    // Worker returns: { id, properties: { ... } }
     const v = obj && obj.properties ? obj.properties[key] : null;
     return (v === null || v === undefined) ? "" : String(v);
   }
 
-  function setStatus(msg) {
-    document.getElementById("status").textContent = msg || "";
+  function setStatus(msg) { document.getElementById("status").textContent = msg || ""; }
+  function setCount(n) { document.getElementById("count").textContent = (typeof n === "number") ? `Showing ${n} record(s)` : ""; }
+
+  // token storage
+  function getToken() { return localStorage.getItem("ADMIN_TOKEN") || ""; }
+  function saveToken() {
+    const v = (document.getElementById("admin_token").value || "").trim();
+    localStorage.setItem("ADMIN_TOKEN", v);
+    setStatus(v ? "Token saved." : "Token cleared.");
+  }
+  function clearToken() {
+    localStorage.removeItem("ADMIN_TOKEN");
+    document.getElementById("admin_token").value = "";
+    setStatus("Token cleared.");
   }
 
-  function setCount(n) {
-    document.getElementById("count").textContent = (typeof n === "number") ? `Showing ${n} record(s)` : "";
+  async function api(path, opts = {}) {
+    const url = new URL((API_BASE || "") + path, location.origin);
+    const res = await fetch(url.toString(), {
+      ...opts,
+      headers: { ...(opts.headers || {}) }
+    });
+    const text = await res.text();
+    let data;
+    try { data = text ? JSON.parse(text) : null; } catch { data = { raw: text }; }
+    return { ok: res.ok, status: res.status, data };
   }
 
-  // --- API calls ---
   async function fetchContacts(search) {
     const url = new URL((API_BASE || "") + "/api/contacts", location.origin);
     if (search && search.trim()) url.searchParams.set("search", search.trim());
     url.searchParams.set("limit", "50");
-
     setStatus("Loading...");
-    const res = await fetch(url.toString(), { method: "GET" });
-
+    const res = await fetch(url.toString());
     const text = await res.text();
     let data;
     try { data = text ? JSON.parse(text) : null; } catch { data = { raw: text }; }
-
-    if (!res.ok) {
-      setStatus(`Error: ${res.status}`);
-      console.error("API error", data);
-      return { ok: false, data };
-    }
-    return { ok: true, data };
+    if (!res.ok) return { ok: false, status: res.status, data };
+    return { ok: true, status: res.status, data };
   }
 
   function renderRows(results) {
     const tbody = document.getElementById("rows");
     tbody.innerHTML = "";
 
-    for (const c of results) {
+    results.forEach(c => {
       const id = c.id;
-
       const tr = document.createElement("tr");
       tr.innerHTML = `
         <td>${esc(p(c,"lastname"))}</td>
@@ -177,13 +178,12 @@
         <td>${esc(p(c,"notes_last_updated"))}</td>
         <td>${fmtDate(p(c,"createdate"))}</td>
         <td>
-          <a href="/edit.html?id=${encodeURIComponent(id)}">
-            <button type="button">Edit</button>
-          </a>
+          <a href="/edit.html?id=${encodeURIComponent(id)}"><button type="button">Edit</button></a>
+          <button type="button" onclick="deleteFromList('${id}')">Delete</button>
         </td>
       `;
       tbody.appendChild(tr);
-    }
+    });
 
     setCount(results.length);
     setStatus(results.length ? "" : "No results");
@@ -191,22 +191,62 @@
 
   async function load(search) {
     const r = await fetchContacts(search);
-    if (!r.ok) return;
-
+    if (!r.ok) {
+      setStatus(`Error: ${r.status}`);
+      console.error(r.data);
+      alert(`Failed: ${r.status}\n` + JSON.stringify(r.data, null, 2));
+      return;
+    }
     const results = (r.data && r.data.results) ? r.data.results : [];
     renderRows(results);
   }
 
-  // --- UI handlers ---
   function doSearch() {
     const q = document.getElementById("q").value;
     load(q);
   }
-
   function clearSearch() {
     document.getElementById("q").value = "";
     load("");
   }
+
+  async function deleteFromList(id) {
+    const token = getToken();
+    if (!token) {
+      alert("Admin token is required to delete.\nEnter token and click Save Token.");
+      return;
+    }
+
+    const reason = prompt("Delete reason (required):");
+    if (!reason) return;
+
+    if (!confirm("Are you sure you want to delete this contact?")) return;
+    if (!confirm("This action cannot be undone. Continue?")) return;
+
+    setStatus("Deleting...");
+    const r = await api(`/api/contacts/${encodeURIComponent(id)}`, {
+      method: "DELETE",
+      headers: {
+        "x-admin-token": token,
+        "x-delete-confirm": "DELETE",
+        "x-delete-reason": reason
+      }
+    });
+
+    if (!r.ok) {
+      setStatus(`Delete failed (${r.status})`);
+      alert(`Delete failed: ${r.status}\n` + JSON.stringify(r.data, null, 2));
+      return;
+    }
+
+    setStatus("Deleted.");
+    // reload current search
+    const q = document.getElementById("q").value;
+    await load(q);
+  }
+
+  // init token input
+  document.getElementById("admin_token").value = getToken();
 
   // initial load
   load("");
