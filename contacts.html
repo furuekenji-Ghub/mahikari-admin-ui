@@ -1,29 +1,51 @@
 <!doctype html>
-<html lang="ja">
+<html lang="en">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Contacts | Mahikari Admin</title>
   <link rel="stylesheet" href="/css/style.css" />
   <style>
-    table { width: 100%; border-collapse: collapse; }
-    th, td { border: 1px solid #ccc; padding: 8px; text-align: left; }
-    th { background: #f3f3f3; }
-    .topbar { display:flex; gap:12px; align-items:center; margin: 12px 0; }
-    input { padding: 8px; width: 320px; max-width: 100%; }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+    th, td {
+      border: 1px solid #ccc;
+      padding: 8px;
+      text-align: left;
+    }
+    th {
+      background: #f3f3f3;
+    }
+    .topbar {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      margin: 12px 0;
+    }
+    input {
+      padding: 8px;
+      width: 320px;
+      max-width: 100%;
+    }
   </style>
 </head>
 <body>
 
   <header>
     <h2>Contacts</h2>
-    <small><a href="/index.html">← Back</a></small>
+    <small><a href="/index.html">← Back to Dashboard</a></small>
   </header>
 
   <div class="card">
+
     <div class="topbar">
-      <input id="q" placeholder="Search (name / email)" />
-      <button type="button" onclick="alert('次は検索APIに繋ぎます')">Search</button>
+      <input id="q" placeholder="Search by name or email" />
+      <button type="button" onclick="doSearch()">Search</button>
+      <a href="/create.html">
+        <button type="button">Create Contact</button>
+      </a>
     </div>
 
     <table>
@@ -40,15 +62,27 @@
           <td>Sample User</td>
           <td>sample@example.com</td>
           <td>LA</td>
-          <td><a href="/edit.html"><button type="button">Edit</button></a></td>
+          <td>
+            <a href="/edit.html">
+              <button type="button">Edit</button>
+            </a>
+          </td>
         </tr>
       </tbody>
     </table>
 
-    <p style="margin-top:12px;">
-      ※ まずは「表示の型」を固めました。次に Worker/API でこの表に流し込みます。
+    <p style="margin-top:12px; font-size:0.9em; color:#666;">
+      ※ This table will be populated via Worker / API in the next step.
     </p>
+
   </div>
+
+<script>
+  function doSearch() {
+    const q = document.getElementById("q").value;
+    alert("Search keyword: " + q);
+  }
+</script>
 
 </body>
 </html>
