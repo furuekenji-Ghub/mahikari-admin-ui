@@ -1,70 +1,28 @@
 <!doctype html>
-<html lang="en">
+<html lang="ja">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Contacts | World Divine Light Admin</title>
   <link rel="stylesheet" href="/css/style.css" />
   <style>
-    .topbar { display:flex; gap:12px; align-items:center; margin: 12px 0; flex-wrap: wrap; }
-    input[type="text"] { padding: 8px; width: 360px; max-width: 100%; }
-    select { padding: 8px; min-width: 220px; }
-    button { white-space: nowrap; }
-
-    table { width: 100%; border-collapse: collapse; }
-    th, td { border: 1px solid #ccc; padding: 10px; text-align: left; vertical-align: top; }
-    th { background: #f3f3f3; position: sticky; top: 0; z-index: 1; }
-    .table-wrap { overflow: auto; max-height: 70vh; border: 1px solid #ddd; border-radius: 10px; }
-
-    .muted { color: #666; font-size: 0.9em; }
-    .status { margin-top: 10px; }
-    .chip { display:inline-block; padding:2px 8px; border:1px solid #ddd; border-radius:999px; font-size:12px; }
-    code { background:#f3f3f3; padding:2px 6px; border-radius:6px; }
-
-    /* 操作案内 */
-    .instruction {
-      border: 1px solid #e5e5e5;
-      background: #fafafa;
-      border-radius: 10px;
-      padding: 10px 12px;
-      margin-top: 8px;
-      line-height: 1.65;
-    }
-    .instruction b { color:#333; }
-    .instruction .ja { margin-top:6px; color:#555; }
-
-    /* 赤枠：Branch / Active Status / Search のみ */
-    .red-focus {
-      border: 2px solid #d32f2f !important;
-      border-radius: 10px;
-      background: #fff8f8;
-      padding: 6px 10px;
-    }
-
-    /* Pagination */
-    .pager {
-      display: flex;
-      gap: 8px;
-      flex-wrap: wrap;
-      align-items: center;
-      justify-content: flex-end;
-      margin-top: 12px;
-    }
-    .pager button {
-      padding: 6px 10px;
-      border-radius: 10px;
-      border: 1px solid #ccc;
-      background: #fff;
-      cursor: pointer;
-    }
-    .pager button.active {
-      border: 1px solid #111;
-      font-weight: 700;
-    }
-    .pager button:disabled {
-      opacity: 0.5;
-      cursor: not-allowed;
-    }
+    .muted { color:#666; font-size:0.9em; }
+    .row { display:flex; gap:10px; flex-wrap:wrap; align-items:center; }
+    .card { margin-top: 10px; }
+    .filters { display:flex; gap:10px; flex-wrap:wrap; align-items:center; }
+    input[type="text"], select { padding: 8px 10px; border:1px solid #ccc; border-radius:8px; min-width: 220px; }
+    button { padding:8px 10px; border:1px solid #999; background:#fff; border-radius:8px; cursor:pointer; }
+    button.primary { border-color:#0b5; }
+    button.ghost { border-color:#ddd; color:#333; }
+    .pill { display:inline-block; padding:2px 8px; border:1px solid #ddd; border-radius:999px; font-size:12px; background:#f7fafc; color:#344; }
+    table { width:100%; border-collapse: collapse; margin-top: 10px; }
+    th, td { border-bottom:1px solid #eee; padding:10px 8px; text-align:left; vertical-align: top; }
+    th { background:#fafafa; font-weight:700; }
+    td:first-child, th:first-child { width: 90px; }
+    .pager { display:flex; gap:10px; align-items:center; flex-wrap:wrap; margin-top: 12px; }
+    .dangerText { color:#b00020; font-weight:700; }
+    .nowrap { white-space: nowrap; }
+    .hintBox { background:#f7f7f7; border:1px solid #eee; border-radius:10px; padding:10px 12px; margin-top: 10px; }
   </style>
 </head>
 <body>
@@ -75,254 +33,270 @@
 </header>
 
 <div class="card">
-
-  <div class="topbar">
+  <div class="filters">
     <input id="q" type="text" placeholder="Keyword (name, email)" />
 
-    <select id="branch" class="red-focus">
+    <select id="branch">
       <option value="">Branch: (Any)</option>
-      <option value="canada">Canada</option>
-      <option value="new_york">New York</option>
-      <option value="chicago">Chicago</option>
-      <option value="los_angeles">Los Angeles</option>
-      <option value="california">California</option>
-      <option value="houston">Houston</option>
-      <option value="hawaii">Hawaii</option>
+      <option value="canada">canada</option>
+      <option value="new_york">new_york</option>
+      <option value="chicago">chicago</option>
+      <option value="los_angeles">los_angeles</option>
+      <option value="california">california</option>
+      <option value="houston">houston</option>
+      <option value="hawaii">hawaii</option>
     </select>
 
-    <select id="active_status" class="red-focus">
+    <select id="active">
       <option value="">Active Status: (Any)</option>
-      <option value="non_kamikumite">Non Kamikumite</option>
-      <option value="basic_kamikumite">Basic Kamikumite</option>
-      <option value="intermediate_kamikum">Intermediate Kamikumite</option>
-      <option value="advanced_kamikumite">Advanced Kamikumite</option>
-      <option value="kanbu">Kanbu</option>
-      <option value="doshi">Doshi</option>
-      <option value="sleeping_kamikumite">Sleeping Kamikumite</option>
+      <option value="non_kamikumite">non_kamikumite</option>
+      <option value="basic_kamikumite">basic_kamikumite</option>
+      <option value="intermediate_kamikumite">intermediate_kamikumite</option>
+      <option value="advanced_kamikumite">advanced_kamikumite</option>
+      <option value="kanbu">kanbu</option>
+      <option value="doshi">doshi</option>
+      <option value="sleeping_kamikumite">sleeping_kamikumite</option>
     </select>
 
-    <button type="button" class="red-focus" onclick="doSearch()">Search</button>
-
-    <button type="button" onclick="clearSearch()">Clear</button>
-    <a href="/create.html"><button type="button">Create Contact</button></a>
-
-    <span class="muted" id="count"></span>
-    <span class="chip" id="filterTag" style="display:none;"></span>
+    <button class="primary" id="searchBtn">Search</button>
+    <button class="ghost" id="clearBtn">Clear</button>
+    <span class="muted" id="status"></span>
   </div>
 
-  <div class="instruction">
-    <div>
-      <b>How to filter:</b> Select <b>Branch</b> and <b>Active Status</b>, then click <b>Search</b>.
-      Use page buttons at the bottom for the next 50 results.
-    </div>
-    <div class="ja">
-      <b>操作方法：</b> まず <b>拠点（Branch）</b> と <b>ステータス（Active Status）</b> を選択し、<b>Search</b> を押して絞り込みます。<br>
-      51件目以降は画面下のページ番号（2, 3...）で次の50件へ移動できます。
+  <div class="hintBox">
+    <div><b>How to filter:</b> Select Branch and Active Status, then click Search. Use page buttons at the bottom for the next 50 results.</div>
+    <div class="muted" style="margin-top:6px;">
+      操作方法：まず拠点（Branch）とステータス（Active Status）を選択し、Searchを押して絞り込みます。<br/>
+      51件目以降は画面下のページ番号（2,3...）で次の50件へ移動できます。
     </div>
   </div>
 
-  <div class="table-wrap">
-    <table>
-      <thead>
-        <tr>
-          <th>View</th>
-          <th>First Name</th>
-          <th>Middle Name</th>
-          <th>Last Name</th>
-          <th>Email</th>
-          <th>Branch</th>
-          <th>Active Status</th>
-        </tr>
-      </thead>
-      <tbody id="rows"></tbody>
-    </table>
+  <table>
+    <thead>
+      <tr>
+        <th>View</th>
+        <th>First Name</th>
+        <th>Middle Name</th>
+        <th>Last Name</th>
+        <th>Email</th>
+        <th>Branch</th>
+        <th>Active Status</th>
+      </tr>
+    </thead>
+    <tbody id="tbody">
+      <tr><td colspan="7" class="muted">Loading...</td></tr>
+    </tbody>
+  </table>
+
+  <div class="pager">
+    <button id="prevBtn">← Prev</button>
+    <span class="pill" id="pagePill">Page 1</span>
+    <button id="nextBtn">Next →</button>
+    <span class="muted" id="countPill"></span>
   </div>
 
-  <div class="pager" id="pager"></div>
-  <div class="status muted" id="status"></div>
+  <div class="pager" id="pageNums"></div>
 
-  <p class="muted" style="margin-top:12px;">
-    Data source: Worker <code>/api/contacts</code> (HubSpot master). Sorted newest first. 50 results per page.
-  </p>
-
+  <div class="muted" style="margin-top:10px;">
+    Data source: Worker <code>/api/contacts/search</code> (HubSpot master). Sorted newest first. 50 results per page.
+  </div>
 </div>
 
 <script>
-  const BRANCH_LABELS = {
-    canada:"Canada", new_york:"New York", chicago:"Chicago", los_angeles:"Los Angeles",
-    california:"California", houston:"Houston", hawaii:"Hawaii"
-  };
-  const ACTIVE_STATUS_LABELS = {
-    non_kamikumite:"Non Kamikumite",
-    basic_kamikumite:"Basic Kamikumite",
-    intermediate_kamikum:"Intermediate Kamikumite",
-    advanced_kamikumite:"Advanced Kamikumite",
-    kanbu:"Kanbu",
-    doshi:"Doshi",
-    sleeping_kamikumite:"Sleeping Kamikumite",
-  };
+  const LIMIT = 50;
 
-  const PAGE_LIMIT = 50;
-  let pageIndex = 1;
-  let afterTokens = { 1: null };
-  let hasNext = false;
+  function qs(id){ return document.getElementById(id); }
+  function setStatus(msg){ qs("status").textContent = msg || ""; }
 
   function esc(s){
     return String(s ?? "")
       .replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;")
       .replaceAll('"',"&quot;").replaceAll("'","&#39;");
   }
-  function p(obj,key){
-    const v = obj && obj.properties ? obj.properties[key] : null;
-    return (v === null || v === undefined) ? "" : String(v);
-  }
-  function labelBranch(v){ return BRANCH_LABELS[v] || v || ""; }
-  function labelStatus(v){ return ACTIVE_STATUS_LABELS[v] || v || ""; }
 
-  function setStatus(msg){ document.getElementById("status").textContent = msg || ""; }
-  function setCount(n){ document.getElementById("count").textContent = (typeof n==="number") ? `Showing ${n} record(s)` : ""; }
-
-  function updateFilterTag(q, branch, status){
-    const tag = document.getElementById("filterTag");
-    const parts = [];
-    if (q) parts.push(`keyword="${q}"`);
-    if (branch) parts.push(`branch=${labelBranch(branch)}`);
-    if (status) parts.push(`status=${labelStatus(status)}`);
-    if (!parts.length){ tag.style.display="none"; tag.textContent=""; return; }
-    tag.style.display="inline-block";
-    tag.textContent="Filters: " + parts.join(" | ");
+  async function apiPost(path, body){
+    const res = await fetch(path, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify(body || {})
+    });
+    const text = await res.text();
+    let data;
+    try { data = text ? JSON.parse(text) : null; } catch { data = { raw: text }; }
+    return { ok: res.ok, status: res.status, data, raw: text };
   }
 
-  function currentFilters(){
+  // State
+  let AFTER_STACK = [""]; // page1 has after=""
+  let CURRENT_PAGE = 1;
+  let LAST_RESULTS = [];
+  let LAST_PAGING = null;
+
+  function getFilters(){
     return {
-      q: document.getElementById("q").value.trim(),
-      branch: document.getElementById("branch").value,
-      active_status: document.getElementById("active_status").value
+      q: (qs("q").value || "").trim(),
+      branch: qs("branch").value || "",
+      active_status: qs("active").value || ""
     };
   }
 
-  async function fetchContacts({ q, branch, active_status, after }){
-    const url = new URL("/api/contacts", location.origin);
-    if (q) url.searchParams.set("search", q);
-    if (branch) url.searchParams.set("branch", branch);
-    if (active_status) url.searchParams.set("active_status", active_status);
-    url.searchParams.set("limit", String(PAGE_LIMIT));
-    if (after) url.searchParams.set("after", after);
-
-    setStatus("Loading...");
-    const res = await fetch(url.toString());
-    const text = await res.text();
-    let data;
-    try { data = text ? JSON.parse(text) : null; } catch { data = { raw:text }; }
-    return { ok: res.ok, status: res.status, data };
+  function normalizeInternalValue(v){
+    // value is already internal (lowercase/underscore) by design
+    return String(v || "");
   }
 
-  function getAfterFromPaging(data){
-    const after = data && data.paging && data.paging.next && data.paging.next.after;
-    return after ? String(after) : null;
-  }
-
-  function renderRows(results){
-    const tbody = document.getElementById("rows");
+  function renderTable(results){
+    const tbody = qs("tbody");
     tbody.innerHTML = "";
 
-    for (const c of results){
-      const id = c.id;
+    if (!results || !results.length){
+      tbody.innerHTML = `<tr><td colspan="7" class="muted">No results.</td></tr>`;
+      return;
+    }
+
+    for (const r of results){
+      const id = r.id;
+      const p = r.properties || {};
+
+      const first = p.firstname || "";
+      const middle = p.middle_name || "";
+      const last = p.lastname || "";
+      const email = p.email || "";
+      const branch = normalizeInternalValue(p.branch || "");
+      const active = normalizeInternalValue(p.active_status || "");
+
       const tr = document.createElement("tr");
       tr.innerHTML = `
-        <td><a href="/view.html?id=${encodeURIComponent(id)}"><button type="button">View</button></a></td>
-        <td>${esc(p(c,"firstname"))}</td>
-        <td>${esc(p(c,"middle_name"))}</td>
-        <td>${esc(p(c,"lastname"))}</td>
-        <td>${esc(p(c,"email"))}</td>
-        <td>${esc(labelBranch(p(c,"branch")))}</td>
-        <td>${esc(labelStatus(p(c,"active_status")))}</td>
+        <td class="nowrap"><a class="pill" href="/view.html?id=${encodeURIComponent(id)}">View</a></td>
+        <td>${esc(first)}</td>
+        <td>${esc(middle)}</td>
+        <td>${esc(last)}</td>
+        <td>${esc(email)}</td>
+        <td>${esc(branch)}</td>
+        <td>${esc(active)}</td>
       `;
       tbody.appendChild(tr);
     }
-
-    setCount(results.length);
-    setStatus(results.length ? "" : "No results");
   }
 
   function renderPager(){
-    const el = document.getElementById("pager");
-    el.innerHTML = "";
-
-    for (let p = 1; p <= pageIndex; p++){
-      const b = document.createElement("button");
-      b.textContent = String(p);
-      if (p === pageIndex) b.classList.add("active");
-      b.onclick = () => gotoPage(p);
-      el.appendChild(b);
-    }
-
-    const nextBtn = document.createElement("button");
-    nextBtn.textContent = String(pageIndex + 1);
-    nextBtn.disabled = !hasNext;
-    nextBtn.onclick = () => gotoPage(pageIndex + 1);
-    el.appendChild(nextBtn);
+    qs("pagePill").textContent = "Page " + CURRENT_PAGE;
+    qs("prevBtn").disabled = (CURRENT_PAGE <= 1);
+    qs("nextBtn").disabled = !(LAST_PAGING && LAST_PAGING.next && LAST_PAGING.next.after);
   }
 
-  async function gotoPage(targetPage){
-    const { q, branch, active_status } = currentFilters();
-    const after = afterTokens[targetPage] ?? null;
-    if (targetPage > 1 && afterTokens[targetPage] === undefined){
-      alert("Please move forward using the next page button.");
-      return;
+  function renderPageNums(){
+    const box = qs("pageNums");
+    box.innerHTML = "";
+
+    // show up to 8 page buttons around current
+    const totalKnown = AFTER_STACK.length; // known pages so far
+    const start = Math.max(1, CURRENT_PAGE - 3);
+    const end = Math.min(totalKnown, CURRENT_PAGE + 3);
+
+    for (let i = start; i <= end; i++){
+      const btn = document.createElement("button");
+      btn.textContent = String(i);
+      if (i === CURRENT_PAGE) btn.classList.add("primary");
+      btn.addEventListener("click", () => gotoPage(i));
+      box.appendChild(btn);
     }
 
-    const r = await fetchContacts({ q, branch, active_status, after });
+    // If we have next page token, show a hint button
+    if (LAST_PAGING && LAST_PAGING.next && LAST_PAGING.next.after){
+      const more = document.createElement("span");
+      more.className = "muted";
+      more.textContent = "…";
+      box.appendChild(more);
+    }
+  }
+
+  async function loadPage(page){
+    const filters = getFilters();
+    const after = AFTER_STACK[page - 1] ?? "";
+
+    setStatus("Loading...");
+    const r = await apiPost("/api/contacts/search", {
+      q: filters.q,
+      branch: filters.branch,
+      active_status: filters.active_status,
+      after,
+      limit: LIMIT
+    });
+
     if (!r.ok){
-      alert(`Failed: ${r.status}\n` + JSON.stringify(r.data, null, 2));
-      renderRows([]);
-      hasNext = false;
-      renderPager();
+      setStatus("");
+      alert(`Failed: ${r.status}\n` + (r.data ? JSON.stringify(r.data, null, 2) : r.raw));
       return;
     }
 
-    pageIndex = targetPage;
-    const nextAfter = getAfterFromPaging(r.data);
-    hasNext = Boolean(nextAfter);
-    if (hasNext) afterTokens[pageIndex + 1] = nextAfter;
+    // expecting { ok:true, results:[...], paging:{next:{after}} }
+    const payload = r.data;
+    const results = payload.results || [];
+    const paging = payload.paging || null;
 
-    updateFilterTag(q, branch, active_status);
-    renderRows(r.data.results || []);
-    renderPager();
-  }
+    LAST_RESULTS = results;
+    LAST_PAGING = paging;
 
-  async function doSearch(){
-    pageIndex = 1;
-    afterTokens = { 1: null };
-    hasNext = false;
+    renderTable(results);
 
-    const { q, branch, active_status } = currentFilters();
-    updateFilterTag(q, branch, active_status);
-
-    const r = await fetchContacts({ q, branch, active_status, after: null });
-    if (!r.ok){
-      alert(`Failed: ${r.status}\n` + JSON.stringify(r.data, null, 2));
-      renderRows([]);
-      renderPager();
-      return;
+    // store next cursor if available and if we are on the last known page
+    const nextAfter = paging && paging.next && paging.next.after ? String(paging.next.after) : "";
+    if (nextAfter){
+      // ensure AFTER_STACK includes next page cursor
+      if (AFTER_STACK.length === page){
+        AFTER_STACK.push(nextAfter);
+      }
     }
 
-    const nextAfter = getAfterFromPaging(r.data);
-    hasNext = Boolean(nextAfter);
-    if (hasNext) afterTokens[2] = nextAfter;
+    qs("countPill").textContent = `Showing ${results.length} results`;
 
-    renderRows(r.data.results || []);
+    CURRENT_PAGE = page;
     renderPager();
+    renderPageNums();
+    setStatus("");
   }
 
-  function clearSearch(){
-    document.getElementById("q").value="";
-    document.getElementById("branch").value="";
-    document.getElementById("active_status").value="";
-    doSearch();
+  async function gotoPage(page){
+    if (page < 1) return;
+    if (page > AFTER_STACK.length) return;
+    await loadPage(page);
   }
 
-  doSearch();
+  async function search(){
+    // reset pagination
+    AFTER_STACK = [""];
+    CURRENT_PAGE = 1;
+    LAST_RESULTS = [];
+    LAST_PAGING = null;
+    qs("tbody").innerHTML = `<tr><td colspan="7" class="muted">Loading...</td></tr>`;
+    await loadPage(1);
+  }
+
+  function clearFilters(){
+    qs("q").value = "";
+    qs("branch").value = "";
+    qs("active").value = "";
+    search();
+  }
+
+  qs("searchBtn").addEventListener("click", search);
+  qs("clearBtn").addEventListener("click", clearFilters);
+
+  qs("prevBtn").addEventListener("click", () => gotoPage(CURRENT_PAGE - 1));
+  qs("nextBtn").addEventListener("click", () => {
+    if (LAST_PAGING && LAST_PAGING.next && LAST_PAGING.next.after){
+      gotoPage(CURRENT_PAGE + 1);
+    }
+  });
+
+  // allow Enter in keyword to search
+  qs("q").addEventListener("keydown", (e) => {
+    if (e.key === "Enter") search();
+  });
+
+  // initial load
+  search();
 </script>
 
 </body>
