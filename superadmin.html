@@ -1,100 +1,185 @@
 <!doctype html>
-<html lang="en">
+<html lang="ja">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Super Admin | Mahikari Admin</title>
-  <link rel="stylesheet" href="/css/style.css" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Super Admin | Allowlist</title>
   <style>
-    textarea { width: 100%; height: 260px; padding: 10px; }
-    .row { display:flex; gap:12px; flex-wrap:wrap; align-items:center; margin: 12px 0; }
-    .muted { color:#666; font-size:0.9em; }
-    code { background:#f3f3f3; padding:2px 6px; border-radius:6px; }
-    .warn { color:#b00020; font-weight:600; }
+    body { font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans JP", sans-serif; margin: 20px; }
+    h1 { margin: 0 0 12px; font-size: 20px; }
+    .hint { color:#555; margin: 6px 0 14px; }
+    .row { display:flex; gap:10px; align-items:center; flex-wrap: wrap; margin: 10px 0; }
+    input[type="text"] { padding:10px; border:1px solid #ccc; border-radius:8px; min-width: 260px; }
+    button { padding:10px 12px; border:1px solid #999; background:#fff; border-radius:8px; cursor:pointer; }
+    button.primary { border-color:#0b5; }
+    button.danger { border-color:#d33; color:#d33; }
+    table { width:100%; border-collapse: collapse; margin-top: 14px; }
+    th, td { border-bottom: 1px solid #eee; padding: 10px; text-align:left; vertical-align: top; }
+    th { color:#333; font-weight:600; }
+    .small { font-size: 12px; color:#666; }
+    .status { margin-left: 10px; font-size: 12px; color:#0a5; }
+    .status.err { color:#c00; }
   </style>
 </head>
 <body>
-
-<header>
-  <h2>Super Admin</h2>
-  <small><a href="/index.html">← Back to Dashboard</a></small>
-</header>
-
-<div class="card">
-  <p class="muted">
-    This page controls who can access the Contacts search page (<code>contacts.html</code>).<br/>
-    Only <code>@worlddivinelight.org</code> emails should be added. Contact@ is not recommended.
-  </p>
-
-  <div class="row">
-    <button type="button" onclick="loadList()">Load allowlist</button>
-    <button type="button" onclick="saveList()">Save allowlist</button>
-    <a href="/contacts.html"><button type="button">Go to Contacts</button></a>
-    <span class="muted" id="status"></span>
+  <h1>Allowlist 管理</h1>
+  <div class="hint">
+    Accessでログインしたユーザーの <b>email + 表示名（手入力）</b> を登録します。<br/>
+    表示名は「Seshin card（施真カード）」の <b>Appended by:</b> に使われます。
   </div>
 
-  <p class="muted">
-    One email per line. Example:<br/>
-    <code>someone@worlddivinelight.org</code>
-  </p>
+  <div class="row">
+    <button id="reloadBtn">Reload / 再読み込み</button>
+    <button class="primary" id="saveBtn">Save / 保存</button>
+    <span id="msg" class="status"></span>
+  </div>
 
-  <textarea id="emails" placeholder="someone@worlddivinelight.org"></textarea>
+  <div class="row">
+    <input id="newEmail" type="text" placeholder="email (e.g. taro@worlddivinelight.org)" />
+    <input id="newName" type="text" placeholder="name (e.g. 山田太郎)" />
+    <button id="addBtn">Add / 追加</button>
+  </div>
 
-  <p class="muted warn" id="error"></p>
-</div>
+  <table id="tbl">
+    <thead>
+      <tr>
+        <th style="width:40%">Email</th>
+        <th style="width:40%">Name</th>
+        <th style="width:20%">Action</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+
+  <div class="small" style="margin-top:12px;">
+    ※ 旧形式（["a@..","b@.."]）が入っていても読み込み時に name 空で表示されます。保存すると新形式に統一されます。
+  </div>
 
 <script>
-  function setStatus(msg){ document.getElementById("status").textContent = msg || ""; }
-  function setError(msg){ document.getElementById("error").textContent = msg || ""; }
+  const $ = (id) => document.getElementById(id);
+  const tbody = $("tbl").querySelector("tbody");
+  const msg = $("msg");
 
-  async function loadList(){
-    setError("");
-    setStatus("Loading...");
-    const res = await fetch("/api/admin/allowlist");
-    const text = await res.text();
-    let data;
-    try { data = text ? JSON.parse(text) : null; } catch { data = { raw: text }; }
+  let list = []; // [{email,name}]
 
-    if (!res.ok) {
-      setStatus("");
-      setError("Load failed: " + res.status + " — " + (data?.error || text));
-      alert("Load failed:\n" + text);
-      return;
-    }
-
-    document.getElementById("emails").value = (data.allowed_emails || []).join("\n");
-    setStatus("Loaded");
+  function setMsg(text, isErr=false) {
+    msg.textContent = text || "";
+    msg.className = "status" + (isErr ? " err" : "");
   }
 
-  async function saveList(){
-    setError("");
-    const raw = document.getElementById("emails").value || "";
-    const allowed_emails = raw.split("\n").map(s => s.trim().toLowerCase()).filter(Boolean);
+  function normalizeEmail(email) {
+    return String(email || "").trim().toLowerCase();
+  }
 
-    setStatus("Saving...");
-    const res = await fetch("/api/admin/allowlist", {
-      method: "POST",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({ allowed_emails })
+  function render() {
+    tbody.innerHTML = "";
+    list.forEach((item, idx) => {
+      const tr = document.createElement("tr");
+
+      const tdEmail = document.createElement("td");
+      const inpEmail = document.createElement("input");
+      inpEmail.type = "text";
+      inpEmail.value = item.email || "";
+      inpEmail.addEventListener("change", () => {
+        item.email = normalizeEmail(inpEmail.value);
+      });
+      tdEmail.appendChild(inpEmail);
+
+      const tdName = document.createElement("td");
+      const inpName = document.createElement("input");
+      inpName.type = "text";
+      inpName.value = item.name || "";
+      inpName.addEventListener("change", () => {
+        item.name = String(inpName.value || "").trim();
+      });
+      tdName.appendChild(inpName);
+
+      const tdAct = document.createElement("td");
+      const del = document.createElement("button");
+      del.className = "danger";
+      del.textContent = "Delete / 削除";
+      del.addEventListener("click", () => {
+        list.splice(idx, 1);
+        render();
+      });
+      tdAct.appendChild(del);
+
+      tr.appendChild(tdEmail);
+      tr.appendChild(tdName);
+      tr.appendChild(tdAct);
+      tbody.appendChild(tr);
     });
-
-    const text = await res.text();
-    let data;
-    try { data = text ? JSON.parse(text) : null; } catch { data = { raw: text }; }
-
-    if (!res.ok) {
-      setStatus("");
-      setError("Save failed: " + res.status + " — " + (data?.error || text));
-      alert("Save failed:\n" + text);
-      return;
-    }
-
-    document.getElementById("emails").value = (data.allowed_emails || []).join("\n");
-    setStatus("Saved");
   }
 
-  loadList();
-</script>
+  async function apiGet(url) {
+    const res = await fetch(url, { method:"GET" });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok || !data.ok) throw new Error(data.error || res.statusText);
+    return data;
+  }
+  async function apiPost(url, body) {
+    const res = await fetch(url, {
+      method:"POST",
+      headers: { "content-type":"application/json" },
+      body: JSON.stringify(body)
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok || !data.ok) throw new Error(data.error || res.statusText);
+    return data;
+  }
 
+  async function reload() {
+    setMsg("Loading...");
+    try {
+      const data = await apiGet("/api/allowlist/get");
+      list = Array.isArray(data.list) ? data.list : [];
+      // sort by email
+      list.sort((a,b) => String(a.email).localeCompare(String(b.email)));
+      render();
+      setMsg("Loaded");
+    } catch (e) {
+      setMsg("Load failed: " + e.message, true);
+    }
+  }
+
+  async function save() {
+    setMsg("Saving...");
+    try {
+      // remove empties + normalize
+      const cleaned = list
+        .map(x => ({ email: normalizeEmail(x.email), name: String(x.name||"").trim() }))
+        .filter(x => x.email);
+
+      const data = await apiPost("/api/allowlist/set", { list: cleaned });
+      list = data.list || cleaned;
+      list.sort((a,b) => String(a.email).localeCompare(String(b.email)));
+      render();
+      setMsg("Saved");
+    } catch (e) {
+      setMsg("Save failed: " + e.message, true);
+    }
+  }
+
+  $("reloadBtn").addEventListener("click", reload);
+  $("saveBtn").addEventListener("click", save);
+
+  $("addBtn").addEventListener("click", () => {
+    const email = normalizeEmail($("newEmail").value);
+    const name = String($("newName").value || "").trim();
+    if (!email) { setMsg("email is required", true); return; }
+
+    if (list.some(x => x.email === email)) {
+      setMsg("already exists: " + email, true);
+      return;
+    }
+    list.push({ email, name });
+    $("newEmail").value = "";
+    $("newName").value = "";
+    render();
+    setMsg("Added");
+  });
+
+  reload();
+</script>
 </body>
 </html>
