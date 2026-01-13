@@ -7,7 +7,7 @@
   <link rel="stylesheet" href="/css/style.css" />
   <style>
     .muted { color:#666; font-size:0.9em; }
-    .pill { display:inline-block; padding:2px 8px; border:1px solid #ddd; border-radius:999px; font-size:12px; }
+    .pill { display:inline-block; padding:2px 8px; border:1px solid #ddd; border-radius:999px; font-size:12px; background:#f7fafc; color:#344; white-space:nowrap; }
     .grid {
       display: grid;
       grid-template-columns: 220px 1fr;
@@ -32,8 +32,17 @@
     .appendBox textarea { min-height:140px; }
     .danger { border:1px solid #b00020; color:#b00020; }
 
-    .section-title { display:flex; align-items:baseline; gap:8px; }
+    .section-title { display:flex; align-items:baseline; gap:8px; flex-wrap:wrap; }
     .h-ja { font-size:0.85em; font-weight:600; color:#444; }
+    .noteHead {
+      display: grid;
+      grid-template-columns: auto 1fr auto; /* NoteID / AppendedBy / Date */
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 6px;
+    }
+    .pill.center { justify-self: center; }
+    .dateRight { justify-self:end; font-size:12px; color:#667; white-space:nowrap; }
   </style>
 </head>
 <body>
@@ -56,12 +65,13 @@
   <hr />
 
   <div class="section-title">
-    <h3 style="margin: 14px 0 6px;">Notes</h3>
-    <span class="h-ja">（メモ）</span>
+    <h3 style="margin: 14px 0 6px;">Seshin card</h3>
+    <span class="h-ja">（施真カード）</span>
+    <span id="mePill" class="pill" style="display:none;"></span>
   </div>
 
   <p class="muted" style="margin-top:0;">
-    Notes are stored and displayed as plain content only.
+    Seshin card is stored and displayed as plain content only.
     <span class="h-ja">（本文のみを保存・表示します）</span>
   </p>
 
@@ -98,6 +108,41 @@
     return { ok: res.ok, status: res.status, data, raw: text };
   }
 
+  // ===== Internal-name display helpers (Branch / Active Status) =====
+  const BRANCH_TO_INTERNAL = {
+    "Canada":"canada", "New York":"new_york", "Chicago":"chicago", "Los Angeles":"los_angeles",
+    "California":"california", "Houston":"houston", "Hawaii":"hawaii",
+  };
+  const ACTIVE_TO_INTERNAL = {
+    "Non Kumite":"non_kamikumite",
+    "Non Kamikumite":"non_kamikumite",
+    "Basic Kumite":"basic_kamikumite",
+    "Intermediate Kumite":"intermediate_kamikumite",
+    "Advanced Kumite":"advanced_kamikumite",
+    "Kanbu":"kanbu",
+    "Doshi":"doshi",
+    "Sleeping Kumite":"sleeping_kamikumite",
+    "Sleeping Kamikumite":"sleeping_kamikumite",
+  };
+  function normalizeInternalDisplay(key, val){
+    const v = String(val ?? "").trim();
+    if (!v) return "";
+    if (key === "branch"){
+      // If already internal (contains underscore or lowercase), keep; else map label -> internal if possible
+      if (/[a-z_]+/.test(v) && v === v.toLowerCase()) return v;
+      return BRANCH_TO_INTERNAL[v] || v;
+    }
+    if (key === "active_status"){
+      if (/[a-z_]+/.test(v) && v === v.toLowerCase()) return v;
+      return ACTIVE_TO_INTERNAL[v] || v;
+    }
+    return v;
+  }
+
+  // ===== Notes: meta parsing =====
+  const META_PREFIX = "[[APPENDED_BY:";
+  const META_SUFFIX = "]]";
+
   function htmlToPlainText(html) {
     if (!html) return "";
     try {
@@ -112,6 +157,19 @@
     } catch {
       return String(html);
     }
+  }
+
+  function extractAppendedByAndStripMeta(plainText){
+    const t = String(plainText || "");
+    if (!t.startsWith(META_PREFIX)) {
+      return { appendedBy: "", textWithoutMeta: t };
+    }
+    const end = t.indexOf(META_SUFFIX);
+    if (end < 0) return { appendedBy: "", textWithoutMeta: t };
+    const name = t.substring(META_PREFIX.length, end).trim();
+    let rest = t.substring(end + META_SUFFIX.length);
+    if (rest.startsWith("\n")) rest = rest.slice(1);
+    return { appendedBy: name, textWithoutMeta: rest };
   }
 
   function stripAuditLines(plainText) {
@@ -144,6 +202,25 @@
 
   let NOTES_CACHE = [];
   let CONTACT_ID = "";
+  let ME = { email:"", name:"" };
+
+  async function loadMe(){
+    // Uses Worker endpoint that returns allowlist name
+    const r = await api("/api/me");
+    if (r.ok && r.data && r.data.ok !== false) {
+      // allow both {ok:true,...} or plain
+      const payload = r.data.ok === true ? r.data : r.data;
+      const name = payload.name || "";
+      const email = payload.email || "";
+      ME = { name, email };
+      const label = name || email;
+      if (label) {
+        const pill = qs("mePill");
+        pill.textContent = "Logged in as: " + label;
+        pill.style.display = "inline-block";
+      }
+    }
+  }
 
   function renderProfile(props, id){
     const orderKeys = [
@@ -177,7 +254,11 @@
     qs("meta").innerHTML = `<span class="pill">Contact ID: ${esc(id)}</span> <b>${esc(name||"(no name)")}</b> <span class="muted">(${esc(props.email||"")})</span>`;
 
     for (const [key,label] of orderKeys){
-      const v = (props && props[key] != null) ? String(props[key]) : "";
+      let v = (props && props[key] != null) ? String(props[key]) : "";
+      // Force internal-name style display for branch / active_status
+      if (key === "branch" || key === "active_status") {
+        v = normalizeInternalDisplay(key, v);
+      }
       const kDiv = document.createElement("div");
       kDiv.className = "k";
       kDiv.textContent = label;
@@ -201,15 +282,20 @@
 
     for (const note of notes){
       const noteId = note.id;
-      const plainAll = htmlToPlainText(note.hs_note_body || "");
-      const bodyOnly = stripAuditLines(plainAll);
+
+      // Prefer worker-provided appendedBy if present, else parse meta from body
+      const plainAll0 = htmlToPlainText(note.hs_note_body || "");
+      const meta = extractAppendedByAndStripMeta(plainAll0);
+      const appendedBy = (note.appendedBy && String(note.appendedBy).trim()) ? String(note.appendedBy).trim() : (meta.appendedBy || "");
+      const bodyOnly = stripAuditLines(meta.textWithoutMeta);
 
       const div = document.createElement("div");
       div.className = "note";
       div.innerHTML = `
-        <div class="muted">
+        <div class="noteHead">
           <span class="pill">Note ID: ${esc(noteId)}</span>
-          <span style="margin-left:8px;">${esc(new Date(toEpoch(note)).toLocaleString())}</span>
+          <span class="pill center">Appended by: ${esc(appendedBy || "(unknown)")}</span>
+          <span class="dateRight">${esc(new Date(toEpoch(note)).toLocaleString())}</span>
         </div>
 
         <pre>${esc(bodyOnly)}</pre>
@@ -239,6 +325,9 @@
     }
     CONTACT_ID = id;
     setStatus("Loading... / 読み込み中...");
+
+    // load login name pill (non-fatal)
+    try { await loadMe(); } catch {}
 
     const c = await api(`/api/contacts/${encodeURIComponent(id)}`);
     if (!c.ok){
@@ -295,8 +384,10 @@
     if (!box || !ta) return;
 
     const note = NOTES_CACHE.find(x => String(x.id) === String(noteId));
-    const plainAll = htmlToPlainText(note?.hs_note_body || "");
-    ta.value = stripAuditLines(plainAll);
+
+    const plainAll0 = htmlToPlainText(note?.hs_note_body || "");
+    const meta = extractAppendedByAndStripMeta(plainAll0);
+    ta.value = stripAuditLines(meta.textWithoutMeta);
 
     box.style.display = "block";
     ta.focus();
