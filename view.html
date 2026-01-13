@@ -1,0 +1,357 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>View | World Divine Light Admin</title>
+  <link rel="stylesheet" href="/css/style.css" />
+  <style>
+    .muted { color:#666; font-size:0.9em; }
+    .pill { display:inline-block; padding:2px 8px; border:1px solid #ddd; border-radius:999px; font-size:12px; }
+    .grid {
+      display: grid;
+      grid-template-columns: 220px 1fr;
+      gap: 8px 14px;
+      margin-top: 12px;
+    }
+    .k { font-weight: 700; }
+    .v { border-bottom: 1px dashed #ddd; padding-bottom: 4px; }
+    hr { margin: 18px 0; }
+
+    .note {
+      border: 1px solid #ddd;
+      border-radius: 10px;
+      padding: 10px 12px;
+      margin: 10px 0;
+      background: #fff;
+    }
+    textarea { width:100%; min-height:120px; padding:10px; }
+    .row { display:flex; gap:10px; flex-wrap:wrap; align-items:center; margin-top:10px; }
+    pre { white-space: pre-wrap; margin: 8px 0 0; }
+    .appendBox { margin-top:10px; display:none; }
+    .appendBox textarea { min-height:140px; }
+    .danger { border:1px solid #b00020; color:#b00020; }
+
+    .section-title { display:flex; align-items:baseline; gap:8px; }
+    .h-ja { font-size:0.85em; font-weight:600; color:#444; }
+  </style>
+</head>
+<body>
+
+<header>
+  <h2>View <span class="h-ja">（個人詳細）</span></h2>
+  <small><a href="/contacts.html">← Back to Contacts / 連絡先一覧へ戻る</a></small>
+</header>
+
+<div class="card">
+  <div class="muted" id="meta">Loading...</div>
+
+  <div class="section-title">
+    <h3 style="margin: 14px 0 6px;">Profile</h3>
+    <span class="h-ja">（基本情報）</span>
+  </div>
+
+  <div class="grid" id="profile"></div>
+
+  <hr />
+
+  <div class="section-title">
+    <h3 style="margin: 14px 0 6px;">Notes</h3>
+    <span class="h-ja">（メモ）</span>
+  </div>
+
+  <p class="muted" style="margin-top:0;">
+    Notes are stored and displayed as plain content only.
+    <span class="h-ja">（本文のみを保存・表示します）</span>
+  </p>
+
+  <textarea id="newNote" placeholder="Type a note... / メモを入力してください"></textarea>
+  <div class="row">
+    <button type="button" id="addBtn">Add Note / 追加</button>
+    <button type="button" id="reloadBtn">Reload / 再読み込み</button>
+    <span class="muted" id="status"></span>
+  </div>
+
+  <div id="notes"></div>
+</div>
+
+<script>
+  function qs(id){ return document.getElementById(id); }
+  function setStatus(msg){ qs("status").textContent = msg || ""; }
+
+  function esc(s){
+    return String(s ?? "")
+      .replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;")
+      .replaceAll('"',"&quot;").replaceAll("'","&#39;");
+  }
+
+  function getId(){
+    const u = new URL(location.href);
+    return u.searchParams.get("id") || "";
+  }
+
+  async function api(path, opts={}){
+    const res = await fetch(path, { ...opts, headers: { ...(opts.headers||{}) }});
+    const text = await res.text();
+    let data;
+    try { data = text ? JSON.parse(text) : null; } catch { data = { raw: text }; }
+    return { ok: res.ok, status: res.status, data, raw: text };
+  }
+
+  function htmlToPlainText(html) {
+    if (!html) return "";
+    try {
+      const normalized = String(html)
+        .replaceAll("<br>", "\n").replaceAll("<br/>", "\n").replaceAll("<br />", "\n")
+        .replaceAll("</p>", "\n")
+        .replaceAll("</div>", "\n")
+        .replaceAll("</li>", "\n");
+      const doc = new DOMParser().parseFromString(normalized, "text/html");
+      const text = (doc.body && doc.body.textContent) ? doc.body.textContent : "";
+      return text.replace(/\n{3,}/g, "\n\n").trim();
+    } catch {
+      return String(html);
+    }
+  }
+
+  function stripAuditLines(plainText) {
+    if (!plainText) return "";
+    const lines = String(plainText).split("\n");
+    const dropPrefix = [
+      "Added by:", "Added at:", "Appended by:", "Appended at:",
+      "[Added by:", "[Added at:", "[Appended by:", "[Appended at:"
+    ];
+    const kept = [];
+    for (const line of lines) {
+      const t = line.trim();
+      if (dropPrefix.some(p => t.startsWith(p))) continue;
+      kept.push(line);
+    }
+    return kept.join("\n").replace(/\n{3,}/g, "\n\n").trim();
+  }
+
+  function toEpoch(note) {
+    const created = note?.hs_createdate;
+    const ts = note?.hs_timestamp;
+    const p1 = created ? Date.parse(String(created)) : NaN;
+    if (!Number.isNaN(p1)) return p1;
+    const n2 = Number(ts);
+    if (!Number.isNaN(n2) && Number.isFinite(n2)) return n2;
+    const p2 = ts ? Date.parse(String(ts)) : NaN;
+    if (!Number.isNaN(p2)) return p2;
+    return 0;
+  }
+
+  let NOTES_CACHE = [];
+  let CONTACT_ID = "";
+
+  function renderProfile(props, id){
+    const orderKeys = [
+      ["firstname","First Name"],
+      ["middle_name","Middle Name"],
+      ["lastname","Last Name"],
+      ["email","Email"],
+      ["member_id","Member ID"],
+      ["branch","Branch"],
+      ["active_status","Active Status"],
+      ["preferred_language","Preferred Language"],
+      ["mobilephone","Mobile Phone"],
+      ["address","Address"],
+      ["city","City"],
+      ["state__province","State / Province"],
+      ["zip","ZIP"],
+      ["gender","Gender"],
+      ["date_of_birth","Date of Birth"],
+      ["taking_medication","Taking Medication"],
+      ["medication_names","Medication Names"],
+      ["initial_notes","Initial Notes"],
+      ["notes_last_updated","Notes Last Updated"],
+      ["createdate","Create Date"]
+    ];
+
+    const grid = qs("profile");
+    grid.innerHTML = "";
+
+    // Meta
+    const name = [props.firstname, props.middle_name, props.lastname].filter(Boolean).join(" ");
+    qs("meta").innerHTML = `<span class="pill">Contact ID: ${esc(id)}</span> <b>${esc(name||"(no name)")}</b> <span class="muted">(${esc(props.email||"")})</span>`;
+
+    for (const [key,label] of orderKeys){
+      const v = (props && props[key] != null) ? String(props[key]) : "";
+      const kDiv = document.createElement("div");
+      kDiv.className = "k";
+      kDiv.textContent = label;
+      const vDiv = document.createElement("div");
+      vDiv.className = "v";
+      vDiv.textContent = v;
+      grid.appendChild(kDiv);
+      grid.appendChild(vDiv);
+    }
+  }
+
+  function renderNotes(){
+    const box = qs("notes");
+    box.innerHTML = "";
+
+    const notes = NOTES_CACHE.slice().sort((a,b) => toEpoch(b) - toEpoch(a));
+    if (!notes.length){
+      box.innerHTML = `<p class="muted">No notes found. / メモはまだありません。</p>`;
+      return;
+    }
+
+    for (const note of notes){
+      const noteId = note.id;
+      const plainAll = htmlToPlainText(note.hs_note_body || "");
+      const bodyOnly = stripAuditLines(plainAll);
+
+      const div = document.createElement("div");
+      div.className = "note";
+      div.innerHTML = `
+        <div class="muted">
+          <span class="pill">Note ID: ${esc(noteId)}</span>
+          <span style="margin-left:8px;">${esc(new Date(toEpoch(note)).toLocaleString())}</span>
+        </div>
+
+        <pre>${esc(bodyOnly)}</pre>
+
+        <div class="row">
+          <button type="button" onclick="openEdit('${esc(noteId)}')">Edit / 編集</button>
+          <button type="button" class="danger" onclick="deleteNote('${esc(noteId)}')">Delete / 削除</button>
+        </div>
+
+        <div class="appendBox" id="appendBox_${esc(noteId)}">
+          <textarea id="appendText_${esc(noteId)}"></textarea>
+          <div class="row">
+            <button type="button" onclick="saveEdit('${esc(noteId)}')">Save / 保存</button>
+            <button type="button" onclick="closeEdit('${esc(noteId)}')">Cancel / キャンセル</button>
+          </div>
+        </div>
+      `;
+      box.appendChild(div);
+    }
+  }
+
+  async function loadAll(){
+    const id = getId();
+    if (!id){
+      qs("meta").textContent = "Missing ?id=";
+      return;
+    }
+    CONTACT_ID = id;
+    setStatus("Loading... / 読み込み中...");
+
+    const c = await api(`/api/contacts/${encodeURIComponent(id)}`);
+    if (!c.ok){
+      setStatus("");
+      alert(`Failed: ${c.status}\n` + c.raw);
+      return;
+    }
+    renderProfile(c.data.properties || {}, id);
+
+    const n = await api(`/api/contacts/${encodeURIComponent(id)}/notes`);
+    if (!n.ok){
+      setStatus("");
+      alert(`Failed notes: ${n.status}\n` + n.raw);
+      return;
+    }
+    NOTES_CACHE = (n.data.notes || []).slice();
+    renderNotes();
+
+    setStatus("");
+  }
+
+  async function addNote(){
+    const body = (qs("newNote").value || "").trim();
+    if (!body){
+      alert("Please enter a note. / メモを入力してください");
+      return;
+    }
+    setStatus("Saving... / 保存中...");
+
+    const r = await api(`/api/contacts/${encodeURIComponent(CONTACT_ID)}/notes`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ body })
+    });
+
+    if (!r.ok){
+      setStatus("");
+      alert(`Add note failed: ${r.status}\n` + r.raw);
+      return;
+    }
+
+    qs("newNote").value = "";
+    await loadAll();
+    setStatus("Saved / 保存しました");
+  }
+
+  function openEdit(noteId){
+    for (const n of NOTES_CACHE){
+      const b = document.getElementById("appendBox_" + n.id);
+      if (b) b.style.display = "none";
+    }
+    const box = document.getElementById("appendBox_" + noteId);
+    const ta = document.getElementById("appendText_" + noteId);
+    if (!box || !ta) return;
+
+    const note = NOTES_CACHE.find(x => String(x.id) === String(noteId));
+    const plainAll = htmlToPlainText(note?.hs_note_body || "");
+    ta.value = stripAuditLines(plainAll);
+
+    box.style.display = "block";
+    ta.focus();
+  }
+
+  function closeEdit(noteId){
+    const box = document.getElementById("appendBox_" + noteId);
+    if (box) box.style.display = "none";
+  }
+
+  async function saveEdit(noteId){
+    const ta = document.getElementById("appendText_" + noteId);
+    const text = (ta?.value || "").trim();
+    if (!text){
+      alert("Please enter content. / 内容を入力してください");
+      return;
+    }
+    setStatus("Updating... / 更新中...");
+
+    const r = await api(`/api/notes/${encodeURIComponent(noteId)}/append`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ text })
+    });
+
+    if (!r.ok){
+      setStatus("");
+      alert(`Update failed: ${r.status}\n` + r.raw);
+      return;
+    }
+
+    await loadAll();
+    setStatus("Saved / 保存しました");
+  }
+
+  async function deleteNote(noteId){
+    if (!confirm("Delete this note? / このメモを削除しますか？")) return;
+    if (!confirm("This cannot be undone. Continue? / 元に戻せません。続行しますか？")) return;
+
+    setStatus("Deleting... / 削除中...");
+    const r = await api(`/api/notes/${encodeURIComponent(noteId)}`, { method: "DELETE" });
+    if (!r.ok){
+      setStatus("");
+      alert(`Delete failed: ${r.status}\n` + r.raw);
+      return;
+    }
+
+    await loadAll();
+    setStatus("Deleted / 削除しました");
+  }
+
+  qs("addBtn").onclick = () => addNote();
+  qs("reloadBtn").onclick = () => loadAll();
+  loadAll();
+</script>
+
+</body>
+</html>
