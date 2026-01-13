@@ -34,15 +34,22 @@
 
     .section-title { display:flex; align-items:baseline; gap:8px; flex-wrap:wrap; }
     .h-ja { font-size:0.85em; font-weight:600; color:#444; }
+
+    /* Note header: left stack + right date */
     .noteHead {
-      display: grid;
-      grid-template-columns: auto 1fr auto; /* NoteID / AppendedBy / Date */
-      align-items: center;
-      gap: 10px;
-      margin-bottom: 6px;
+      display:flex;
+      align-items:flex-start;
+      justify-content:space-between;
+      gap:10px;
+      margin-bottom:6px;
     }
-    .pill.center { justify-self: center; }
-    .dateRight { justify-self:end; font-size:12px; color:#667; white-space:nowrap; }
+    .noteHeadLeft {
+      display:flex;
+      flex-direction:column;
+      gap:6px;
+      align-items:flex-start;
+    }
+    .dateRight { font-size:12px; color:#667; white-space:nowrap; padding-top:2px; }
   </style>
 </head>
 <body>
@@ -86,6 +93,26 @@
 </div>
 
 <script>
+  // internal -> display label
+  const BRANCH_LABEL = {
+    canada: "Canada",
+    new_york: "New York",
+    chicago: "Chicago",
+    los_angeles: "Los Angeles",
+    california: "California",
+    houston: "Houston",
+    hawaii: "Hawaii"
+  };
+  const ACTIVE_LABEL = {
+    non_kamikumite: "Non Kamikumite",
+    basic_kamikumite: "Basic Kamikumite",
+    intermediate_kamikumite: "Intermediate Kamikumite",
+    advanced_kamikumite: "Advanced Kamikumite",
+    kanbu: "Kanbu",
+    doshi: "Doshi",
+    sleeping_kamikumite: "Sleeping Kamikumite"
+  };
+
   function qs(id){ return document.getElementById(id); }
   function setStatus(msg){ qs("status").textContent = msg || ""; }
 
@@ -108,38 +135,7 @@
     return { ok: res.ok, status: res.status, data, raw: text };
   }
 
-  // ===== Internal-name display helpers (Branch / Active Status) =====
-  const BRANCH_TO_INTERNAL = {
-    "Canada":"canada", "New York":"new_york", "Chicago":"chicago", "Los Angeles":"los_angeles",
-    "California":"california", "Houston":"houston", "Hawaii":"hawaii",
-  };
-  const ACTIVE_TO_INTERNAL = {
-    "Non Kumite":"non_kamikumite",
-    "Non Kamikumite":"non_kamikumite",
-    "Basic Kumite":"basic_kamikumite",
-    "Intermediate Kumite":"intermediate_kamikumite",
-    "Advanced Kumite":"advanced_kamikumite",
-    "Kanbu":"kanbu",
-    "Doshi":"doshi",
-    "Sleeping Kumite":"sleeping_kamikumite",
-    "Sleeping Kamikumite":"sleeping_kamikumite",
-  };
-  function normalizeInternalDisplay(key, val){
-    const v = String(val ?? "").trim();
-    if (!v) return "";
-    if (key === "branch"){
-      // If already internal (contains underscore or lowercase), keep; else map label -> internal if possible
-      if (/[a-z_]+/.test(v) && v === v.toLowerCase()) return v;
-      return BRANCH_TO_INTERNAL[v] || v;
-    }
-    if (key === "active_status"){
-      if (/[a-z_]+/.test(v) && v === v.toLowerCase()) return v;
-      return ACTIVE_TO_INTERNAL[v] || v;
-    }
-    return v;
-  }
-
-  // ===== Notes: meta parsing =====
+  // Notes meta parsing (if needed for old compat payloads)
   const META_PREFIX = "[[APPENDED_BY:";
   const META_SUFFIX = "]]";
 
@@ -189,6 +185,12 @@
   }
 
   function toEpoch(note) {
+    // new worker payload: {createdate}
+    if (note && note.createdate) {
+      const p = Date.parse(String(note.createdate));
+      if (!Number.isNaN(p)) return p;
+    }
+    // old compat payload: hs_createdate / hs_timestamp
     const created = note?.hs_createdate;
     const ts = note?.hs_timestamp;
     const p1 = created ? Date.parse(String(created)) : NaN;
@@ -202,24 +204,26 @@
 
   let NOTES_CACHE = [];
   let CONTACT_ID = "";
-  let ME = { email:"", name:"" };
 
   async function loadMe(){
-    // Uses Worker endpoint that returns allowlist name
     const r = await api("/api/me");
-    if (r.ok && r.data && r.data.ok !== false) {
-      // allow both {ok:true,...} or plain
-      const payload = r.data.ok === true ? r.data : r.data;
-      const name = payload.name || "";
-      const email = payload.email || "";
-      ME = { name, email };
-      const label = name || email;
-      if (label) {
-        const pill = qs("mePill");
-        pill.textContent = "Logged in as: " + label;
-        pill.style.display = "inline-block";
-      }
+    if (!r.ok) return;
+    const payload = r.data?.ok === true ? r.data : r.data;
+    const label = (payload?.name || payload?.email || "").trim();
+    if (label) {
+      const pill = qs("mePill");
+      pill.textContent = "Logged in as: " + label;
+      pill.style.display = "inline-block";
     }
+  }
+
+  function toBranchLabel(v){
+    const key = String(v || "").trim();
+    return BRANCH_LABEL[key] || key;
+  }
+  function toActiveLabel(v){
+    const key = String(v || "").trim();
+    return ACTIVE_LABEL[key] || key;
   }
 
   function renderProfile(props, id){
@@ -249,22 +253,23 @@
     const grid = qs("profile");
     grid.innerHTML = "";
 
-    // Meta
     const name = [props.firstname, props.middle_name, props.lastname].filter(Boolean).join(" ");
     qs("meta").innerHTML = `<span class="pill">Contact ID: ${esc(id)}</span> <b>${esc(name||"(no name)")}</b> <span class="muted">(${esc(props.email||"")})</span>`;
 
     for (const [key,label] of orderKeys){
       let v = (props && props[key] != null) ? String(props[key]) : "";
-      // Force internal-name style display for branch / active_status
-      if (key === "branch" || key === "active_status") {
-        v = normalizeInternalDisplay(key, v);
-      }
+
+      if (key === "branch") v = toBranchLabel(v);
+      if (key === "active_status") v = toActiveLabel(v);
+
       const kDiv = document.createElement("div");
       kDiv.className = "k";
       kDiv.textContent = label;
+
       const vDiv = document.createElement("div");
       vDiv.className = "v";
       vDiv.textContent = v;
+
       grid.appendChild(kDiv);
       grid.appendChild(vDiv);
     }
@@ -283,22 +288,34 @@
     for (const note of notes){
       const noteId = note.id;
 
-      // Prefer worker-provided appendedBy if present, else parse meta from body
-      const plainAll0 = htmlToPlainText(note.hs_note_body || "");
-      const meta = extractAppendedByAndStripMeta(plainAll0);
-      const appendedBy = (note.appendedBy && String(note.appendedBy).trim()) ? String(note.appendedBy).trim() : (meta.appendedBy || "");
-      const bodyOnly = stripAuditLines(meta.textWithoutMeta);
+      // new payload: {body, appendedBy, createdate}
+      // compat payload: {hs_note_body, hs_createdate, appendedBy?}
+      let appendedBy = (note.appendedBy || "").trim();
+      let bodyText = "";
+
+      if (note.body != null) {
+        bodyText = String(note.body || "");
+      } else {
+        const plainAll = htmlToPlainText(note.hs_note_body || "");
+        const meta = extractAppendedByAndStripMeta(plainAll);
+        if (!appendedBy) appendedBy = meta.appendedBy || "";
+        bodyText = stripAuditLines(meta.textWithoutMeta);
+      }
+
+      const dateStr = new Date(toEpoch(note)).toLocaleString();
 
       const div = document.createElement("div");
       div.className = "note";
       div.innerHTML = `
         <div class="noteHead">
-          <span class="pill">Note ID: ${esc(noteId)}</span>
-          <span class="pill center">Appended by: ${esc(appendedBy || "(unknown)")}</span>
-          <span class="dateRight">${esc(new Date(toEpoch(note)).toLocaleString())}</span>
+          <div class="noteHeadLeft">
+            <span class="pill">Note ID: ${esc(noteId)}</span>
+            <span class="pill">Appended by: ${esc(appendedBy || "(unknown)")}</span>
+          </div>
+          <div class="dateRight">${esc(dateStr)}</div>
         </div>
 
-        <pre>${esc(bodyOnly)}</pre>
+        <pre>${esc(bodyText)}</pre>
 
         <div class="row">
           <button type="button" onclick="openEdit('${esc(noteId)}')">Edit / 編集</button>
@@ -326,24 +343,36 @@
     CONTACT_ID = id;
     setStatus("Loading... / 読み込み中...");
 
-    // load login name pill (non-fatal)
     try { await loadMe(); } catch {}
 
-    const c = await api(`/api/contacts/${encodeURIComponent(id)}`);
+    // NEW get (preferred)
+    let c = await api(`/api/contacts/get?id=${encodeURIComponent(id)}`);
+    if (!c.ok) {
+      // old compat fallback
+      c = await api(`/api/contacts/${encodeURIComponent(id)}`);
+    }
     if (!c.ok){
       setStatus("");
       alert(`Failed: ${c.status}\n` + c.raw);
       return;
     }
-    renderProfile(c.data.properties || {}, id);
 
-    const n = await api(`/api/contacts/${encodeURIComponent(id)}/notes`);
+    const props = c.data?.properties || c.data?.data?.properties || {};
+    renderProfile(props, id);
+
+    // Notes (new preferred)
+    let n = await api(`/api/notes/list?contactId=${encodeURIComponent(id)}`);
+    if (!n.ok) {
+      // compat fallback
+      n = await api(`/api/contacts/${encodeURIComponent(id)}/notes`);
+    }
     if (!n.ok){
       setStatus("");
       alert(`Failed notes: ${n.status}\n` + n.raw);
       return;
     }
-    NOTES_CACHE = (n.data.notes || []).slice();
+
+    NOTES_CACHE = (n.data?.notes || n.data?.data?.notes || []).slice();
     renderNotes();
 
     setStatus("");
@@ -357,11 +386,21 @@
     }
     setStatus("Saving... / 保存中...");
 
-    const r = await api(`/api/contacts/${encodeURIComponent(CONTACT_ID)}/notes`, {
+    // new preferred
+    let r = await api(`/api/notes/create`, {
       method: "POST",
       headers: { "content-type": "application/json" },
-      body: JSON.stringify({ body })
+      body: JSON.stringify({ contactId: CONTACT_ID, body })
     });
+
+    // compat fallback
+    if (!r.ok) {
+      r = await api(`/api/contacts/${encodeURIComponent(CONTACT_ID)}/notes`, {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ body })
+      });
+    }
 
     if (!r.ok){
       setStatus("");
@@ -384,10 +423,13 @@
     if (!box || !ta) return;
 
     const note = NOTES_CACHE.find(x => String(x.id) === String(noteId));
-
-    const plainAll0 = htmlToPlainText(note?.hs_note_body || "");
-    const meta = extractAppendedByAndStripMeta(plainAll0);
-    ta.value = stripAuditLines(meta.textWithoutMeta);
+    if (note?.body != null) {
+      ta.value = String(note.body || "");
+    } else {
+      const plainAll = htmlToPlainText(note?.hs_note_body || "");
+      const meta = extractAppendedByAndStripMeta(plainAll);
+      ta.value = stripAuditLines(meta.textWithoutMeta);
+    }
 
     box.style.display = "block";
     ta.focus();
@@ -407,11 +449,21 @@
     }
     setStatus("Updating... / 更新中...");
 
-    const r = await api(`/api/notes/${encodeURIComponent(noteId)}/append`, {
+    // new preferred
+    let r = await api(`/api/notes/update`, {
       method: "POST",
       headers: { "content-type": "application/json" },
-      body: JSON.stringify({ text })
+      body: JSON.stringify({ noteId, body: text })
     });
+
+    // compat fallback
+    if (!r.ok) {
+      r = await api(`/api/notes/${encodeURIComponent(noteId)}/append`, {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ text })
+      });
+    }
 
     if (!r.ok){
       setStatus("");
@@ -428,7 +480,19 @@
     if (!confirm("This cannot be undone. Continue? / 元に戻せません。続行しますか？")) return;
 
     setStatus("Deleting... / 削除中...");
-    const r = await api(`/api/notes/${encodeURIComponent(noteId)}`, { method: "DELETE" });
+
+    // new preferred
+    let r = await api(`/api/notes/delete`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ noteId })
+    });
+
+    // compat fallback
+    if (!r.ok) {
+      r = await api(`/api/notes/${encodeURIComponent(noteId)}`, { method: "DELETE" });
+    }
+
     if (!r.ok){
       setStatus("");
       alert(`Delete failed: ${r.status}\n` + r.raw);
