@@ -20,6 +20,9 @@
     pre { white-space: pre-wrap; margin: 8px 0 0; }
     .h-ja { font-size: 0.85em; font-weight: 600; color:#444; margin-left: 8px; }
     .section-title { display:flex; align-items:baseline; gap:6px; }
+    .appendBox { margin-top:10px; display:none; }
+    .appendBox textarea { min-height: 80px; }
+    .danger { border:1px solid #b00020; color:#b00020; }
   </style>
 </head>
 <body>
@@ -73,12 +76,10 @@
       .replaceAll('"',"&quot;").replaceAll("'","&#39;");
   }
 
-  function fmt(ts){
-    if (!ts) return "";
-    const n = Number(ts);
-    if (!isNaN(n) && n > 0) return new Date(n).toLocaleString();
-    const d = new Date(ts);
-    return isNaN(d.getTime()) ? String(ts) : d.toLocaleString();
+  function fmtEpoch(ms){
+    if (!ms) return "";
+    const d = new Date(ms);
+    return isNaN(d.getTime()) ? "" : d.toLocaleString();
   }
 
   function getId(){
@@ -94,11 +95,9 @@
     return { ok: res.ok, status: res.status, data, raw: text };
   }
 
-  // Convert HubSpot note HTML (hs_note_body) to plain text (no tags shown)
   function htmlToPlainText(html) {
     if (!html) return "";
     try {
-      // add newlines for common block tags before stripping
       const normalized = String(html)
         .replaceAll("<br>", "\n").replaceAll("<br/>", "\n").replaceAll("<br />", "\n")
         .replaceAll("</p>", "\n")
@@ -107,12 +106,23 @@
 
       const doc = new DOMParser().parseFromString(normalized, "text/html");
       const text = (doc.body && doc.body.textContent) ? doc.body.textContent : "";
-      // clean up excessive blank lines
       return text.replace(/\n{3,}/g, "\n\n").trim();
     } catch {
-      // fallback: escape raw html
       return String(html);
     }
+  }
+
+  // robust epoch
+  function toEpoch(note) {
+    const created = note?.hs_createdate;
+    const ts = note?.hs_timestamp;
+    const p1 = created ? Date.parse(String(created)) : NaN;
+    if (!Number.isNaN(p1)) return p1;
+    const n2 = Number(ts);
+    if (!Number.isNaN(n2) && Number.isFinite(n2)) return n2;
+    const p2 = ts ? Date.parse(String(ts)) : NaN;
+    if (!Number.isNaN(p2)) return p2;
+    return 0;
   }
 
   async function load(){
@@ -123,7 +133,7 @@
     }
 
     setStatus("Loading... / 読み込み中...");
-    // contact basic info
+
     const c = await api(`/api/contacts/${encodeURIComponent(id)}`);
     if (!c.ok){
       setStatus("");
@@ -138,7 +148,6 @@
       `<b>${esc(name||"(no name)")}</b> ` +
       `<span class="muted">(${esc(p.email||"")})</span>`;
 
-    // notes
     const n = await api(`/api/contacts/${encodeURIComponent(id)}/notes`);
     if (!n.ok){
       setStatus("");
@@ -146,7 +155,9 @@
       return;
     }
 
-    const notes = n.data.notes || [];
+    const notes = (n.data.notes || []).slice();
+    notes.sort((a,b) => toEpoch(b) - toEpoch(a));
+
     const box = qs("notes");
     box.innerHTML = "";
 
@@ -161,12 +172,29 @@
       div.className = "note";
 
       const plain = htmlToPlainText(note.hs_note_body || "");
+      const epoch = toEpoch(note);
+      const noteId = note.id;
+
       div.innerHTML = `
         <div class="muted">
-          <span class="pill">Note ID: ${esc(note.id)}</span>
-          <span style="margin-left:8px;">${esc(fmt(note.hs_timestamp || note.hs_createdate))}</span>
+          <span class="pill">Note ID: ${esc(noteId)}</span>
+          <span style="margin-left:8px;">${esc(fmtEpoch(epoch))}</span>
         </div>
+
         <pre>${esc(plain)}</pre>
+
+        <div class="row">
+          <button type="button" onclick="toggleAppend('${esc(noteId)}')">Append / 追記</button>
+          <button type="button" class="danger" onclick="deleteNote('${esc(noteId)}')">Delete / 削除</button>
+        </div>
+
+        <div class="appendBox" id="appendBox_${esc(noteId)}">
+          <textarea id="appendText_${esc(noteId)}" placeholder="Append text... / 追記内容を入力"></textarea>
+          <div class="row">
+            <button type="button" onclick="appendToNote('${esc(noteId)}')">Save Append / 追記保存</button>
+            <button type="button" onclick="toggleAppend('${esc(noteId)}')">Cancel / キャンセル</button>
+          </div>
+        </div>
       `;
       box.appendChild(div);
     }
@@ -198,6 +226,55 @@
     qs("newNote").value = "";
     await load();
     setStatus("Saved / 保存しました");
+  }
+
+  function toggleAppend(noteId){
+    const box = document.getElementById("appendBox_" + noteId);
+    if (!box) return;
+    box.style.display = (box.style.display === "block") ? "none" : "block";
+  }
+
+  async function appendToNote(noteId){
+    const text = (document.getElementById("appendText_" + noteId).value || "").trim();
+    if (!text){
+      alert("Please enter append text. / 追記内容を入力してください");
+      return;
+    }
+
+    setStatus("Appending... / 追記中...");
+    const r = await api(`/api/notes/${encodeURIComponent(noteId)}/append`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ text })
+    });
+
+    if (!r.ok){
+      setStatus("");
+      alert(`Append failed: ${r.status}\n` + r.raw);
+      return;
+    }
+
+    setStatus("Saved / 保存しました");
+    await load();
+  }
+
+  async function deleteNote(noteId){
+    if (!confirm("Delete this note? / このメモを削除しますか？")) return;
+    if (!confirm("This cannot be undone. Continue? / 元に戻せません。続行しますか？")) return;
+
+    setStatus("Deleting... / 削除中...");
+    const r = await api(`/api/notes/${encodeURIComponent(noteId)}`, {
+      method: "DELETE"
+    });
+
+    if (!r.ok){
+      setStatus("");
+      alert(`Delete failed: ${r.status}\n` + r.raw);
+      return;
+    }
+
+    setStatus("Deleted / 削除しました");
+    await load();
   }
 
   qs("addBtn").onclick = () => addNote();
