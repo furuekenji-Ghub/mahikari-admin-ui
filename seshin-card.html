@@ -97,13 +97,47 @@
         .replaceAll("</p>", "\n")
         .replaceAll("</div>", "\n")
         .replaceAll("</li>", "\n");
-
       const doc = new DOMParser().parseFromString(normalized, "text/html");
       const text = (doc.body && doc.body.textContent) ? doc.body.textContent : "";
       return text.replace(/\n{3,}/g, "\n\n").trim();
     } catch {
       return String(html);
     }
+  }
+
+  // ---- NEW: extract only "body text" (remove audit lines) ----
+  function extractBodyOnly(plainText) {
+    if (!plainText) return "";
+    const lines = String(plainText).split("\n");
+
+    const dropPrefix = [
+      "Added by:",
+      "Added at:",
+      "Appended by:",
+      "Appended at:",
+      "[Added by:",
+      "[Added at:",
+      "[Appended by:",
+      "[Appended at:"
+    ];
+
+    const kept = [];
+    for (let line of lines) {
+      const t = line.trim();
+
+      // remove audit/meta lines
+      if (dropPrefix.some(p => t.startsWith(p))) continue;
+
+      // also remove divider-like lines
+      if (t === "----" || t === "-----" || t === "—" || t === "――") continue;
+
+      kept.push(line);
+    }
+
+    // normalize blank lines: collapse 3+ into 2
+    let out = kept.join("\n").replace(/\n{3,}/g, "\n\n").trim();
+
+    return out;
   }
 
   function toEpoch(note) {
@@ -118,7 +152,6 @@
     return 0;
   }
 
-  // Keep latest notes in memory for Append prefill
   let NOTES_CACHE = [];
 
   async function load(){
@@ -170,11 +203,12 @@
 
       const plain = htmlToPlainText(note.hs_note_body || "");
       const noteId = note.id;
+      const epoch = toEpoch(note);
 
       div.innerHTML = `
         <div class="muted">
           <span class="pill">Note ID: ${esc(noteId)}</span>
-          <span style="margin-left:8px;">${esc(new Date(toEpoch(note)).toLocaleString())}</span>
+          <span style="margin-left:8px;">${esc(new Date(epoch).toLocaleString())}</span>
         </div>
 
         <pre>${esc(plain)}</pre>
@@ -186,9 +220,9 @@
 
         <div class="appendBox" id="appendBox_${esc(noteId)}">
           <p class="muted">
-            Full text is loaded below. Add or edit the content, then save to update this existing note.
+            Only the current note text is loaded below (audit lines hidden). Add or edit, then save to update this existing note.
             <br>
-            <span class="h-ja">現在の本文を下に読み込みます。追記・編集して保存すると、このNote（既存）を全文更新します。</span>
+            <span class="h-ja">現在の本文のみを下に読み込みます（過去の追記者・日付は非表示）。追記・編集して保存すると、このNoteを全文更新します。</span>
           </p>
           <textarea id="appendText_${esc(noteId)}"></textarea>
           <div class="row">
@@ -240,10 +274,10 @@
     const ta = document.getElementById("appendText_" + noteId);
     if (!box || !ta) return;
 
-    // Prefill with current plain text
+    // Prefill: BODY ONLY (audit lines removed)
     const note = NOTES_CACHE.find(x => String(x.id) === String(noteId));
     const plain = htmlToPlainText(note?.hs_note_body || "");
-    ta.value = plain;
+    ta.value = extractBodyOnly(plain);
 
     box.style.display = "block";
     ta.focus();
@@ -263,10 +297,12 @@
     }
 
     setStatus("Updating note... / 更新中...");
+
+    // ✅ FIX: send { text: ... } (Worker currently expects this)
     const r = await api(`/api/notes/${encodeURIComponent(noteId)}/append`, {
       method: "POST",
       headers: { "content-type": "application/json" },
-      body: JSON.stringify({ fullText })
+      body: JSON.stringify({ text: fullText })
     });
 
     if (!r.ok){
