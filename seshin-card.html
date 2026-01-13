@@ -7,21 +7,15 @@
   <link rel="stylesheet" href="/css/style.css" />
   <style>
     .muted { color:#666; font-size:0.9em; }
-    .note {
-      border: 1px solid #ddd;
-      border-radius: 10px;
-      padding: 10px 12px;
-      margin: 10px 0;
-      background: #fff;
-    }
-    textarea { width: 100%; min-height: 120px; padding: 10px; }
+    .note { border:1px solid #ddd; border-radius:10px; padding:10px 12px; margin:10px 0; background:#fff; }
+    textarea { width:100%; min-height:120px; padding:10px; }
     .row { display:flex; gap:10px; flex-wrap:wrap; align-items:center; margin-top:10px; }
     .pill { display:inline-block; padding:2px 8px; border:1px solid #ddd; border-radius:999px; font-size:12px; }
-    pre { white-space: pre-wrap; margin: 8px 0 0; }
-    .h-ja { font-size: 0.85em; font-weight: 600; color:#444; margin-left: 8px; }
+    pre { white-space: pre-wrap; margin:8px 0 0; }
+    .h-ja { font-size:0.85em; font-weight:600; color:#444; margin-left:8px; }
     .section-title { display:flex; align-items:baseline; gap:6px; }
     .appendBox { margin-top:10px; display:none; }
-    .appendBox textarea { min-height: 140px; }
+    .appendBox textarea { min-height:140px; }
     .danger { border:1px solid #b00020; color:#b00020; }
   </style>
 </head>
@@ -41,11 +35,9 @@
   </div>
 
   <p class="muted" style="margin-top:0;">
-    Notes are saved into HubSpot as separate entries (chronological). The system automatically records who added it using your Access login.
+    Notes are stored as plain content only (no author/time lines displayed).
     <br>
-    <span class="h-ja">
-      メモはHubSpotに「別々の履歴」として時系列で保存されます。追記した人は、Accessログイン情報をもとに自動で記録されます。
-    </span>
+    <span class="h-ja">メモは本文のみを保存・表示します（誰が・いつ等の行は表示しません）。</span>
   </p>
 
   <textarea id="newNote" placeholder="Type a note... / メモを入力してください"></textarea>
@@ -105,39 +97,21 @@
     }
   }
 
-  // ---- NEW: extract only "body text" (remove audit lines) ----
-  function extractBodyOnly(plainText) {
+  // ✅ remove any audit lines from display/prefill
+  function stripAuditLines(plainText) {
     if (!plainText) return "";
     const lines = String(plainText).split("\n");
-
     const dropPrefix = [
-      "Added by:",
-      "Added at:",
-      "Appended by:",
-      "Appended at:",
-      "[Added by:",
-      "[Added at:",
-      "[Appended by:",
-      "[Appended at:"
+      "Added by:", "Added at:", "Appended by:", "Appended at:",
+      "[Added by:", "[Added at:", "[Appended by:", "[Appended at:"
     ];
-
     const kept = [];
-    for (let line of lines) {
+    for (const line of lines) {
       const t = line.trim();
-
-      // remove audit/meta lines
       if (dropPrefix.some(p => t.startsWith(p))) continue;
-
-      // also remove divider-like lines
-      if (t === "----" || t === "-----" || t === "—" || t === "――") continue;
-
       kept.push(line);
     }
-
-    // normalize blank lines: collapse 3+ into 2
-    let out = kept.join("\n").replace(/\n{3,}/g, "\n\n").trim();
-
-    return out;
+    return kept.join("\n").replace(/\n{3,}/g, "\n\n").trim();
   }
 
   function toEpoch(note) {
@@ -201,7 +175,9 @@
       const div = document.createElement("div");
       div.className = "note";
 
-      const plain = htmlToPlainText(note.hs_note_body || "");
+      const plainAll = htmlToPlainText(note.hs_note_body || "");
+      const plainBody = stripAuditLines(plainAll);
+
       const noteId = note.id;
       const epoch = toEpoch(note);
 
@@ -211,23 +187,22 @@
           <span style="margin-left:8px;">${esc(new Date(epoch).toLocaleString())}</span>
         </div>
 
-        <pre>${esc(plain)}</pre>
+        <pre>${esc(plainBody)}</pre>
 
         <div class="row">
-          <button type="button" onclick="openAppend('${esc(noteId)}')">Append / 追記</button>
+          <button type="button" onclick="openEdit('${esc(noteId)}')">Edit / 編集</button>
           <button type="button" class="danger" onclick="deleteNote('${esc(noteId)}')">Delete / 削除</button>
         </div>
 
         <div class="appendBox" id="appendBox_${esc(noteId)}">
           <p class="muted">
-            Only the current note text is loaded below (audit lines hidden). Add or edit, then save to update this existing note.
-            <br>
-            <span class="h-ja">現在の本文のみを下に読み込みます（過去の追記者・日付は非表示）。追記・編集して保存すると、このNoteを全文更新します。</span>
+            Edit the note body only (no audit lines). Saving will overwrite this note with the edited body.
+            <br><span class="h-ja">本文のみを編集できます。保存するとこのNoteが本文のみで上書きされます。</span>
           </p>
           <textarea id="appendText_${esc(noteId)}"></textarea>
           <div class="row">
-            <button type="button" onclick="saveAppend('${esc(noteId)}')">Save Append / 追記保存</button>
-            <button type="button" onclick="closeAppend('${esc(noteId)}')">Cancel / キャンセル</button>
+            <button type="button" onclick="saveEdit('${esc(noteId)}')">Save / 保存</button>
+            <button type="button" onclick="closeEdit('${esc(noteId)}')">Cancel / キャンセル</button>
           </div>
         </div>
       `;
@@ -263,8 +238,8 @@
     setStatus("Saved / 保存しました");
   }
 
-  function openAppend(noteId){
-    // close all others
+  function openEdit(noteId){
+    // close all
     for (const n of NOTES_CACHE){
       const b = document.getElementById("appendBox_" + n.id);
       if (b) b.style.display = "none";
@@ -274,40 +249,38 @@
     const ta = document.getElementById("appendText_" + noteId);
     if (!box || !ta) return;
 
-    // Prefill: BODY ONLY (audit lines removed)
     const note = NOTES_CACHE.find(x => String(x.id) === String(noteId));
-    const plain = htmlToPlainText(note?.hs_note_body || "");
-    ta.value = extractBodyOnly(plain);
+    const plainAll = htmlToPlainText(note?.hs_note_body || "");
+    ta.value = stripAuditLines(plainAll);
 
     box.style.display = "block";
     ta.focus();
   }
 
-  function closeAppend(noteId){
+  function closeEdit(noteId){
     const box = document.getElementById("appendBox_" + noteId);
     if (box) box.style.display = "none";
   }
 
-  async function saveAppend(noteId){
+  async function saveEdit(noteId){
     const ta = document.getElementById("appendText_" + noteId);
-    const fullText = (ta?.value || "").trim();
-    if (!fullText){
+    const text = (ta?.value || "").trim();
+    if (!text){
       alert("Please enter content. / 内容を入力してください");
       return;
     }
 
-    setStatus("Updating note... / 更新中...");
+    setStatus("Updating... / 更新中...");
 
-    // ✅ FIX: send { text: ... } (Worker currently expects this)
     const r = await api(`/api/notes/${encodeURIComponent(noteId)}/append`, {
       method: "POST",
       headers: { "content-type": "application/json" },
-      body: JSON.stringify({ text: fullText })
+      body: JSON.stringify({ text })
     });
 
     if (!r.ok){
       setStatus("");
-      alert(`Append failed: ${r.status}\n` + r.raw);
+      alert(`Update failed: ${r.status}\n` + r.raw);
       return;
     }
 
