@@ -12,7 +12,7 @@
     button { white-space: nowrap; }
 
     table { width: 100%; border-collapse: collapse; }
-    th, td { border: 1px solid #ccc; padding: 8px; text-align: left; vertical-align: top; }
+    th, td { border: 1px solid #ccc; padding: 10px; text-align: left; vertical-align: top; }
     th { background: #f3f3f3; position: sticky; top: 0; z-index: 1; }
     .table-wrap { overflow: auto; max-height: 70vh; border: 1px solid #ddd; border-radius: 10px; }
 
@@ -21,6 +21,7 @@
     .chip { display:inline-block; padding:2px 8px; border:1px solid #ddd; border-radius:999px; font-size:12px; }
     code { background:#f3f3f3; padding:2px 6px; border-radius:6px; }
 
+    /* 操作案内 */
     .instruction {
       border: 1px solid #e5e5e5;
       background: #fafafa;
@@ -32,6 +33,7 @@
     .instruction b { color:#333; }
     .instruction .ja { margin-top:6px; color:#555; }
 
+    /* 赤枠：Branch / Active Status / Search のみ */
     .red-focus {
       border: 2px solid #d32f2f !important;
       border-radius: 10px;
@@ -39,6 +41,7 @@
       padding: 6px 10px;
     }
 
+    /* Pagination */
     .pager {
       display: flex;
       gap: 8px;
@@ -110,11 +113,11 @@
   <div class="instruction">
     <div>
       <b>How to filter:</b> Select <b>Branch</b> and <b>Active Status</b>, then click <b>Search</b>.
-      Use the page buttons at the bottom to view the next 50 results.
+      Use page buttons at the bottom for the next 50 results.
     </div>
     <div class="ja">
       <b>操作方法：</b> まず <b>拠点（Branch）</b> と <b>ステータス（Active Status）</b> を選択し、<b>Search</b> を押して絞り込みます。<br>
-      51件目以降は、画面下のページ番号（2, 3 ...）で次の50件へ移動できます。
+      51件目以降は画面下のページ番号（2, 3...）で次の50件へ移動できます。
     </div>
   </div>
 
@@ -122,28 +125,13 @@
     <table>
       <thead>
         <tr>
-          <th>Edit</th>
-          <th>Seshin Card</th>
+          <th>View</th>
           <th>First Name</th>
           <th>Middle Name</th>
           <th>Last Name</th>
-          <th>Member ID</th>
-          <th>Active Status</th>
-          <th>Branch</th>
-          <th>Gender</th>
-          <th>Date of Birth</th>
-          <th>Preferred Language</th>
           <th>Email</th>
-          <th>Mobile Phone</th>
-          <th>Address</th>
-          <th>City</th>
-          <th>State / Province</th>
-          <th>ZIP</th>
-          <th>Taking Medication</th>
-          <th>Medication Names</th>
-          <th>Initial Notes</th>
-          <th>Notes Last Updated</th>
-          <th>Create Date</th>
+          <th>Branch</th>
+          <th>Active Status</th>
         </tr>
       </thead>
       <tbody id="rows"></tbody>
@@ -175,7 +163,6 @@
   };
 
   const PAGE_LIMIT = 50;
-
   let pageIndex = 1;
   let afterTokens = { 1: null };
   let hasNext = false;
@@ -184,11 +171,6 @@
     return String(s ?? "")
       .replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;")
       .replaceAll('"',"&quot;").replaceAll("'","&#39;");
-  }
-  function fmtDate(iso){
-    if (!iso) return "";
-    const d = new Date(iso);
-    return isNaN(d.getTime()) ? esc(iso) : d.toLocaleString();
   }
   function p(obj,key){
     const v = obj && obj.properties ? obj.properties[key] : null;
@@ -212,10 +194,11 @@
   }
 
   function currentFilters(){
-    const q = document.getElementById("q").value.trim();
-    const branch = document.getElementById("branch").value;
-    const active_status = document.getElementById("active_status").value;
-    return { q, branch, active_status };
+    return {
+      q: document.getElementById("q").value.trim(),
+      branch: document.getElementById("branch").value,
+      active_status: document.getElementById("active_status").value
+    };
   }
 
   async function fetchContacts({ q, branch, active_status, after }){
@@ -247,28 +230,13 @@
       const id = c.id;
       const tr = document.createElement("tr");
       tr.innerHTML = `
-        <td><a href="/edit.html?id=${encodeURIComponent(id)}"><button type="button">Edit</button></a></td>
-        <td><a href="/seshin-card.html?id=${encodeURIComponent(id)}"><button type="button">Open</button></a></td>
+        <td><a href="/view.html?id=${encodeURIComponent(id)}"><button type="button">View</button></a></td>
         <td>${esc(p(c,"firstname"))}</td>
         <td>${esc(p(c,"middle_name"))}</td>
         <td>${esc(p(c,"lastname"))}</td>
-        <td>${esc(p(c,"member_id"))}</td>
-        <td>${esc(labelStatus(p(c,"active_status")))}</td>
-        <td>${esc(labelBranch(p(c,"branch")))}</td>
-        <td>${esc(p(c,"gender"))}</td>
-        <td>${esc(p(c,"date_of_birth"))}</td>
-        <td>${esc(p(c,"preferred_language"))}</td>
         <td>${esc(p(c,"email"))}</td>
-        <td>${esc(p(c,"mobilephone"))}</td>
-        <td>${esc(p(c,"address"))}</td>
-        <td>${esc(p(c,"city"))}</td>
-        <td>${esc(p(c,"state__province"))}</td>
-        <td>${esc(p(c,"zip"))}</td>
-        <td>${esc(p(c,"taking_medication"))}</td>
-        <td>${esc(p(c,"medication_names"))}</td>
-        <td>${esc(p(c,"initial_notes"))}</td>
-        <td>${esc(p(c,"notes_last_updated"))}</td>
-        <td>${fmtDate(p(c,"createdate"))}</td>
+        <td>${esc(labelBranch(p(c,"branch")))}</td>
+        <td>${esc(labelStatus(p(c,"active_status")))}</td>
       `;
       tbody.appendChild(tr);
     }
@@ -300,17 +268,13 @@
     const { q, branch, active_status } = currentFilters();
     const after = afterTokens[targetPage] ?? null;
     if (targetPage > 1 && afterTokens[targetPage] === undefined){
-      alert("Please use next page button sequentially.");
+      alert("Please move forward using the next page button.");
       return;
     }
 
     const r = await fetchContacts({ q, branch, active_status, after });
     if (!r.ok){
-      if (r.status === 403 && r.data && r.data.error){
-        alert(`Failed: 403\n${r.data.error}\nAsk Super Admin to add your email.`);
-      } else {
-        alert(`Failed: ${r.status}\n` + JSON.stringify(r.data, null, 2));
-      }
+      alert(`Failed: ${r.status}\n` + JSON.stringify(r.data, null, 2));
       renderRows([]);
       hasNext = false;
       renderPager();
@@ -320,9 +284,7 @@
     pageIndex = targetPage;
     const nextAfter = getAfterFromPaging(r.data);
     hasNext = Boolean(nextAfter);
-    if (hasNext){
-      afterTokens[pageIndex + 1] = nextAfter;
-    }
+    if (hasNext) afterTokens[pageIndex + 1] = nextAfter;
 
     updateFilterTag(q, branch, active_status);
     renderRows(r.data.results || []);
@@ -339,11 +301,7 @@
 
     const r = await fetchContacts({ q, branch, active_status, after: null });
     if (!r.ok){
-      if (r.status === 403 && r.data && r.data.error){
-        alert(`Failed: 403\n${r.data.error}\nAsk Super Admin to add your email.`);
-      } else {
-        alert(`Failed: ${r.status}\n` + JSON.stringify(r.data, null, 2));
-      }
+      alert(`Failed: ${r.status}\n` + JSON.stringify(r.data, null, 2));
       renderRows([]);
       renderPager();
       return;
