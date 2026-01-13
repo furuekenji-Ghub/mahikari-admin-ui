@@ -20,7 +20,6 @@
     th { background:#fafafa; font-weight:700; }
     td:first-child, th:first-child { width: 90px; }
     .pager { display:flex; gap:10px; align-items:center; flex-wrap:wrap; margin-top: 12px; }
-    .dangerText { color:#b00020; font-weight:700; }
     .nowrap { white-space: nowrap; }
     .hintBox { background:#f7f7f7; border:1px solid #eee; border-radius:10px; padding:10px 12px; margin-top: 10px; }
   </style>
@@ -36,26 +35,27 @@
   <div class="filters">
     <input id="q" type="text" placeholder="Keyword (name, email)" />
 
+    <!-- value = internal name, label = display label -->
     <select id="branch">
       <option value="">Branch: (Any)</option>
-      <option value="canada">canada</option>
-      <option value="new_york">new_york</option>
-      <option value="chicago">chicago</option>
-      <option value="los_angeles">los_angeles</option>
-      <option value="california">california</option>
-      <option value="houston">houston</option>
-      <option value="hawaii">hawaii</option>
+      <option value="canada">Canada</option>
+      <option value="new_york">New York</option>
+      <option value="chicago">Chicago</option>
+      <option value="los_angeles">Los Angeles</option>
+      <option value="california">California</option>
+      <option value="houston">Houston</option>
+      <option value="hawaii">Hawaii</option>
     </select>
 
     <select id="active">
       <option value="">Active Status: (Any)</option>
-      <option value="non_kamikumite">non_kamikumite</option>
-      <option value="basic_kamikumite">basic_kamikumite</option>
-      <option value="intermediate_kamikumite">intermediate_kamikumite</option>
-      <option value="advanced_kamikumite">advanced_kamikumite</option>
-      <option value="kanbu">kanbu</option>
-      <option value="doshi">doshi</option>
-      <option value="sleeping_kamikumite">sleeping_kamikumite</option>
+      <option value="non_kamikumite">Non Kamikumite</option>
+      <option value="basic_kamikumite">Basic Kamikumite</option>
+      <option value="intermediate_kamikumite">Intermediate Kamikumite</option>
+      <option value="advanced_kamikumite">Advanced Kamikumite</option>
+      <option value="kanbu">Kanbu</option>
+      <option value="doshi">Doshi</option>
+      <option value="sleeping_kamikumite">Sleeping Kamikumite</option>
     </select>
 
     <button class="primary" id="searchBtn">Search</button>
@@ -105,6 +105,26 @@
 <script>
   const LIMIT = 50;
 
+  // internal -> display label
+  const BRANCH_LABEL = {
+    canada: "Canada",
+    new_york: "New York",
+    chicago: "Chicago",
+    los_angeles: "Los Angeles",
+    california: "California",
+    houston: "Houston",
+    hawaii: "Hawaii"
+  };
+  const ACTIVE_LABEL = {
+    non_kamikumite: "Non Kamikumite",
+    basic_kamikumite: "Basic Kamikumite",
+    intermediate_kamikumite: "Intermediate Kamikumite",
+    advanced_kamikumite: "Advanced Kamikumite",
+    kanbu: "Kanbu",
+    doshi: "Doshi",
+    sleeping_kamikumite: "Sleeping Kamikumite"
+  };
+
   function qs(id){ return document.getElementById(id); }
   function setStatus(msg){ qs("status").textContent = msg || ""; }
 
@@ -129,7 +149,6 @@
   // State
   let AFTER_STACK = [""]; // page1 has after=""
   let CURRENT_PAGE = 1;
-  let LAST_RESULTS = [];
   let LAST_PAGING = null;
 
   function getFilters(){
@@ -140,9 +159,13 @@
     };
   }
 
-  function normalizeInternalValue(v){
-    // value is already internal (lowercase/underscore) by design
-    return String(v || "");
+  function toBranchLabel(v){
+    const key = String(v || "").trim();
+    return BRANCH_LABEL[key] || key;
+  }
+  function toActiveLabel(v){
+    const key = String(v || "").trim();
+    return ACTIVE_LABEL[key] || key;
   }
 
   function renderTable(results){
@@ -162,8 +185,8 @@
       const middle = p.middle_name || "";
       const last = p.lastname || "";
       const email = p.email || "";
-      const branch = normalizeInternalValue(p.branch || "");
-      const active = normalizeInternalValue(p.active_status || "");
+      const branchLabel = toBranchLabel(p.branch || "");
+      const activeLabel = toActiveLabel(p.active_status || "");
 
       const tr = document.createElement("tr");
       tr.innerHTML = `
@@ -172,8 +195,8 @@
         <td>${esc(middle)}</td>
         <td>${esc(last)}</td>
         <td>${esc(email)}</td>
-        <td>${esc(branch)}</td>
-        <td>${esc(active)}</td>
+        <td>${esc(branchLabel)}</td>
+        <td>${esc(activeLabel)}</td>
       `;
       tbody.appendChild(tr);
     }
@@ -189,8 +212,7 @@
     const box = qs("pageNums");
     box.innerHTML = "";
 
-    // show up to 8 page buttons around current
-    const totalKnown = AFTER_STACK.length; // known pages so far
+    const totalKnown = AFTER_STACK.length;
     const start = Math.max(1, CURRENT_PAGE - 3);
     const end = Math.min(totalKnown, CURRENT_PAGE + 3);
 
@@ -202,7 +224,6 @@
       box.appendChild(btn);
     }
 
-    // If we have next page token, show a hint button
     if (LAST_PAGING && LAST_PAGING.next && LAST_PAGING.next.after){
       const more = document.createElement("span");
       more.className = "muted";
@@ -230,23 +251,16 @@
       return;
     }
 
-    // expecting { ok:true, results:[...], paging:{next:{after}} }
     const payload = r.data;
     const results = payload.results || [];
     const paging = payload.paging || null;
 
-    LAST_RESULTS = results;
     LAST_PAGING = paging;
-
     renderTable(results);
 
-    // store next cursor if available and if we are on the last known page
     const nextAfter = paging && paging.next && paging.next.after ? String(paging.next.after) : "";
-    if (nextAfter){
-      // ensure AFTER_STACK includes next page cursor
-      if (AFTER_STACK.length === page){
-        AFTER_STACK.push(nextAfter);
-      }
+    if (nextAfter && AFTER_STACK.length === page){
+      AFTER_STACK.push(nextAfter);
     }
 
     qs("countPill").textContent = `Showing ${results.length} results`;
@@ -264,10 +278,8 @@
   }
 
   async function search(){
-    // reset pagination
     AFTER_STACK = [""];
     CURRENT_PAGE = 1;
-    LAST_RESULTS = [];
     LAST_PAGING = null;
     qs("tbody").innerHTML = `<tr><td colspan="7" class="muted">Loading...</td></tr>`;
     await loadPage(1);
@@ -282,20 +294,14 @@
 
   qs("searchBtn").addEventListener("click", search);
   qs("clearBtn").addEventListener("click", clearFilters);
-
   qs("prevBtn").addEventListener("click", () => gotoPage(CURRENT_PAGE - 1));
   qs("nextBtn").addEventListener("click", () => {
     if (LAST_PAGING && LAST_PAGING.next && LAST_PAGING.next.after){
       gotoPage(CURRENT_PAGE + 1);
     }
   });
+  qs("q").addEventListener("keydown", (e) => { if (e.key === "Enter") search(); });
 
-  // allow Enter in keyword to search
-  qs("q").addEventListener("keydown", (e) => {
-    if (e.key === "Enter") search();
-  });
-
-  // initial load
   search();
 </script>
 
