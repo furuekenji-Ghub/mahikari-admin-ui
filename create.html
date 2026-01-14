@@ -1,183 +1,210 @@
 <!doctype html>
-<html lang="en">
+<html lang="ja">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Create Contact | Mahikari Admin</title>
+  <title>Create | World Divine Light Admin</title>
   <link rel="stylesheet" href="/css/style.css" />
   <style>
-    label { display:block; margin-top:10px; font-weight: 600; }
-    input, select { padding:8px; width:520px; max-width:100%; }
-    .row { margin-top: 12px; display:flex; gap:10px; flex-wrap: wrap; align-items:center; }
-    .muted { color:#666; font-size: 0.9em; }
-    code { background:#f3f3f3; padding:2px 6px; border-radius:6px; }
+    .muted { color:#666; font-size:0.9em; }
+    .formGrid{ display:grid; grid-template-columns:220px 1fr; gap:10px 14px; margin-top:12px; }
+    .k{ font-weight:800; }
+    input[type="text"], select, textarea{
+      width:100%;
+      padding:10px;
+      border:1px solid #ccc;
+      border-radius:10px;
+      font-family:inherit;
+      font-size:14px;
+      box-sizing:border-box;
+      overflow-wrap:anywhere;
+      word-break:break-word;
+    }
+    textarea{ min-height:110px; }
+
+    .formCards{ display:none; margin-top:12px; }
+    .fitem{ border-bottom:1px dashed #ddd; padding:10px 0; }
+    .fitem .label{ font-weight:800; }
+    .fitem .field{ margin-top:8px; }
+
+    .row{ display:flex; gap:10px; flex-wrap:wrap; align-items:center; margin-top:12px; }
+    button{ padding:10px 12px; border:1px solid #999; background:#fff; border-radius:10px; cursor:pointer; }
+    button.primary{ border-color:#0b5; }
+    button.ghost{ border-color:#ddd; }
+
+    @media (max-width:768px){
+      .formGrid{ display:none; }
+      .formCards{ display:block; }
+      button{ width:100%; }
+    }
   </style>
 </head>
 <body>
 
-  <header>
-    <h2>Create Contact</h2>
-    <small><a href="/contacts.html">← Back to Contacts</a></small>
-  </header>
+<header>
+  <h2>Add New <span class="muted">（新規追加）</span></h2>
+  <small><a href="/index.html">← Back to Dashboard</a></small>
+</header>
 
-  <div class="card">
-    <div class="muted" id="meta">
-      Create a new HubSpot contact (master). Required: <code>member_id</code>.
-    </div>
+<div class="card">
+  <div class="muted">新規連絡先を入力して保存すると、すぐに View 画面へ移動して結果を確認できます。</div>
 
-    <label>Last Name</label>
-    <input id="lastname" />
+  <div class="formGrid" id="formGrid"></div>
+  <div class="formCards" id="formCards"></div>
 
-    <label>First Name</label>
-    <input id="firstname" />
-
-    <label>Middle Name</label>
-    <input id="middle_name" />
-
-    <label>Member ID (required)</label>
-    <input id="member_id" placeholder="e.g. 152176" />
-
-    <label>Active Status</label>
-    <select id="active_status">
-      <option value="">(Select)</option>
-      <option value="non_kamikumite">Non Kamikumite</option>
-      <option value="basic_kamikumite">Basic Kamikumite</option>
-      <option value="intermediate_kamikum">Intermediate Kamikumite</option>
-      <option value="advanced_kamikumite">Advanced Kamikumite</option>
-      <option value="kanbu">Kanbu</option>
-      <option value="doshi">Doshi</option>
-      <option value="sleeping_kamikumite">Sleeping Kamikumite</option>
-    </select>
-
-    <label>Branch</label>
-    <select id="branch">
-      <option value="">(Select)</option>
-      <option value="canada">Canada</option>
-      <option value="new_york">New York</option>
-      <option value="chicago">Chicago</option>
-      <option value="los_angeles">Los Angeles</option>
-      <option value="california">California</option>
-      <option value="houston">Houston</option>
-      <option value="hawaii">Hawaii</option>
-    </select>
-
-    <label>Gender</label>
-    <input id="gender" />
-
-    <label>Date of Birth</label>
-    <input id="date_of_birth" placeholder="YYYY-MM-DD" />
-
-    <label>Preferred Language</label>
-    <input id="preferred_language" />
-
-    <label>Email</label>
-    <input id="email" />
-
-    <label>Mobile Phone</label>
-    <input id="mobilephone" />
-
-    <label>Address</label>
-    <input id="address" />
-
-    <label>City</label>
-    <input id="city" />
-
-    <label>State / Province</label>
-    <input id="state__province" />
-
-    <label>ZIP</label>
-    <input id="zip" />
-
-    <label>Taking Medication</label>
-    <input id="taking_medication" />
-
-    <label>Medication Names</label>
-    <input id="medication_names" />
-
-    <label>Initial Notes</label>
-    <input id="initial_notes" />
-
-    <div class="row">
-      <button type="button" id="createBtn">Create</button>
-      <a href="/contacts.html"><button type="button">Cancel</button></a>
-      <span class="muted" id="status"></span>
-    </div>
-
-    <p class="muted" style="margin-top:12px;">
-      Creates via <code>POST /api/contacts</code>. Read-only fields are not shown here.
-    </p>
+  <div class="row">
+    <button class="primary" id="createBtn">Create / 作成</button>
+    <button class="ghost" id="cancelBtn">Cancel / キャンセル</button>
+    <span class="muted" id="status"></span>
   </div>
+</div>
 
 <script>
-  const API_BASE = "";
+  const BRANCH_OPTIONS = [
+    ["","(blank)"],
+    ["canada","Canada"],["new_york","New York"],["chicago","Chicago"],["los_angeles","Los Angeles"],
+    ["california","California"],["houston","Houston"],["hawaii","Hawaii"],
+  ];
+  const ACTIVE_OPTIONS = [
+    ["","(blank)"],
+    ["non_kamikumite","Non Kamikumite"],
+    ["basic_kamikumite","Basic Kamikumite"],
+    ["intermediate_kamikumite","Intermediate Kamikumite"],
+    ["advanced_kamikumite","Advanced Kamikumite"],
+    ["kanbu","Kanbu"],["doshi","Doshi"],["sleeping_kamikumite","Sleeping Kamikumite"],
+  ];
+  const GENDER_OPTIONS = [["","(blank)"],["Male","Male"],["Female","Female"],["Other","Other"]];
+  const YESNO_OPTIONS = [["","(blank)"],["Yes","Yes"],["No","No"]];
 
-  const FIELD_KEYS = [
-    "lastname","firstname","middle_name","member_id","active_status","branch","gender","date_of_birth",
-    "preferred_language","email","mobilephone","address","city","state__province","zip","taking_medication",
-    "medication_names","initial_notes"
+  const CREATE_FIELDS = [
+    ["firstname","First Name","text"],
+    ["middle_name","Middle Name","text"],
+    ["lastname","Last Name","text"],
+    ["email","Email","text"],
+    ["member_id","Member ID","text"],
+    ["branch","Branch","select_branch"],
+    ["active_status","Active Status","select_active"],
+    ["preferred_language","Preferred Language","text"],
+    ["mobilephone","Mobile Phone","text"],
+    ["address","Address","text"],
+    ["city","City","text"],
+    ["state__province","State / Province","text"],
+    ["zip","ZIP","text"],
+    ["gender","Gender","select_gender"],
+    ["date_of_birth","Date of Birth","text"],
+    ["taking_medication","Taking Medication","select_yesno"],
+    ["medication_names","Medication Names","text"],
+    ["initial_notes","Initial Notes","textarea"],
   ];
 
-  function qs(k){ return document.getElementById(k); }
+  function qs(id){ return document.getElementById(id); }
   function setStatus(msg){ qs("status").textContent = msg || ""; }
 
-  async function api(path, opts={}) {
-    const url = new URL((API_BASE || "") + path, location.origin);
-    const res = await fetch(url.toString(), { ...opts, headers: { ...(opts.headers || {}) } });
+  async function api(path, opts={}){
+    const res = await fetch(path, { ...opts, headers: { ...(opts.headers||{}) }});
     const text = await res.text();
     let data;
-    try { data = text ? JSON.parse(text) : null; } catch { data = { raw: text }; }
-    return { ok: res.ok, status: res.status, data };
+    try { data = text ? JSON.parse(text) : null; } catch { data = { raw:text }; }
+    return { ok: res.ok, status: res.status, data, raw:text };
   }
 
-  function readForm() {
+  function makeSelect(options){
+    const sel = document.createElement("select");
+    for (const [v,label] of options){
+      const opt = document.createElement("option");
+      opt.value = v;
+      opt.textContent = label;
+      sel.appendChild(opt);
+    }
+    return sel;
+  }
+
+  function makeField(key, type){
+    let input;
+    if (type === "textarea"){
+      input = document.createElement("textarea");
+    } else if (type === "select_branch"){
+      input = makeSelect(BRANCH_OPTIONS);
+    } else if (type === "select_active"){
+      input = makeSelect(ACTIVE_OPTIONS);
+    } else if (type === "select_gender"){
+      input = makeSelect(GENDER_OPTIONS);
+    } else if (type === "select_yesno"){
+      input = makeSelect(YESNO_OPTIONS);
+    } else {
+      input = document.createElement("input");
+      input.type = "text";
+    }
+    input.id = "f_" + key;
+    return input;
+  }
+
+  function render(){
+    const grid = qs("formGrid");
+    const cards = qs("formCards");
+    grid.innerHTML = "";
+    cards.innerHTML = "";
+
+    for (const [key,label,type] of CREATE_FIELDS){
+      // desktop
+      const kDiv = document.createElement("div");
+      kDiv.className = "k";
+      kDiv.textContent = label;
+
+      const vDiv = document.createElement("div");
+      vDiv.appendChild(makeField(key, type));
+
+      grid.appendChild(kDiv);
+      grid.appendChild(vDiv);
+
+      // mobile
+      const item = document.createElement("div");
+      item.className = "fitem";
+      const labelDiv = document.createElement("div");
+      labelDiv.className = "label";
+      labelDiv.textContent = label;
+      const fieldDiv = document.createElement("div");
+      fieldDiv.className = "field";
+      fieldDiv.appendChild(makeField(key, type));
+      item.appendChild(labelDiv);
+      item.appendChild(fieldDiv);
+      cards.appendChild(item);
+    }
+  }
+
+  function collect(){
     const props = {};
-    for (const k of FIELD_KEYS) {
-      const el = qs(k);
+    for (const [key] of CREATE_FIELDS){
+      const el = document.getElementById("f_" + key);
       if (!el) continue;
-      props[k] = (el.value ?? "").trim();
+      props[key] = String(el.value ?? "");
     }
     return props;
   }
 
-  function clearForm() {
-    for (const k of FIELD_KEYS) {
-      const el = qs(k);
-      if (!el) continue;
-      el.value = "";
-    }
-    // reset selects to blank
-    qs("active_status").value = "";
-    qs("branch").value = "";
-  }
-
-  async function createContact() {
+  async function create(){
     setStatus("Creating...");
-    const props = readForm();
+    const properties = collect();
 
-    if (!props.member_id || !String(props.member_id).trim()) {
-      setStatus("member_id is required");
-      alert("member_id is required");
-      return;
-    }
-
-    const r = await api("/api/contacts", {
-      method: "POST",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({ properties: props })
+    const r = await api("/api/contacts/create", {
+      method:"POST",
+      headers:{ "content-type":"application/json" },
+      body: JSON.stringify({ properties })
     });
 
-    if (!r.ok) {
-      setStatus(`Create failed (${r.status})`);
-      alert(`Create failed: ${r.status}\n` + JSON.stringify(r.data, null, 2));
+    if (!r.ok || !r.data?.ok || !r.data?.id){
+      setStatus("");
+      alert("Create failed: " + r.status + "\n" + r.raw);
       return;
     }
 
-    setStatus("Created");
-    // Option: redirect back to Contacts list
-    location.href = "/contacts.html";
+    // ✅ jump to view immediately
+    location.href = "/view.html?id=" + encodeURIComponent(r.data.id);
   }
 
-  qs("createBtn").onclick = () => createContact();
+  qs("createBtn").onclick = create;
+  qs("cancelBtn").onclick = () => location.href = "/index.html";
+  render();
 </script>
 
 </body>
