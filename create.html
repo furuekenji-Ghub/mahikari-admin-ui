@@ -10,6 +10,7 @@
     .formGrid{ display:grid; grid-template-columns:220px 1fr; gap:10px 14px; margin-top:12px; }
     .k{ font-weight:800; }
     .req { color:#b00020; font-weight:800; margin-left:6px; }
+
     input[type="text"], select, textarea{
       width:100%;
       padding:10px;
@@ -28,9 +29,11 @@
     button.primary{ border-color:#0b5; }
     button.ghost{ border-color:#ddd; }
 
+    /* ✅ エラーメッセージ（ボタン直前に出す） */
     .errorBox{
       display:none;
-      margin-top:12px;
+      margin-top:16px;
+      margin-bottom:8px;
       border:1px solid #b00020;
       border-radius:12px;
       padding:10px 12px;
@@ -60,10 +63,13 @@
     保存すると、すぐに View 画面へ移動して結果を確認できます。
   </div>
 
-  <div id="errorBox" class="errorBox"></div>
-
+  <!-- 入力フォーム -->
   <div class="formGrid" id="formGrid"></div>
 
+  <!-- ✅ エラーメッセージは「ボタンの直前」 -->
+  <div id="errorBox" class="errorBox"></div>
+
+  <!-- ボタン行 -->
   <div class="row">
     <button class="primary" id="createBtn">Create / 作成</button>
     <button class="ghost" id="cancelBtn">Cancel / キャンセル</button>
@@ -88,7 +94,6 @@
   const GENDER_OPTIONS = [["","(blank)"],["Male","Male"],["Female","Female"],["Other","Other"]];
   const YESNO_OPTIONS = [["","(blank)"],["Yes","Yes"],["No","No"]];
 
-  // ✅ required 5 fields
   const REQUIRED_KEYS = new Set(["firstname","lastname","email","active_status","branch"]);
 
   const CREATE_FIELDS = [
@@ -114,6 +119,7 @@
 
   function qs(id){ return document.getElementById(id); }
   function setStatus(msg){ qs("status").textContent = msg || ""; }
+
   function showError(lines){
     const box = qs("errorBox");
     if (!lines || !lines.length){
@@ -167,12 +173,10 @@
   function render(){
     const grid = qs("formGrid");
     grid.innerHTML = "";
-
     for (const [key,label,type] of CREATE_FIELDS){
       const kDiv = document.createElement("div");
       kDiv.className = "k";
       kDiv.textContent = label;
-
       if (REQUIRED_KEYS.has(key)){
         const req = document.createElement("span");
         req.className = "req";
@@ -182,7 +186,6 @@
 
       const vDiv = document.createElement("div");
       vDiv.appendChild(makeField(key, type));
-
       grid.appendChild(kDiv);
       grid.appendChild(vDiv);
     }
@@ -199,26 +202,20 @@
 
   function validate(props){
     const errors = [];
-    // required checks
     if (!props.firstname) errors.push("First Name is required. / First Name は必須です");
     if (!props.lastname) errors.push("Last Name is required. / Last Name は必須です");
     if (!props.email) errors.push("Email is required. / Email は必須です");
-
-    // simple email check (basic)
     if (props.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(props.email)){
       errors.push("Email format looks invalid. / Email形式が正しくない可能性があります");
     }
-
     if (!props.active_status) errors.push("Active Status is required. / Active Status は必須です");
     if (!props.branch) errors.push("Branch is required. / Branch は必須です");
-
     return errors;
   }
 
   async function create(){
     showError([]);
     setStatus("Creating...");
-
     const properties = collect();
     const errors = validate(properties);
     if (errors.length){
@@ -239,13 +236,11 @@
       return;
     }
 
-    // ✅ jump to view immediately
     location.href = "/view.html?id=" + encodeURIComponent(r.data.id);
   }
 
   qs("createBtn").onclick = create;
   qs("cancelBtn").onclick = () => location.href = "/index.html";
-
   render();
 </script>
 
