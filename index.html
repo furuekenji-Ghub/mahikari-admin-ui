@@ -1,51 +1,76 @@
 <!doctype html>
-<html lang="en">
+<html lang="ja">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>World Divine Light Admin</title>
   <link rel="stylesheet" href="/css/style.css" />
   <style>
-    .desc {
-      color: #666;
-      font-size: 0.95em;
-      margin-top: 8px;
-      line-height: 1.6;
+    .muted { color:#666; }
+    .addBox{
+      margin-top:14px;
+      border:1px solid #eee;
+      border-radius:14px;
+      padding:14px;
+      background:#fff;
     }
-    .desc-ja {
-      margin-top: 6px;
-      color: #555;
+    .addBox h3{ margin:0 0 8px; }
+    .addBox p{ margin:6px 0; line-height:1.5; }
+    .row{ display:flex; gap:10px; flex-wrap:wrap; align-items:center; margin-top:10px; }
+    .btn{
+      display:inline-block;
+      padding:10px 14px;
+      border:1px solid #0b5;
+      border-radius:12px;
+      background:#fff;
+      cursor:pointer;
+      text-decoration:none;
+      color:#0b5;
+      font-weight:700;
+    }
+    @media (max-width: 768px){
+      .btn{ width:100%; text-align:center; }
     }
   </style>
 </head>
 <body>
 
 <header>
-  <h2>World Divine Light Admin</h2>
-  <small>admin.mahikari.org</small>
+  <h1>World Divine Light Admin</h1>
+  <div class="muted">admin.mahikari.org</div>
 </header>
 
 <div class="card">
-  <p><b>Contacts</b></p>
-
-  <!-- English description -->
-  <p class="desc">
+  <h2>Contacts</h2>
+  <p class="muted">
     Search and filter HubSpot contacts by <b>Branch</b> and <b>Active Status</b>.
     You can open each record to <b>view</b>, <b>edit</b>, or <b>delete</b>.
     Newly created records are shown first.
   </p>
 
-  <!-- Japanese description -->
-  <p class="desc desc-ja">
-    HubSpot に登録されている連絡先を、<b>拠点（Branch）</b> や
-    <b>ステータス（Active Status）</b> で検索・絞り込みできます。<br>
-    各連絡先は、詳細確認・編集・削除が可能です。<br>
+  <p class="muted">
+    HubSpot に登録されている連絡先を、<b>拠点（Branch）</b>や<b>ステータス（Active Status）</b>で検索・絞り込みできます。<br/>
+    各連絡先は、詳細確認・編集・削除が可能です。<br/>
     新しく登録されたデータほど、上位に表示されます。
   </p>
 
-  <a href="/contacts.html">
-    <button type="button">Open</button>
-  </a>
+  <div class="row">
+    <a class="btn" href="/contacts.html">Open</a>
+  </div>
+
+  <!-- ✅ Add New block -->
+  <div class="addBox">
+    <h3>Add New Contact <span class="muted">／新規追加</span></h3>
+    <p class="muted">
+      Add a new contact record to HubSpot, then review it immediately on the View page.
+    </p>
+    <p class="muted">
+      HubSpot に新しい連絡先を追加し、登録直後に View 画面で内容を確認できます。
+    </p>
+    <div class="row">
+      <a class="btn" href="/create.html">Add New / 新規追加</a>
+    </div>
+  </div>
 </div>
 
 </body>
