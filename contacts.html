@@ -7,21 +7,18 @@
   <link rel="stylesheet" href="/css/style.css" />
   <style>
     .muted { color:#666; font-size:0.9em; }
-    .row { display:flex; gap:10px; flex-wrap:wrap; align-items:center; }
-    .card { margin-top: 10px; }
     .filters { display:flex; gap:10px; flex-wrap:wrap; align-items:center; }
-    input[type="text"], select { padding: 8px 10px; border:1px solid #ccc; border-radius:8px; min-width: 220px; }
+    input[type="text"], select { padding:8px 10px; border:1px solid #ccc; border-radius:8px; min-width:220px; }
     button { padding:8px 10px; border:1px solid #999; background:#fff; border-radius:8px; cursor:pointer; }
     button.primary { border-color:#0b5; }
-    button.ghost { border-color:#ddd; color:#333; }
-    .pill { display:inline-block; padding:2px 8px; border:1px solid #ddd; border-radius:999px; font-size:12px; background:#f7fafc; color:#344; }
-    table { width:100%; border-collapse: collapse; margin-top: 10px; }
-    th, td { border-bottom:1px solid #eee; padding:10px 8px; text-align:left; vertical-align: top; }
+    button.ghost { border-color:#ddd; }
+    .pill { display:inline-block; padding:2px 8px; border:1px solid #ddd; border-radius:999px; font-size:12px; background:#f7fafc; color:#344; white-space:nowrap; }
+    table { width:100%; border-collapse:collapse; margin-top:10px; }
+    th, td { border-bottom:1px solid #eee; padding:10px 8px; text-align:left; }
     th { background:#fafafa; font-weight:700; }
-    td:first-child, th:first-child { width: 90px; }
-    .pager { display:flex; gap:10px; align-items:center; flex-wrap:wrap; margin-top: 12px; }
-    .nowrap { white-space: nowrap; }
-    .hintBox { background:#f7f7f7; border:1px solid #eee; border-radius:10px; padding:10px 12px; margin-top: 10px; }
+    td:first-child, th:first-child { width:90px; }
+    .pager { display:flex; gap:10px; align-items:center; flex-wrap:wrap; margin-top:12px; }
+    .hintBox { background:#f7f7f7; border:1px solid #eee; border-radius:10px; padding:10px 12px; margin-top:10px; }
   </style>
 </head>
 <body>
@@ -35,7 +32,6 @@
   <div class="filters">
     <input id="q" type="text" placeholder="Keyword (name, email)" />
 
-    <!-- value = internal name, label = display label -->
     <select id="branch">
       <option value="">Branch: (Any)</option>
       <option value="canada">Canada</option>
@@ -105,29 +101,22 @@
 <script>
   const LIMIT = 50;
 
-  // internal -> display label
   const BRANCH_LABEL = {
-    canada: "Canada",
-    new_york: "New York",
-    chicago: "Chicago",
-    los_angeles: "Los Angeles",
-    california: "California",
-    houston: "Houston",
-    hawaii: "Hawaii"
+    canada:"Canada", new_york:"New York", chicago:"Chicago", los_angeles:"Los Angeles",
+    california:"California", houston:"Houston", hawaii:"Hawaii"
   };
   const ACTIVE_LABEL = {
-    non_kamikumite: "Non Kamikumite",
-    basic_kamikumite: "Basic Kamikumite",
-    intermediate_kamikumite: "Intermediate Kamikumite",
-    advanced_kamikumite: "Advanced Kamikumite",
-    kanbu: "Kanbu",
-    doshi: "Doshi",
-    sleeping_kamikumite: "Sleeping Kamikumite"
+    non_kamikumite:"Non Kamikumite",
+    basic_kamikumite:"Basic Kamikumite",
+    intermediate_kamikumite:"Intermediate Kamikumite",
+    advanced_kamikumite:"Advanced Kamikumite",
+    kanbu:"Kanbu",
+    doshi:"Doshi",
+    sleeping_kamikumite:"Sleeping Kamikumite"
   };
 
   function qs(id){ return document.getElementById(id); }
   function setStatus(msg){ qs("status").textContent = msg || ""; }
-
   function esc(s){
     return String(s ?? "")
       .replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;")
@@ -136,67 +125,49 @@
 
   async function apiPost(path, body){
     const res = await fetch(path, {
-      method: "POST",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify(body || {})
+      method:"POST",
+      headers:{ "content-type":"application/json" },
+      body: JSON.stringify(body||{})
     });
     const text = await res.text();
     let data;
-    try { data = text ? JSON.parse(text) : null; } catch { data = { raw: text }; }
-    return { ok: res.ok, status: res.status, data, raw: text };
+    try { data = text ? JSON.parse(text) : null; } catch { data = { raw:text }; }
+    return { ok: res.ok, status: res.status, data, raw:text };
   }
 
-  // State
-  let AFTER_STACK = [""]; // page1 has after=""
+  let AFTER_STACK = [""];
   let CURRENT_PAGE = 1;
   let LAST_PAGING = null;
 
   function getFilters(){
     return {
-      q: (qs("q").value || "").trim(),
+      q: (qs("q").value||"").trim(),
       branch: qs("branch").value || "",
       active_status: qs("active").value || ""
     };
   }
 
-  function toBranchLabel(v){
-    const key = String(v || "").trim();
-    return BRANCH_LABEL[key] || key;
-  }
-  function toActiveLabel(v){
-    const key = String(v || "").trim();
-    return ACTIVE_LABEL[key] || key;
-  }
+  function branchLabel(v){ const k=String(v||"").trim(); return BRANCH_LABEL[k] || k; }
+  function activeLabel(v){ const k=String(v||"").trim(); return ACTIVE_LABEL[k] || k; }
 
   function renderTable(results){
     const tbody = qs("tbody");
     tbody.innerHTML = "";
-
     if (!results || !results.length){
       tbody.innerHTML = `<tr><td colspan="7" class="muted">No results.</td></tr>`;
       return;
     }
-
     for (const r of results){
-      const id = r.id;
       const p = r.properties || {};
-
-      const first = p.firstname || "";
-      const middle = p.middle_name || "";
-      const last = p.lastname || "";
-      const email = p.email || "";
-      const branchLabel = toBranchLabel(p.branch || "");
-      const activeLabel = toActiveLabel(p.active_status || "");
-
       const tr = document.createElement("tr");
       tr.innerHTML = `
-        <td class="nowrap"><a class="pill" href="/view.html?id=${encodeURIComponent(id)}">View</a></td>
-        <td>${esc(first)}</td>
-        <td>${esc(middle)}</td>
-        <td>${esc(last)}</td>
-        <td>${esc(email)}</td>
-        <td>${esc(branchLabel)}</td>
-        <td>${esc(activeLabel)}</td>
+        <td><a class="pill" href="/view.html?id=${encodeURIComponent(r.id)}">View</a></td>
+        <td>${esc(p.firstname||"")}</td>
+        <td>${esc(p.middle_name||"")}</td>
+        <td>${esc(p.lastname||"")}</td>
+        <td>${esc(p.email||"")}</td>
+        <td>${esc(branchLabel(p.branch||""))}</td>
+        <td>${esc(activeLabel(p.active_status||""))}</td>
       `;
       tbody.appendChild(tr);
     }
@@ -211,19 +182,16 @@
   function renderPageNums(){
     const box = qs("pageNums");
     box.innerHTML = "";
-
     const totalKnown = AFTER_STACK.length;
     const start = Math.max(1, CURRENT_PAGE - 3);
     const end = Math.min(totalKnown, CURRENT_PAGE + 3);
-
-    for (let i = start; i <= end; i++){
+    for (let i=start;i<=end;i++){
       const btn = document.createElement("button");
       btn.textContent = String(i);
       if (i === CURRENT_PAGE) btn.classList.add("primary");
-      btn.addEventListener("click", () => gotoPage(i));
+      btn.onclick = () => gotoPage(i);
       box.appendChild(btn);
     }
-
     if (LAST_PAGING && LAST_PAGING.next && LAST_PAGING.next.after){
       const more = document.createElement("span");
       more.className = "muted";
@@ -234,37 +202,23 @@
 
   async function loadPage(page){
     const filters = getFilters();
-    const after = AFTER_STACK[page - 1] ?? "";
-
+    const after = AFTER_STACK[page-1] ?? "";
     setStatus("Loading...");
-    const r = await apiPost("/api/contacts/search", {
-      q: filters.q,
-      branch: filters.branch,
-      active_status: filters.active_status,
-      after,
-      limit: LIMIT
-    });
-
+    const r = await apiPost("/api/contacts/search", { ...filters, after, limit: LIMIT });
     if (!r.ok){
       setStatus("");
-      alert(`Failed: ${r.status}\n` + (r.data ? JSON.stringify(r.data, null, 2) : r.raw));
+      alert(`Failed: ${r.status}\n` + (r.data ? JSON.stringify(r.data,null,2) : r.raw));
       return;
     }
-
-    const payload = r.data;
-    const results = payload.results || [];
-    const paging = payload.paging || null;
-
+    const results = r.data.results || [];
+    const paging = r.data.paging || null;
     LAST_PAGING = paging;
     renderTable(results);
 
-    const nextAfter = paging && paging.next && paging.next.after ? String(paging.next.after) : "";
-    if (nextAfter && AFTER_STACK.length === page){
-      AFTER_STACK.push(nextAfter);
-    }
+    const nextAfter = paging?.next?.after ? String(paging.next.after) : "";
+    if (nextAfter && AFTER_STACK.length === page) AFTER_STACK.push(nextAfter);
 
     qs("countPill").textContent = `Showing ${results.length} results`;
-
     CURRENT_PAGE = page;
     renderPager();
     renderPageNums();
@@ -292,15 +246,11 @@
     search();
   }
 
-  qs("searchBtn").addEventListener("click", search);
-  qs("clearBtn").addEventListener("click", clearFilters);
-  qs("prevBtn").addEventListener("click", () => gotoPage(CURRENT_PAGE - 1));
-  qs("nextBtn").addEventListener("click", () => {
-    if (LAST_PAGING && LAST_PAGING.next && LAST_PAGING.next.after){
-      gotoPage(CURRENT_PAGE + 1);
-    }
-  });
-  qs("q").addEventListener("keydown", (e) => { if (e.key === "Enter") search(); });
+  qs("searchBtn").onclick = search;
+  qs("clearBtn").onclick = clearFilters;
+  qs("prevBtn").onclick = () => gotoPage(CURRENT_PAGE-1);
+  qs("nextBtn").onclick = () => { if (LAST_PAGING?.next?.after) gotoPage(CURRENT_PAGE+1); };
+  qs("q").addEventListener("keydown", e => { if (e.key === "Enter") search(); });
 
   search();
 </script>
