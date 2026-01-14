@@ -13,12 +13,74 @@
     button.primary { border-color:#0b5; }
     button.ghost { border-color:#ddd; }
     .pill { display:inline-block; padding:2px 8px; border:1px solid #ddd; border-radius:999px; font-size:12px; background:#f7fafc; color:#344; white-space:nowrap; }
-    table { width:100%; border-collapse:collapse; margin-top:10px; }
-    th, td { border-bottom:1px solid #eee; padding:10px 8px; text-align:left; }
+    .hintBox { background:#f7f7f7; border:1px solid #eee; border-radius:10px; padding:10px 12px; margin-top:10px; }
+
+    /* Desktop table */
+    #tableWrap { margin-top:10px; }
+    table { width:100%; border-collapse:collapse; }
+    th, td { border-bottom:1px solid #eee; padding:10px 8px; text-align:left; vertical-align:top; }
     th { background:#fafafa; font-weight:700; }
     td:first-child, th:first-child { width:90px; }
+
     .pager { display:flex; gap:10px; align-items:center; flex-wrap:wrap; margin-top:12px; }
-    .hintBox { background:#f7f7f7; border:1px solid #eee; border-radius:10px; padding:10px 12px; margin-top:10px; }
+    .nowrap { white-space:nowrap; }
+
+    /* Mobile cards (hidden on desktop) */
+    #cards { display:none; margin-top:10px; }
+    .contact-card{
+      border:1px solid #eee;
+      border-radius:12px;
+      padding:12px;
+      margin:10px 0;
+      background:#fff;
+    }
+    .contact-card .top{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+    }
+    .contact-card .name{
+      font-weight:800;
+      font-size:16px;
+      line-height:1.2;
+      word-break: break-word;
+    }
+    .contact-card .sub{
+      margin-top:6px;
+      display:flex;
+      gap:8px;
+      flex-wrap:wrap;
+      align-items:center;
+    }
+    .contact-card .email{
+      margin-top:8px;
+      color:#333;
+      word-break: break-word;
+    }
+    .contact-card .metaRow{
+      margin-top:8px;
+      display:flex;
+      gap:8px;
+      flex-wrap:wrap;
+      align-items:center;
+    }
+    .contact-card .label{
+      font-size:12px;
+      color:#666;
+      margin-right:4px;
+    }
+
+    @media (max-width: 768px){
+      /* stack filters nicely on mobile */
+      input[type="text"], select { min-width: 0; width: 100%; }
+      .filters { flex-direction: column; align-items: stretch; }
+      .filters button { width: 100%; }
+
+      /* switch to cards */
+      #tableWrap { display:none; }
+      #cards { display:block; }
+    }
   </style>
 </head>
 <body>
@@ -67,22 +129,28 @@
     </div>
   </div>
 
-  <table>
-    <thead>
-      <tr>
-        <th>View</th>
-        <th>First Name</th>
-        <th>Middle Name</th>
-        <th>Last Name</th>
-        <th>Email</th>
-        <th>Branch</th>
-        <th>Active Status</th>
-      </tr>
-    </thead>
-    <tbody id="tbody">
-      <tr><td colspan="7" class="muted">Loading...</td></tr>
-    </tbody>
-  </table>
+  <!-- Mobile cards -->
+  <div id="cards"></div>
+
+  <!-- Desktop table -->
+  <div id="tableWrap">
+    <table>
+      <thead>
+        <tr>
+          <th>View</th>
+          <th>First Name</th>
+          <th>Middle Name</th>
+          <th>Last Name</th>
+          <th>Email</th>
+          <th>Branch</th>
+          <th>Active Status</th>
+        </tr>
+      </thead>
+      <tbody id="tbody">
+        <tr><td colspan="7" class="muted">Loading...</td></tr>
+      </tbody>
+    </table>
+  </div>
 
   <div class="pager">
     <button id="prevBtn">← Prev</button>
@@ -122,6 +190,7 @@
       .replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;")
       .replaceAll('"',"&quot;").replaceAll("'","&#39;");
   }
+
   async function apiPost(path, body){
     const res = await fetch(path, {
       method:"POST",
@@ -149,18 +218,25 @@
   function branchLabel(v){ const k=String(v||"").trim(); return BRANCH_LABEL[k] || k; }
   function activeLabel(v){ const k=String(v||"").trim(); return ACTIVE_LABEL[k] || k; }
 
+  function fullName(p){
+    const parts = [p.firstname, p.middle_name, p.lastname].filter(Boolean).map(String);
+    return parts.join(" ").trim();
+  }
+
   function renderTable(results){
     const tbody = qs("tbody");
     tbody.innerHTML = "";
+
     if (!results || !results.length){
       tbody.innerHTML = `<tr><td colspan="7" class="muted">No results.</td></tr>`;
       return;
     }
+
     for (const r of results){
       const p = r.properties || {};
       const tr = document.createElement("tr");
       tr.innerHTML = `
-        <td><a class="pill" href="/view.html?id=${encodeURIComponent(r.id)}">View</a></td>
+        <td class="nowrap"><a class="pill" href="/view.html?id=${encodeURIComponent(r.id)}">View</a></td>
         <td>${esc(p.firstname||"")}</td>
         <td>${esc(p.middle_name||"")}</td>
         <td>${esc(p.lastname||"")}</td>
@@ -169,6 +245,43 @@
         <td>${esc(activeLabel(p.active_status||""))}</td>
       `;
       tbody.appendChild(tr);
+    }
+  }
+
+  function renderCards(results){
+    const box = qs("cards");
+    box.innerHTML = "";
+
+    if (!results || !results.length){
+      box.innerHTML = `<p class="muted">No results.</p>`;
+      return;
+    }
+
+    for (const r of results){
+      const p = r.properties || {};
+      const name = fullName(p) || "(no name)";
+      const email = p.email || "";
+      const branch = branchLabel(p.branch||"");
+      const active = activeLabel(p.active_status||"");
+
+      const card = document.createElement("div");
+      card.className = "contact-card";
+      card.innerHTML = `
+        <div class="top">
+          <div class="name">${esc(name)}</div>
+          <a class="pill" href="/view.html?id=${encodeURIComponent(r.id)}">View</a>
+        </div>
+
+        <div class="metaRow">
+          <span class="pill"><span class="label">Branch:</span> ${esc(branch || "-")}</span>
+          <span class="pill"><span class="label">Status:</span> ${esc(active || "-")}</span>
+        </div>
+
+        <div class="email">
+          <span class="label">Email:</span> ${esc(email || "-")}
+        </div>
+      `;
+      box.appendChild(card);
     }
   }
 
@@ -181,9 +294,11 @@
   function renderPageNums(){
     const box = qs("pageNums");
     box.innerHTML = "";
+
     const totalKnown = AFTER_STACK.length;
     const start = Math.max(1, CURRENT_PAGE - 3);
     const end = Math.min(totalKnown, CURRENT_PAGE + 3);
+
     for (let i=start;i<=end;i++){
       const btn = document.createElement("button");
       btn.textContent = String(i);
@@ -191,6 +306,7 @@
       btn.onclick = () => gotoPage(i);
       box.appendChild(btn);
     }
+
     if (LAST_PAGING && LAST_PAGING.next && LAST_PAGING.next.after){
       const more = document.createElement("span");
       more.className = "muted";
@@ -202,22 +318,30 @@
   async function loadPage(page){
     const filters = getFilters();
     const after = AFTER_STACK[page-1] ?? "";
+
     setStatus("Loading...");
     const r = await apiPost("/api/contacts/search", { ...filters, after, limit: LIMIT });
+
     if (!r.ok || !r.data?.ok){
       setStatus("");
       alert(`Failed: ${r.status}\n` + (r.data ? JSON.stringify(r.data,null,2) : r.raw));
       return;
     }
+
     const results = r.data.results || [];
     const paging = r.data.paging || null;
+
     LAST_PAGING = paging;
+
+    // render both; CSS decides which is visible
     renderTable(results);
+    renderCards(results);
 
     const nextAfter = paging?.next?.after ? String(paging.next.after) : "";
     if (nextAfter && AFTER_STACK.length === page) AFTER_STACK.push(nextAfter);
 
     qs("countPill").textContent = `Showing ${results.length} results`;
+
     CURRENT_PAGE = page;
     renderPager();
     renderPageNums();
@@ -234,7 +358,10 @@
     AFTER_STACK = [""];
     CURRENT_PAGE = 1;
     LAST_PAGING = null;
+
     qs("tbody").innerHTML = `<tr><td colspan="7" class="muted">Loading...</td></tr>`;
+    qs("cards").innerHTML = `<p class="muted">Loading...</p>`;
+
     await loadPage(1);
   }
 
