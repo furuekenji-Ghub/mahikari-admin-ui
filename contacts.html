@@ -6,33 +6,85 @@
   <title>Contacts | World Divine Light Admin</title>
   <link rel="stylesheet" href="/css/style.css" />
   <style>
+    /* ✅ Prevent any horizontal overflow on mobile */
+    html, body { width:100%; overflow-x:hidden; }
+
+    /* ✅ Make width:100% include padding/border */
+    *, *::before, *::after { box-sizing: border-box; }
+
     .muted { color:#666; font-size:0.9em; }
-    .filters { display:flex; gap:10px; flex-wrap:wrap; align-items:center; }
-    input[type="text"], select { padding:8px 10px; border:1px solid #ccc; border-radius:8px; min-width:220px; }
-    button { padding:8px 10px; border:1px solid #999; background:#fff; border-radius:8px; cursor:pointer; }
+
+    /* ✅ Filters container */
+    .filters {
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      align-items:center;
+      width:100%;
+      max-width:100%;
+    }
+
+    /* ✅ Inputs/selects/buttons: avoid overflow */
+    input[type="text"], select {
+      padding:8px 10px;
+      border:1px solid #ccc;
+      border-radius:8px;
+      min-width:220px;
+      max-width:100%;
+    }
+
+    button {
+      padding:8px 10px;
+      border:1px solid #999;
+      background:#fff;
+      border-radius:8px;
+      cursor:pointer;
+      max-width:100%;
+    }
     button.primary { border-color:#0b5; }
     button.ghost { border-color:#ddd; }
-    .pill { display:inline-block; padding:2px 8px; border:1px solid #ddd; border-radius:999px; font-size:12px; background:#f7fafc; color:#344; white-space:nowrap; }
-    .hintBox { background:#f7f7f7; border:1px solid #eee; border-radius:10px; padding:10px 12px; margin-top:10px; }
+
+    .pill {
+      display:inline-block;
+      padding:2px 8px;
+      border:1px solid #ddd;
+      border-radius:999px;
+      font-size:12px;
+      background:#f7fafc;
+      color:#344;
+      white-space:nowrap;
+    }
+
+    .hintBox {
+      background:#f7f7f7;
+      border:1px solid #eee;
+      border-radius:10px;
+      padding:10px 12px;
+      margin-top:10px;
+      width:100%;
+      max-width:100%;
+    }
 
     /* Desktop table */
-    #tableWrap { margin-top:10px; }
+    #tableWrap { margin-top:10px; width:100%; max-width:100%; }
     table { width:100%; border-collapse:collapse; }
     th, td { border-bottom:1px solid #eee; padding:10px 8px; text-align:left; vertical-align:top; }
     th { background:#fafafa; font-weight:700; }
     td:first-child, th:first-child { width:90px; }
 
-    .pager { display:flex; gap:10px; align-items:center; flex-wrap:wrap; margin-top:12px; }
+    .pager { display:flex; gap:10px; align-items:center; flex-wrap:wrap; margin-top:12px; width:100%; max-width:100%; }
     .nowrap { white-space:nowrap; }
 
     /* Mobile cards */
-    #cards { display:none; margin-top:10px; }
+    #cards { display:none; margin-top:10px; width:100%; max-width:100%; }
     .contact-card{
       border:1px solid #eee;
       border-radius:12px;
       padding:12px;
       margin:10px 0;
       background:#fff;
+      width:100%;
+      max-width:100%;
     }
     .contact-card .top{
       display:flex;
@@ -45,11 +97,13 @@
       font-size:16px;
       line-height:1.2;
       word-break: break-word;
+      overflow-wrap:anywhere;
     }
     .contact-card .email{
       margin-top:8px;
       color:#333;
       word-break: break-word;
+      overflow-wrap:anywhere;
     }
     .contact-card .metaRow{
       margin-top:8px;
@@ -65,9 +119,13 @@
     }
 
     @media (max-width: 768px){
-      input[type="text"], select { min-width: 0; width: 100%; }
+      /* ✅ Stack filters and force full width properly */
       .filters { flex-direction: column; align-items: stretch; }
-      .filters button { width: 100%; }
+      input[type="text"], select, button {
+        width:100%;
+        min-width:0;          /* ✅ critical */
+        max-width:100%;
+      }
 
       #tableWrap { display:none; }
       #cards { display:block; }
@@ -112,7 +170,6 @@
     <span class="muted" id="status"></span>
   </div>
 
-  <!-- ✅ 初心者案内：検索後は非表示 -->
   <div class="hintBox" id="hintBox">
     <div><b>How to filter:</b> Select Branch and Active Status, then click Search. Use page buttons at the bottom for the next 50 results.</div>
     <div class="muted" style="margin-top:6px;">
@@ -196,7 +253,6 @@
   let AFTER_STACK = [""];
   let CURRENT_PAGE = 1;
   let LAST_PAGING = null;
-  let HAS_SEARCHED = false;
 
   function getFilters(){
     return {
@@ -208,12 +264,10 @@
 
   function branchLabel(v){ const k=String(v||"").trim(); return BRANCH_LABEL[k] || k; }
   function activeLabel(v){ const k=String(v||"").trim(); return ACTIVE_LABEL[k] || k; }
-
   function fullName(p){
     const parts = [p.firstname, p.middle_name, p.lastname].filter(Boolean).map(String);
     return parts.join(" ").trim();
   }
-
   function setHintVisible(visible){
     qs("hintBox").style.display = visible ? "" : "none";
   }
@@ -304,16 +358,13 @@
   async function loadPage(page){
     const filters = getFilters();
     const after = AFTER_STACK[page-1] ?? "";
-
     setStatus("Loading...");
     const r = await apiPost("/api/contacts/search", { ...filters, after, limit: LIMIT });
-
     if (!r.ok || !r.data?.ok){
       setStatus("");
       alert(`Failed: ${r.status}\n` + (r.data ? JSON.stringify(r.data,null,2) : r.raw));
       return;
     }
-
     const results = r.data.results || [];
     const paging = r.data.paging || null;
     LAST_PAGING = paging;
@@ -338,8 +389,9 @@
   }
 
   async function search(){
-    HAS_SEARCHED = true;
-    setHintVisible(false); // ✅ hide after search
+    // hide hint after search
+    setHintVisible(false);
+
     AFTER_STACK = [""];
     CURRENT_PAGE = 1;
     LAST_PAGING = null;
@@ -354,9 +406,8 @@
     qs("q").value = "";
     qs("branch").value = "";
     qs("active").value = "";
-    HAS_SEARCHED = false;
-    setHintVisible(true); // ✅ show again on clear
-    search(); // reload first page
+    setHintVisible(true);
+    search();
   }
 
   qs("searchBtn").onclick = search;
@@ -365,7 +416,7 @@
   qs("nextBtn").onclick = () => { if (LAST_PAGING?.next?.after) gotoPage(CURRENT_PAGE+1); };
   qs("q").addEventListener("keydown", e => { if (e.key === "Enter") search(); });
 
-  // initial load: show hint
+  // initial: show hint but still load results
   setHintVisible(true);
   search();
 </script>
