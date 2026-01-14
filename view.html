@@ -84,23 +84,17 @@
     sleeping_kamikumite:"Sleeping Kamikumite"
   };
 
-  const META_PREFIX = "[[APPENDED_BY:";
-  const META_SUFFIX = "]]";
-
   function qs(id){ return document.getElementById(id); }
   function setStatus(msg){ qs("status").textContent = msg || ""; }
-
   function esc(s){
     return String(s ?? "")
       .replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;")
       .replaceAll('"',"&quot;").replaceAll("'","&#39;");
   }
-
   function getId(){
     const u = new URL(location.href);
     return u.searchParams.get("id") || "";
   }
-
   async function api(path, opts={}){
     const res = await fetch(path, { ...opts, headers: { ...(opts.headers||{}) }});
     const text = await res.text();
@@ -122,57 +116,21 @@
       return String(html);
     }
   }
-
-  function extractMetaAndStrip(plainText){
-    const t = String(plainText || "");
-    if (!t.startsWith(META_PREFIX)) return { appendedBy:"", textWithoutMeta:t };
-    const end = t.indexOf(META_SUFFIX);
-    if (end < 0) return { appendedBy:"", textWithoutMeta:t };
-    const name = t.substring(META_PREFIX.length, end).trim();
-    let rest = t.substring(end + META_SUFFIX.length);
-    if (rest.startsWith("\n")) rest = rest.slice(1);
-    return { appendedBy:name, textWithoutMeta:rest };
-  }
-
-  function stripAuditLines(plainText) {
-    if (!plainText) return "";
-    const lines = String(plainText).split("\n");
-    const dropPrefix = ["Added by:","Added at:","Appended by:","Appended at:","[Added by:","[Added at:","[Appended by:","[Appended at:"];
-    const kept = [];
-    for (const line of lines){
-      const t = line.trim();
-      if (dropPrefix.some(p => t.startsWith(p))) continue;
-      kept.push(line);
-    }
-    return kept.join("\n").replace(/\n{3,}/g, "\n\n").trim();
-  }
-
   function looksLikeHtml(s){
     const t = String(s || "").trim();
-    // very simple heuristic
     return t.startsWith("<") && t.includes(">") && /<\/?[a-z][\s\S]*>/i.test(t);
   }
-
-  function normalizeNoteBodyToPlain(textOrHtml){
+  function normalizeToPlain(textOrHtml){
     const raw = String(textOrHtml || "");
-    if (looksLikeHtml(raw)) return htmlToPlainText(raw);
-    return raw;
+    return looksLikeHtml(raw) ? htmlToPlainText(raw) : raw;
   }
 
+  function branchLabel(v){ const k=String(v||"").trim(); return BRANCH_LABEL[k] || k; }
+  function activeLabel(v){ const k=String(v||"").trim(); return ACTIVE_LABEL[k] || k; }
+
   function toEpoch(note){
-    if (note?.createdate) {
-      const p = Date.parse(String(note.createdate));
-      if (!Number.isNaN(p)) return p;
-    }
-    const created = note?.hs_createdate;
-    const ts = note?.hs_timestamp;
-    const p1 = created ? Date.parse(String(created)) : NaN;
-    if (!Number.isNaN(p1)) return p1;
-    const n2 = Number(ts);
-    if (!Number.isNaN(n2) && Number.isFinite(n2)) return n2;
-    const p2 = ts ? Date.parse(String(ts)) : NaN;
-    if (!Number.isNaN(p2)) return p2;
-    return 0;
+    const p = note?.createdate ? Date.parse(String(note.createdate)) : NaN;
+    return Number.isNaN(p) ? 0 : p;
   }
 
   let NOTES_CACHE = [];
@@ -180,18 +138,13 @@
 
   async function loadMe(){
     const r = await api("/api/me");
-    if (!r.ok) return;
-    const payload = r.data?.ok === true ? r.data : r.data;
-    const label = (payload?.name || payload?.email || "").trim();
+    if (!r.ok || !r.data?.ok) return;
+    const label = (r.data?.name || r.data?.email || "").trim();
     if (label) {
-      const pill = qs("mePill");
-      pill.textContent = "Logged in as: " + label;
-      pill.style.display = "inline-block";
+      qs("mePill").textContent = "Logged in as: " + label;
+      qs("mePill").style.display = "inline-block";
     }
   }
-
-  function branchLabel(v){ const k=String(v||"").trim(); return BRANCH_LABEL[k] || k; }
-  function activeLabel(v){ const k=String(v||"").trim(); return ACTIVE_LABEL[k] || k; }
 
   function renderProfile(props, id){
     const orderKeys = [
@@ -239,22 +192,9 @@
 
     for (const note of notes){
       const noteId = note.id;
-
-      let appendedBy = (note.appendedBy || "").trim();
-      let bodyText = "";
-
-      if (note.body != null) {
-        // new worker payload
-        bodyText = normalizeNoteBodyToPlain(note.body || "");
-      } else {
-        // compat payload with hs_note_body
-        const plainAll = normalizeNoteBodyToPlain(note.hs_note_body || "");
-        const meta = extractMetaAndStrip(plainAll);
-        if (!appendedBy) appendedBy = meta.appendedBy || "";
-        bodyText = normalizeNoteBodyToPlain(stripAuditLines(meta.textWithoutMeta));
-      }
-
-      const dateStr = new Date(toEpoch(note)).toLocaleString();
+      const appendedBy = (note.appendedBy || "").trim();
+      const bodyText = normalizeToPlain(note.body || "");
+      const dateStr = note.createdate ? new Date(note.createdate).toLocaleString() : "";
 
       const div = document.createElement("div");
       div.className = "note";
@@ -294,20 +234,14 @@
 
     try { await loadMe(); } catch {}
 
-    // get contact (new first, compat fallback)
-    let c = await api(`/api/contacts/get?id=${encodeURIComponent(id)}`);
-    if (!c.ok) c = await api(`/api/contacts/${encodeURIComponent(id)}`);
-    if (!c.ok){ setStatus(""); alert(`Failed: ${c.status}\n` + c.raw); return; }
+    const c = await api(`/api/contacts/get?id=${encodeURIComponent(id)}`);
+    if (!c.ok || !c.data?.ok){ setStatus(""); alert(`Failed: ${c.status}\n` + c.raw); return; }
+    renderProfile(c.data.properties || {}, id);
 
-    const props = c.data?.properties || {};
-    renderProfile(props, id);
+    const n = await api(`/api/notes/list?contactId=${encodeURIComponent(id)}`);
+    if (!n.ok || !n.data?.ok){ setStatus(""); alert(`Failed notes: ${n.status}\n` + n.raw); return; }
+    NOTES_CACHE = (n.data.notes || []).slice();
 
-    // notes (new first, compat fallback)
-    let n = await api(`/api/notes/list?contactId=${encodeURIComponent(id)}`);
-    if (!n.ok) n = await api(`/api/contacts/${encodeURIComponent(id)}/notes`);
-    if (!n.ok){ setStatus(""); alert(`Failed notes: ${n.status}\n` + n.raw); return; }
-
-    NOTES_CACHE = (n.data?.notes || []).slice();
     renderNotes();
     setStatus("");
   }
@@ -317,22 +251,13 @@
     if (!body){ alert("Please enter a note. / メモを入力してください"); return; }
     setStatus("Saving... / 保存中...");
 
-    let r = await api(`/api/notes/create`, {
+    const r = await api(`/api/notes/create`, {
       method:"POST",
       headers:{ "content-type":"application/json" },
       body: JSON.stringify({ contactId: CONTACT_ID, body })
     });
 
-    if (!r.ok){
-      // compat fallback
-      r = await api(`/api/contacts/${encodeURIComponent(CONTACT_ID)}/notes`, {
-        method:"POST",
-        headers:{ "content-type":"application/json" },
-        body: JSON.stringify({ body })
-      });
-    }
-
-    if (!r.ok){
+    if (!r.ok || !r.data?.ok){
       setStatus("");
       alert(`Add note failed: ${r.status}\n` + r.raw);
       return;
@@ -353,12 +278,7 @@
     if (!box || !ta) return;
 
     const note = NOTES_CACHE.find(x => String(x.id) === String(noteId));
-    if (note?.body != null) ta.value = normalizeNoteBodyToPlain(note.body || "");
-    else {
-      const plainAll = normalizeNoteBodyToPlain(note?.hs_note_body || "");
-      const meta = extractMetaAndStrip(plainAll);
-      ta.value = normalizeNoteBodyToPlain(stripAuditLines(meta.textWithoutMeta));
-    }
+    ta.value = normalizeToPlain(note?.body || "");
 
     box.style.display = "block";
     ta.focus();
@@ -373,23 +293,20 @@
     const ta = document.getElementById("appendText_" + noteId);
     const text = (ta?.value||"").trim();
     if (!text){ alert("Please enter content. / 内容を入力してください"); return; }
+
     setStatus("Updating... / 更新中...");
 
-    let r = await api(`/api/notes/update`, {
+    const r = await api(`/api/notes/update`, {
       method:"POST",
       headers:{ "content-type":"application/json" },
       body: JSON.stringify({ noteId, body: text })
     });
 
-    if (!r.ok){
-      r = await api(`/api/notes/${encodeURIComponent(noteId)}/append`, {
-        method:"POST",
-        headers:{ "content-type":"application/json" },
-        body: JSON.stringify({ text })
-      });
+    if (!r.ok || !r.data?.ok){
+      setStatus("");
+      alert(`Update failed: ${r.status}\n` + r.raw);
+      return;
     }
-
-    if (!r.ok){ setStatus(""); alert(`Update failed: ${r.status}\n` + r.raw); return; }
 
     await loadAll();
     setStatus("Saved / 保存しました");
@@ -401,24 +318,24 @@
 
     setStatus("Deleting... / 削除中...");
 
-    let r = await api(`/api/notes/delete`, {
+    const r = await api(`/api/notes/delete`, {
       method:"POST",
       headers:{ "content-type":"application/json" },
       body: JSON.stringify({ noteId })
     });
 
-    if (!r.ok){
-      r = await api(`/api/notes/${encodeURIComponent(noteId)}`, { method:"DELETE" });
+    if (!r.ok || !r.data?.ok){
+      setStatus("");
+      alert(`Delete failed: ${r.status}\n` + r.raw);
+      return;
     }
-
-    if (!r.ok){ setStatus(""); alert(`Delete failed: ${r.status}\n` + r.raw); return; }
 
     await loadAll();
     setStatus("Deleted / 削除しました");
   }
 
-  qs("addBtn").onclick = () => addNote();
-  qs("reloadBtn").onclick = () => loadAll();
+  qs("addBtn").onclick = addNote;
+  qs("reloadBtn").onclick = loadAll;
   loadAll();
 </script>
 
