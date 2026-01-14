@@ -122,7 +122,6 @@
       .replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;")
       .replaceAll('"',"&quot;").replaceAll("'","&#39;");
   }
-
   async function apiPost(path, body){
     const res = await fetch(path, {
       method:"POST",
@@ -205,7 +204,7 @@
     const after = AFTER_STACK[page-1] ?? "";
     setStatus("Loading...");
     const r = await apiPost("/api/contacts/search", { ...filters, after, limit: LIMIT });
-    if (!r.ok){
+    if (!r.ok || !r.data?.ok){
       setStatus("");
       alert(`Failed: ${r.status}\n` + (r.data ? JSON.stringify(r.data,null,2) : r.raw));
       return;
