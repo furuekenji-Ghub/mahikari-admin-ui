@@ -9,6 +9,7 @@
     .muted { color:#666; font-size:0.9em; }
     .formGrid{ display:grid; grid-template-columns:220px 1fr; gap:10px 14px; margin-top:12px; }
     .k{ font-weight:800; }
+    .req { color:#b00020; font-weight:800; margin-left:6px; }
     input[type="text"], select, textarea{
       width:100%;
       padding:10px;
@@ -27,6 +28,18 @@
     button.primary{ border-color:#0b5; }
     button.ghost{ border-color:#ddd; }
 
+    .errorBox{
+      display:none;
+      margin-top:12px;
+      border:1px solid #b00020;
+      border-radius:12px;
+      padding:10px 12px;
+      background:#fff5f5;
+      color:#b00020;
+      font-size:0.95em;
+      white-space:pre-wrap;
+    }
+
     @media (max-width:768px){
       .formGrid{ grid-template-columns: 1fr; }
       .k{ margin-top:10px; }
@@ -42,7 +55,12 @@
 </header>
 
 <div class="card">
-  <div class="muted">新規連絡先を入力して保存すると、すぐに View 画面へ移動して結果を確認できます。</div>
+  <div class="muted">
+    必須項目（Required）：First Name / Last Name / Email / Active Status / Branch<br/>
+    保存すると、すぐに View 画面へ移動して結果を確認できます。
+  </div>
+
+  <div id="errorBox" class="errorBox"></div>
 
   <div class="formGrid" id="formGrid"></div>
 
@@ -55,12 +73,12 @@
 
 <script>
   const BRANCH_OPTIONS = [
-    ["","(blank)"],
+    ["","(select)"],
     ["canada","Canada"],["new_york","New York"],["chicago","Chicago"],["los_angeles","Los Angeles"],
     ["california","California"],["houston","Houston"],["hawaii","Hawaii"],
   ];
   const ACTIVE_OPTIONS = [
-    ["","(blank)"],
+    ["","(select)"],
     ["non_kamikumite","Non Kamikumite"],
     ["basic_kamikumite","Basic Kamikumite"],
     ["intermediate_kamikumite","Intermediate Kamikumite"],
@@ -69,6 +87,9 @@
   ];
   const GENDER_OPTIONS = [["","(blank)"],["Male","Male"],["Female","Female"],["Other","Other"]];
   const YESNO_OPTIONS = [["","(blank)"],["Yes","Yes"],["No","No"]];
+
+  // ✅ required 5 fields
+  const REQUIRED_KEYS = new Set(["firstname","lastname","email","active_status","branch"]);
 
   const CREATE_FIELDS = [
     ["firstname","First Name","text"],
@@ -93,6 +114,16 @@
 
   function qs(id){ return document.getElementById(id); }
   function setStatus(msg){ qs("status").textContent = msg || ""; }
+  function showError(lines){
+    const box = qs("errorBox");
+    if (!lines || !lines.length){
+      box.style.display = "none";
+      box.textContent = "";
+      return;
+    }
+    box.style.display = "block";
+    box.textContent = lines.join("\n");
+  }
 
   async function api(path, opts={}){
     const res = await fetch(path, { ...opts, headers: { ...(opts.headers||{}) }});
@@ -136,10 +167,18 @@
   function render(){
     const grid = qs("formGrid");
     grid.innerHTML = "";
+
     for (const [key,label,type] of CREATE_FIELDS){
       const kDiv = document.createElement("div");
       kDiv.className = "k";
       kDiv.textContent = label;
+
+      if (REQUIRED_KEYS.has(key)){
+        const req = document.createElement("span");
+        req.className = "req";
+        req.textContent = " *";
+        kDiv.appendChild(req);
+      }
 
       const vDiv = document.createElement("div");
       vDiv.appendChild(makeField(key, type));
@@ -153,14 +192,40 @@
     const props = {};
     for (const [key] of CREATE_FIELDS){
       const el = document.getElementById("f_" + key);
-      props[key] = String(el?.value ?? "");
+      props[key] = String(el?.value ?? "").trim();
     }
     return props;
   }
 
+  function validate(props){
+    const errors = [];
+    // required checks
+    if (!props.firstname) errors.push("First Name is required. / First Name は必須です");
+    if (!props.lastname) errors.push("Last Name is required. / Last Name は必須です");
+    if (!props.email) errors.push("Email is required. / Email は必須です");
+
+    // simple email check (basic)
+    if (props.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(props.email)){
+      errors.push("Email format looks invalid. / Email形式が正しくない可能性があります");
+    }
+
+    if (!props.active_status) errors.push("Active Status is required. / Active Status は必須です");
+    if (!props.branch) errors.push("Branch is required. / Branch は必須です");
+
+    return errors;
+  }
+
   async function create(){
+    showError([]);
     setStatus("Creating...");
+
     const properties = collect();
+    const errors = validate(properties);
+    if (errors.length){
+      setStatus("");
+      showError(errors);
+      return;
+    }
 
     const r = await api("/api/contacts/create", {
       method:"POST",
@@ -170,15 +235,17 @@
 
     if (!r.ok || !r.data?.ok || !r.data?.id){
       setStatus("");
-      alert("Create failed: " + r.status + "\n" + r.raw);
+      showError(["Create failed. / 作成に失敗しました", `HTTP ${r.status}`, r.raw]);
       return;
     }
 
+    // ✅ jump to view immediately
     location.href = "/view.html?id=" + encodeURIComponent(r.data.id);
   }
 
   qs("createBtn").onclick = create;
   qs("cancelBtn").onclick = () => location.href = "/index.html";
+
   render();
 </script>
 
