@@ -22,19 +22,14 @@
     }
     textarea{ min-height:110px; }
 
-    .formCards{ display:none; margin-top:12px; }
-    .fitem{ border-bottom:1px dashed #ddd; padding:10px 0; }
-    .fitem .label{ font-weight:800; }
-    .fitem .field{ margin-top:8px; }
-
     .row{ display:flex; gap:10px; flex-wrap:wrap; align-items:center; margin-top:12px; }
     button{ padding:10px 12px; border:1px solid #999; background:#fff; border-radius:10px; cursor:pointer; }
     button.primary{ border-color:#0b5; }
     button.ghost{ border-color:#ddd; }
 
     @media (max-width:768px){
-      .formGrid{ display:none; }
-      .formCards{ display:block; }
+      .formGrid{ grid-template-columns: 1fr; }
+      .k{ margin-top:10px; }
       button{ width:100%; }
     }
   </style>
@@ -50,7 +45,6 @@
   <div class="muted">新規連絡先を入力して保存すると、すぐに View 画面へ移動して結果を確認できます。</div>
 
   <div class="formGrid" id="formGrid"></div>
-  <div class="formCards" id="formCards"></div>
 
   <div class="row">
     <button class="primary" id="createBtn">Create / 作成</button>
@@ -141,12 +135,8 @@
 
   function render(){
     const grid = qs("formGrid");
-    const cards = qs("formCards");
     grid.innerHTML = "";
-    cards.innerHTML = "";
-
     for (const [key,label,type] of CREATE_FIELDS){
-      // desktop
       const kDiv = document.createElement("div");
       kDiv.className = "k";
       kDiv.textContent = label;
@@ -156,19 +146,6 @@
 
       grid.appendChild(kDiv);
       grid.appendChild(vDiv);
-
-      // mobile
-      const item = document.createElement("div");
-      item.className = "fitem";
-      const labelDiv = document.createElement("div");
-      labelDiv.className = "label";
-      labelDiv.textContent = label;
-      const fieldDiv = document.createElement("div");
-      fieldDiv.className = "field";
-      fieldDiv.appendChild(makeField(key, type));
-      item.appendChild(labelDiv);
-      item.appendChild(fieldDiv);
-      cards.appendChild(item);
     }
   }
 
@@ -176,8 +153,7 @@
     const props = {};
     for (const [key] of CREATE_FIELDS){
       const el = document.getElementById("f_" + key);
-      if (!el) continue;
-      props[key] = String(el.value ?? "");
+      props[key] = String(el?.value ?? "");
     }
     return props;
   }
@@ -198,7 +174,6 @@
       return;
     }
 
-    // ✅ jump to view immediately
     location.href = "/view.html?id=" + encodeURIComponent(r.data.id);
   }
 
