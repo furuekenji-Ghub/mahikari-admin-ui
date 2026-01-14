@@ -8,26 +8,15 @@
   <style>
     .muted { color:#666; font-size:0.9em; }
     .pill { display:inline-block; padding:2px 8px; border:1px solid #ddd; border-radius:999px; font-size:12px; background:#f7fafc; color:#344; white-space:nowrap; }
-    .grid {
-      display: grid;
-      grid-template-columns: 220px 1fr;
-      gap: 8px 14px;
-      margin-top: 12px;
-    }
-    .k { font-weight: 700; }
-    .v { border-bottom: 1px dashed #ddd; padding-bottom: 4px; }
-    hr { margin: 18px 0; }
+    .grid { display:grid; grid-template-columns:220px 1fr; gap:8px 14px; margin-top:12px; }
+    .k { font-weight:700; }
+    .v { border-bottom:1px dashed #ddd; padding-bottom:4px; }
+    hr { margin:18px 0; }
 
-    .note {
-      border: 1px solid #ddd;
-      border-radius: 10px;
-      padding: 10px 12px;
-      margin: 10px 0;
-      background: #fff;
-    }
+    .note { border:1px solid #ddd; border-radius:10px; padding:10px 12px; margin:10px 0; background:#fff; }
     textarea { width:100%; min-height:120px; padding:10px; }
     .row { display:flex; gap:10px; flex-wrap:wrap; align-items:center; margin-top:10px; }
-    pre { white-space: pre-wrap; margin: 8px 0 0; }
+    pre { white-space:pre-wrap; margin:8px 0 0; }
     .appendBox { margin-top:10px; display:none; }
     .appendBox textarea { min-height:140px; }
     .danger { border:1px solid #b00020; color:#b00020; }
@@ -35,20 +24,8 @@
     .section-title { display:flex; align-items:baseline; gap:8px; flex-wrap:wrap; }
     .h-ja { font-size:0.85em; font-weight:600; color:#444; }
 
-    /* Note header: left stack + right date */
-    .noteHead {
-      display:flex;
-      align-items:flex-start;
-      justify-content:space-between;
-      gap:10px;
-      margin-bottom:6px;
-    }
-    .noteHeadLeft {
-      display:flex;
-      flex-direction:column;
-      gap:6px;
-      align-items:flex-start;
-    }
+    .noteHead { display:flex; align-items:flex-start; justify-content:space-between; gap:10px; margin-bottom:6px; }
+    .noteHeadLeft { display:flex; flex-direction:column; gap:6px; align-items:flex-start; }
     .dateRight { font-size:12px; color:#667; white-space:nowrap; padding-top:2px; }
   </style>
 </head>
@@ -93,25 +70,22 @@
 </div>
 
 <script>
-  // internal -> display label
   const BRANCH_LABEL = {
-    canada: "Canada",
-    new_york: "New York",
-    chicago: "Chicago",
-    los_angeles: "Los Angeles",
-    california: "California",
-    houston: "Houston",
-    hawaii: "Hawaii"
+    canada:"Canada", new_york:"New York", chicago:"Chicago", los_angeles:"Los Angeles",
+    california:"California", houston:"Houston", hawaii:"Hawaii"
   };
   const ACTIVE_LABEL = {
-    non_kamikumite: "Non Kamikumite",
-    basic_kamikumite: "Basic Kamikumite",
-    intermediate_kamikumite: "Intermediate Kamikumite",
-    advanced_kamikumite: "Advanced Kamikumite",
-    kanbu: "Kanbu",
-    doshi: "Doshi",
-    sleeping_kamikumite: "Sleeping Kamikumite"
+    non_kamikumite:"Non Kamikumite",
+    basic_kamikumite:"Basic Kamikumite",
+    intermediate_kamikumite:"Intermediate Kamikumite",
+    advanced_kamikumite:"Advanced Kamikumite",
+    kanbu:"Kanbu",
+    doshi:"Doshi",
+    sleeping_kamikumite:"Sleeping Kamikumite"
   };
+
+  const META_PREFIX = "[[APPENDED_BY:";
+  const META_SUFFIX = "]]";
 
   function qs(id){ return document.getElementById(id); }
   function setStatus(msg){ qs("status").textContent = msg || ""; }
@@ -131,22 +105,16 @@
     const res = await fetch(path, { ...opts, headers: { ...(opts.headers||{}) }});
     const text = await res.text();
     let data;
-    try { data = text ? JSON.parse(text) : null; } catch { data = { raw: text }; }
-    return { ok: res.ok, status: res.status, data, raw: text };
+    try { data = text ? JSON.parse(text) : null; } catch { data = { raw:text }; }
+    return { ok: res.ok, status: res.status, data, raw:text };
   }
-
-  // Notes meta parsing (if needed for old compat payloads)
-  const META_PREFIX = "[[APPENDED_BY:";
-  const META_SUFFIX = "]]";
 
   function htmlToPlainText(html) {
     if (!html) return "";
     try {
       const normalized = String(html)
         .replaceAll("<br>", "\n").replaceAll("<br/>", "\n").replaceAll("<br />", "\n")
-        .replaceAll("</p>", "\n")
-        .replaceAll("</div>", "\n")
-        .replaceAll("</li>", "\n");
+        .replaceAll("</p>", "\n").replaceAll("</div>", "\n").replaceAll("</li>", "\n");
       const doc = new DOMParser().parseFromString(normalized, "text/html");
       const text = (doc.body && doc.body.textContent) ? doc.body.textContent : "";
       return text.replace(/\n{3,}/g, "\n\n").trim();
@@ -155,28 +123,23 @@
     }
   }
 
-  function extractAppendedByAndStripMeta(plainText){
+  function extractMetaAndStrip(plainText){
     const t = String(plainText || "");
-    if (!t.startsWith(META_PREFIX)) {
-      return { appendedBy: "", textWithoutMeta: t };
-    }
+    if (!t.startsWith(META_PREFIX)) return { appendedBy:"", textWithoutMeta:t };
     const end = t.indexOf(META_SUFFIX);
-    if (end < 0) return { appendedBy: "", textWithoutMeta: t };
+    if (end < 0) return { appendedBy:"", textWithoutMeta:t };
     const name = t.substring(META_PREFIX.length, end).trim();
     let rest = t.substring(end + META_SUFFIX.length);
     if (rest.startsWith("\n")) rest = rest.slice(1);
-    return { appendedBy: name, textWithoutMeta: rest };
+    return { appendedBy:name, textWithoutMeta:rest };
   }
 
   function stripAuditLines(plainText) {
     if (!plainText) return "";
     const lines = String(plainText).split("\n");
-    const dropPrefix = [
-      "Added by:", "Added at:", "Appended by:", "Appended at:",
-      "[Added by:", "[Added at:", "[Appended by:", "[Appended at:"
-    ];
+    const dropPrefix = ["Added by:","Added at:","Appended by:","Appended at:","[Added by:","[Added at:","[Appended by:","[Appended at:"];
     const kept = [];
-    for (const line of lines) {
+    for (const line of lines){
       const t = line.trim();
       if (dropPrefix.some(p => t.startsWith(p))) continue;
       kept.push(line);
@@ -184,13 +147,23 @@
     return kept.join("\n").replace(/\n{3,}/g, "\n\n").trim();
   }
 
-  function toEpoch(note) {
-    // new worker payload: {createdate}
-    if (note && note.createdate) {
+  function looksLikeHtml(s){
+    const t = String(s || "").trim();
+    // very simple heuristic
+    return t.startsWith("<") && t.includes(">") && /<\/?[a-z][\s\S]*>/i.test(t);
+  }
+
+  function normalizeNoteBodyToPlain(textOrHtml){
+    const raw = String(textOrHtml || "");
+    if (looksLikeHtml(raw)) return htmlToPlainText(raw);
+    return raw;
+  }
+
+  function toEpoch(note){
+    if (note?.createdate) {
       const p = Date.parse(String(note.createdate));
       if (!Number.isNaN(p)) return p;
     }
-    // old compat payload: hs_createdate / hs_timestamp
     const created = note?.hs_createdate;
     const ts = note?.hs_timestamp;
     const p1 = created ? Date.parse(String(created)) : NaN;
@@ -217,37 +190,17 @@
     }
   }
 
-  function toBranchLabel(v){
-    const key = String(v || "").trim();
-    return BRANCH_LABEL[key] || key;
-  }
-  function toActiveLabel(v){
-    const key = String(v || "").trim();
-    return ACTIVE_LABEL[key] || key;
-  }
+  function branchLabel(v){ const k=String(v||"").trim(); return BRANCH_LABEL[k] || k; }
+  function activeLabel(v){ const k=String(v||"").trim(); return ACTIVE_LABEL[k] || k; }
 
   function renderProfile(props, id){
     const orderKeys = [
-      ["firstname","First Name"],
-      ["middle_name","Middle Name"],
-      ["lastname","Last Name"],
-      ["email","Email"],
-      ["member_id","Member ID"],
-      ["branch","Branch"],
-      ["active_status","Active Status"],
-      ["preferred_language","Preferred Language"],
-      ["mobilephone","Mobile Phone"],
-      ["address","Address"],
-      ["city","City"],
-      ["state__province","State / Province"],
-      ["zip","ZIP"],
-      ["gender","Gender"],
-      ["date_of_birth","Date of Birth"],
-      ["taking_medication","Taking Medication"],
-      ["medication_names","Medication Names"],
-      ["initial_notes","Initial Notes"],
-      ["notes_last_updated","Notes Last Updated"],
-      ["createdate","Create Date"]
+      ["firstname","First Name"],["middle_name","Middle Name"],["lastname","Last Name"],["email","Email"],
+      ["member_id","Member ID"],["branch","Branch"],["active_status","Active Status"],
+      ["preferred_language","Preferred Language"],["mobilephone","Mobile Phone"],["address","Address"],
+      ["city","City"],["state__province","State / Province"],["zip","ZIP"],["gender","Gender"],
+      ["date_of_birth","Date of Birth"],["taking_medication","Taking Medication"],["medication_names","Medication Names"],
+      ["initial_notes","Initial Notes"],["notes_last_updated","Notes Last Updated"],["createdate","Create Date"]
     ];
 
     const grid = qs("profile");
@@ -258,9 +211,8 @@
 
     for (const [key,label] of orderKeys){
       let v = (props && props[key] != null) ? String(props[key]) : "";
-
-      if (key === "branch") v = toBranchLabel(v);
-      if (key === "active_status") v = toActiveLabel(v);
+      if (key === "branch") v = branchLabel(v);
+      if (key === "active_status") v = activeLabel(v);
 
       const kDiv = document.createElement("div");
       kDiv.className = "k";
@@ -279,7 +231,7 @@
     const box = qs("notes");
     box.innerHTML = "";
 
-    const notes = NOTES_CACHE.slice().sort((a,b) => toEpoch(b) - toEpoch(a));
+    const notes = NOTES_CACHE.slice().sort((a,b)=>toEpoch(b)-toEpoch(a));
     if (!notes.length){
       box.innerHTML = `<p class="muted">No notes found. / メモはまだありません。</p>`;
       return;
@@ -288,18 +240,18 @@
     for (const note of notes){
       const noteId = note.id;
 
-      // new payload: {body, appendedBy, createdate}
-      // compat payload: {hs_note_body, hs_createdate, appendedBy?}
       let appendedBy = (note.appendedBy || "").trim();
       let bodyText = "";
 
       if (note.body != null) {
-        bodyText = String(note.body || "");
+        // new worker payload
+        bodyText = normalizeNoteBodyToPlain(note.body || "");
       } else {
-        const plainAll = htmlToPlainText(note.hs_note_body || "");
-        const meta = extractAppendedByAndStripMeta(plainAll);
+        // compat payload with hs_note_body
+        const plainAll = normalizeNoteBodyToPlain(note.hs_note_body || "");
+        const meta = extractMetaAndStrip(plainAll);
         if (!appendedBy) appendedBy = meta.appendedBy || "";
-        bodyText = stripAuditLines(meta.textWithoutMeta);
+        bodyText = normalizeNoteBodyToPlain(stripAuditLines(meta.textWithoutMeta));
       }
 
       const dateStr = new Date(toEpoch(note)).toLocaleString();
@@ -336,68 +288,46 @@
 
   async function loadAll(){
     const id = getId();
-    if (!id){
-      qs("meta").textContent = "Missing ?id=";
-      return;
-    }
+    if (!id){ qs("meta").textContent = "Missing ?id="; return; }
     CONTACT_ID = id;
     setStatus("Loading... / 読み込み中...");
 
     try { await loadMe(); } catch {}
 
-    // NEW get (preferred)
+    // get contact (new first, compat fallback)
     let c = await api(`/api/contacts/get?id=${encodeURIComponent(id)}`);
-    if (!c.ok) {
-      // old compat fallback
-      c = await api(`/api/contacts/${encodeURIComponent(id)}`);
-    }
-    if (!c.ok){
-      setStatus("");
-      alert(`Failed: ${c.status}\n` + c.raw);
-      return;
-    }
+    if (!c.ok) c = await api(`/api/contacts/${encodeURIComponent(id)}`);
+    if (!c.ok){ setStatus(""); alert(`Failed: ${c.status}\n` + c.raw); return; }
 
-    const props = c.data?.properties || c.data?.data?.properties || {};
+    const props = c.data?.properties || {};
     renderProfile(props, id);
 
-    // Notes (new preferred)
+    // notes (new first, compat fallback)
     let n = await api(`/api/notes/list?contactId=${encodeURIComponent(id)}`);
-    if (!n.ok) {
-      // compat fallback
-      n = await api(`/api/contacts/${encodeURIComponent(id)}/notes`);
-    }
-    if (!n.ok){
-      setStatus("");
-      alert(`Failed notes: ${n.status}\n` + n.raw);
-      return;
-    }
+    if (!n.ok) n = await api(`/api/contacts/${encodeURIComponent(id)}/notes`);
+    if (!n.ok){ setStatus(""); alert(`Failed notes: ${n.status}\n` + n.raw); return; }
 
-    NOTES_CACHE = (n.data?.notes || n.data?.data?.notes || []).slice();
+    NOTES_CACHE = (n.data?.notes || []).slice();
     renderNotes();
-
     setStatus("");
   }
 
   async function addNote(){
-    const body = (qs("newNote").value || "").trim();
-    if (!body){
-      alert("Please enter a note. / メモを入力してください");
-      return;
-    }
+    const body = (qs("newNote").value||"").trim();
+    if (!body){ alert("Please enter a note. / メモを入力してください"); return; }
     setStatus("Saving... / 保存中...");
 
-    // new preferred
     let r = await api(`/api/notes/create`, {
-      method: "POST",
-      headers: { "content-type": "application/json" },
+      method:"POST",
+      headers:{ "content-type":"application/json" },
       body: JSON.stringify({ contactId: CONTACT_ID, body })
     });
 
-    // compat fallback
-    if (!r.ok) {
+    if (!r.ok){
+      // compat fallback
       r = await api(`/api/contacts/${encodeURIComponent(CONTACT_ID)}/notes`, {
-        method: "POST",
-        headers: { "content-type": "application/json" },
+        method:"POST",
+        headers:{ "content-type":"application/json" },
         body: JSON.stringify({ body })
       });
     }
@@ -423,12 +353,11 @@
     if (!box || !ta) return;
 
     const note = NOTES_CACHE.find(x => String(x.id) === String(noteId));
-    if (note?.body != null) {
-      ta.value = String(note.body || "");
-    } else {
-      const plainAll = htmlToPlainText(note?.hs_note_body || "");
-      const meta = extractAppendedByAndStripMeta(plainAll);
-      ta.value = stripAuditLines(meta.textWithoutMeta);
+    if (note?.body != null) ta.value = normalizeNoteBodyToPlain(note.body || "");
+    else {
+      const plainAll = normalizeNoteBodyToPlain(note?.hs_note_body || "");
+      const meta = extractMetaAndStrip(plainAll);
+      ta.value = normalizeNoteBodyToPlain(stripAuditLines(meta.textWithoutMeta));
     }
 
     box.style.display = "block";
@@ -442,34 +371,25 @@
 
   async function saveEdit(noteId){
     const ta = document.getElementById("appendText_" + noteId);
-    const text = (ta?.value || "").trim();
-    if (!text){
-      alert("Please enter content. / 内容を入力してください");
-      return;
-    }
+    const text = (ta?.value||"").trim();
+    if (!text){ alert("Please enter content. / 内容を入力してください"); return; }
     setStatus("Updating... / 更新中...");
 
-    // new preferred
     let r = await api(`/api/notes/update`, {
-      method: "POST",
-      headers: { "content-type": "application/json" },
+      method:"POST",
+      headers:{ "content-type":"application/json" },
       body: JSON.stringify({ noteId, body: text })
     });
 
-    // compat fallback
-    if (!r.ok) {
+    if (!r.ok){
       r = await api(`/api/notes/${encodeURIComponent(noteId)}/append`, {
-        method: "POST",
-        headers: { "content-type": "application/json" },
+        method:"POST",
+        headers:{ "content-type":"application/json" },
         body: JSON.stringify({ text })
       });
     }
 
-    if (!r.ok){
-      setStatus("");
-      alert(`Update failed: ${r.status}\n` + r.raw);
-      return;
-    }
+    if (!r.ok){ setStatus(""); alert(`Update failed: ${r.status}\n` + r.raw); return; }
 
     await loadAll();
     setStatus("Saved / 保存しました");
@@ -481,23 +401,17 @@
 
     setStatus("Deleting... / 削除中...");
 
-    // new preferred
     let r = await api(`/api/notes/delete`, {
-      method: "POST",
-      headers: { "content-type": "application/json" },
+      method:"POST",
+      headers:{ "content-type":"application/json" },
       body: JSON.stringify({ noteId })
     });
 
-    // compat fallback
-    if (!r.ok) {
-      r = await api(`/api/notes/${encodeURIComponent(noteId)}`, { method: "DELETE" });
+    if (!r.ok){
+      r = await api(`/api/notes/${encodeURIComponent(noteId)}`, { method:"DELETE" });
     }
 
-    if (!r.ok){
-      setStatus("");
-      alert(`Delete failed: ${r.status}\n` + r.raw);
-      return;
-    }
+    if (!r.ok){ setStatus(""); alert(`Delete failed: ${r.status}\n` + r.raw); return; }
 
     await loadAll();
     setStatus("Deleted / 削除しました");
