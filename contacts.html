@@ -25,7 +25,7 @@
     .pager { display:flex; gap:10px; align-items:center; flex-wrap:wrap; margin-top:12px; }
     .nowrap { white-space:nowrap; }
 
-    /* Mobile cards (hidden on desktop) */
+    /* Mobile cards */
     #cards { display:none; margin-top:10px; }
     .contact-card{
       border:1px solid #eee;
@@ -46,13 +46,6 @@
       line-height:1.2;
       word-break: break-word;
     }
-    .contact-card .sub{
-      margin-top:6px;
-      display:flex;
-      gap:8px;
-      flex-wrap:wrap;
-      align-items:center;
-    }
     .contact-card .email{
       margin-top:8px;
       color:#333;
@@ -72,12 +65,10 @@
     }
 
     @media (max-width: 768px){
-      /* stack filters nicely on mobile */
       input[type="text"], select { min-width: 0; width: 100%; }
       .filters { flex-direction: column; align-items: stretch; }
       .filters button { width: 100%; }
 
-      /* switch to cards */
       #tableWrap { display:none; }
       #cards { display:block; }
     }
@@ -121,7 +112,8 @@
     <span class="muted" id="status"></span>
   </div>
 
-  <div class="hintBox">
+  <!-- ✅ 初心者案内：検索後は非表示 -->
+  <div class="hintBox" id="hintBox">
     <div><b>How to filter:</b> Select Branch and Active Status, then click Search. Use page buttons at the bottom for the next 50 results.</div>
     <div class="muted" style="margin-top:6px;">
       操作方法：まず拠点（Branch）とステータス（Active Status）を選択し、Searchを押して絞り込みます。<br/>
@@ -129,10 +121,8 @@
     </div>
   </div>
 
-  <!-- Mobile cards -->
   <div id="cards"></div>
 
-  <!-- Desktop table -->
   <div id="tableWrap">
     <table>
       <thead>
@@ -206,6 +196,7 @@
   let AFTER_STACK = [""];
   let CURRENT_PAGE = 1;
   let LAST_PAGING = null;
+  let HAS_SEARCHED = false;
 
   function getFilters(){
     return {
@@ -223,15 +214,17 @@
     return parts.join(" ").trim();
   }
 
+  function setHintVisible(visible){
+    qs("hintBox").style.display = visible ? "" : "none";
+  }
+
   function renderTable(results){
     const tbody = qs("tbody");
     tbody.innerHTML = "";
-
     if (!results || !results.length){
       tbody.innerHTML = `<tr><td colspan="7" class="muted">No results.</td></tr>`;
       return;
     }
-
     for (const r of results){
       const p = r.properties || {};
       const tr = document.createElement("tr");
@@ -251,12 +244,10 @@
   function renderCards(results){
     const box = qs("cards");
     box.innerHTML = "";
-
     if (!results || !results.length){
       box.innerHTML = `<p class="muted">No results.</p>`;
       return;
     }
-
     for (const r of results){
       const p = r.properties || {};
       const name = fullName(p) || "(no name)";
@@ -271,12 +262,10 @@
           <div class="name">${esc(name)}</div>
           <a class="pill" href="/view.html?id=${encodeURIComponent(r.id)}">View</a>
         </div>
-
         <div class="metaRow">
           <span class="pill"><span class="label">Branch:</span> ${esc(branch || "-")}</span>
           <span class="pill"><span class="label">Status:</span> ${esc(active || "-")}</span>
         </div>
-
         <div class="email">
           <span class="label">Email:</span> ${esc(email || "-")}
         </div>
@@ -294,11 +283,9 @@
   function renderPageNums(){
     const box = qs("pageNums");
     box.innerHTML = "";
-
     const totalKnown = AFTER_STACK.length;
     const start = Math.max(1, CURRENT_PAGE - 3);
     const end = Math.min(totalKnown, CURRENT_PAGE + 3);
-
     for (let i=start;i<=end;i++){
       const btn = document.createElement("button");
       btn.textContent = String(i);
@@ -306,7 +293,6 @@
       btn.onclick = () => gotoPage(i);
       box.appendChild(btn);
     }
-
     if (LAST_PAGING && LAST_PAGING.next && LAST_PAGING.next.after){
       const more = document.createElement("span");
       more.className = "muted";
@@ -330,10 +316,8 @@
 
     const results = r.data.results || [];
     const paging = r.data.paging || null;
-
     LAST_PAGING = paging;
 
-    // render both; CSS decides which is visible
     renderTable(results);
     renderCards(results);
 
@@ -341,7 +325,6 @@
     if (nextAfter && AFTER_STACK.length === page) AFTER_STACK.push(nextAfter);
 
     qs("countPill").textContent = `Showing ${results.length} results`;
-
     CURRENT_PAGE = page;
     renderPager();
     renderPageNums();
@@ -355,6 +338,8 @@
   }
 
   async function search(){
+    HAS_SEARCHED = true;
+    setHintVisible(false); // ✅ hide after search
     AFTER_STACK = [""];
     CURRENT_PAGE = 1;
     LAST_PAGING = null;
@@ -369,7 +354,9 @@
     qs("q").value = "";
     qs("branch").value = "";
     qs("active").value = "";
-    search();
+    HAS_SEARCHED = false;
+    setHintVisible(true); // ✅ show again on clear
+    search(); // reload first page
   }
 
   qs("searchBtn").onclick = search;
@@ -378,6 +365,8 @@
   qs("nextBtn").onclick = () => { if (LAST_PAGING?.next?.after) gotoPage(CURRENT_PAGE+1); };
   qs("q").addEventListener("keydown", e => { if (e.key === "Enter") search(); });
 
+  // initial load: show hint
+  setHintVisible(true);
   search();
 </script>
 
