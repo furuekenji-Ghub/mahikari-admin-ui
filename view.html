@@ -48,7 +48,7 @@
   <small><a href="/contacts.html">← Back to Contacts / 連絡先一覧へ戻る</a></small>
 </header>
 
-<div class="card" id="mainCard">
+<div class="card">
   <div class="muted" id="meta">Loading...</div>
 
   <div id="deletedState" style="display:none;">
@@ -90,6 +90,7 @@
 
     <hr />
 
+    <!-- Bottom actions -->
     <div class="row">
       <button type="button" id="editProfileBtn">Edit / 編集</button>
       <button type="button" class="danger" id="deleteProfileBtn">Delete / 削除</button>
@@ -116,29 +117,29 @@
   function qs(id){ return document.getElementById(id); }
   function setStatus(msg){ qs("status").textContent = msg || ""; }
   function setActionStatus(msg){ qs("actionStatus").textContent = msg || ""; }
+
   function esc(s){
     return String(s ?? "")
       .replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;")
       .replaceAll('"',"&quot;").replaceAll("'","&#39;");
   }
+
   function getId(){
     const u = new URL(location.href);
     return u.searchParams.get("id") || "";
   }
 
+  // Safe API wrapper: no loud timeout banner; show progress instead
   async function api(path, opts={}){
     const controller = new AbortController();
-    // Keep each request short; worker also chunks, so 15s is safe
     const t = setTimeout(() => controller.abort(), 15000);
-
     try {
       const res = await fetch(path, { ...opts, signal: controller.signal, headers: { ...(opts.headers||{}) }});
       const text = await res.text();
       let data;
       try { data = text ? JSON.parse(text) : null; } catch { data = { raw:text }; }
-      return { ok: res.ok, status: res.status, data, raw:text };
+      return { ok: res.ok, status: res.status, data, raw: text };
     } catch (e) {
-      // Do NOT show “timeout” banner; return a structured failure
       return { ok:false, status:0, data:null, raw:String(e?.message||e), aborted:true };
     } finally {
       clearTimeout(t);
@@ -284,7 +285,6 @@
       alert(`Failed: ${c.status}\n` + c.raw);
       return;
     }
-
     renderProfile(c.data.properties || {}, CONTACT_ID);
 
     const n = await api(`/api/notes/list?contactId=${encodeURIComponent(CONTACT_ID)}`);
@@ -293,7 +293,6 @@
       alert(`Failed notes: ${n.status}\n` + n.raw);
       return;
     }
-
     NOTES_CACHE = (n.data.notes || []).slice();
     renderNotes();
     setStatus("");
@@ -332,7 +331,6 @@
 
     const note = NOTES_CACHE.find(x => String(x.id) === String(noteId));
     ta.value = normalizeToPlain(note?.body || "");
-
     box.style.display = "block";
     ta.focus();
   }
@@ -387,14 +385,14 @@
     setStatus("Deleted / 削除しました");
   }
 
-  // ✅ no-timeout delete: chunk calls
+  // no-timeout delete: chunk calls
   async function deleteProfileNoTimeout(){
-    if (!confirm("この連絡先を削除しますか？\nDelete this contact?")) return;
-    if (!confirm("この操作は元に戻せません。\n本当に削除してよいですか？\nThis cannot be undone. Continue?")) return;
+    if (!confirm("本当に削除していいですか？\nDelete this contact?")) return;
+    if (!confirm("この操作は元に戻せません。\n続けて削除しますか？\nThis cannot be undone. Continue?")) return;
 
     qs("deleteProfileBtn").disabled = true;
     qs("editProfileBtn").disabled = true;
-    setActionStatus("Deleting notes... / 施真カード削除中...");
+    setActionStatus("Deleting... / 削除中...");
 
     let cursor = null;
     let total = 0;
@@ -403,21 +401,15 @@
       const r = await api(`/api/contacts/delete`, {
         method:"POST",
         headers:{ "content-type":"application/json" },
-        body: JSON.stringify({
-          id: CONTACT_ID,
-          phase: "notes",
-          cursor,
-          notes_deleted_total: total
-        })
+        body: JSON.stringify({ id: CONTACT_ID, phase:"notes", cursor, notes_deleted_total: total })
       });
 
-      // If aborted (local timeout), just retry after a short wait (no banner)
       if (r.aborted) {
         await new Promise(res => setTimeout(res, 600));
         continue;
       }
 
-      if (!r.ok || !r.data?.ok) {
+      if (!r.ok || !r.data?.ok){
         qs("deleteProfileBtn").disabled = false;
         qs("editProfileBtn").disabled = false;
         setActionStatus("");
@@ -426,20 +418,15 @@
       }
 
       if (r.data.done) {
-        // done includes contact delete
         setActionStatus("");
         qs("contentState").style.display = "none";
         qs("deletedState").style.display = "block";
         return;
       }
 
-      // still deleting notes
       cursor = r.data.cursor;
       total = r.data.notes_deleted_total || total;
-
-      setActionStatus(`Deleting notes... / 施真カード削除中... (${total})`);
-
-      // small delay to avoid rate limits & keep UI smooth
+      setActionStatus(`Deleting... / 削除中...（Seshin card削除 ${total}件）`);
       await new Promise(res => setTimeout(res, 250));
     }
   }
