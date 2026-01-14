@@ -39,6 +39,13 @@
       background:#fff;
       margin-top:16px;
     }
+
+    /* Profile action buttons placement (right under Create Date) */
+    .profileActions {
+      margin-top: 14px;
+      padding-top: 10px;
+      border-top: 1px solid #eee;
+    }
   </style>
 </head>
 <body>
@@ -66,6 +73,13 @@
 
     <div class="grid" id="profile"></div>
 
+    <!-- ✅ moved here: Edit/Delete right after Profile (Create Date row is last in the grid) -->
+    <div class="row profileActions">
+      <button type="button" id="editProfileBtn">Edit / 編集</button>
+      <button type="button" class="danger" id="deleteProfileBtn">Delete / 削除</button>
+      <span class="muted" id="actionStatus"></span>
+    </div>
+
     <hr />
 
     <div class="section-title">
@@ -87,15 +101,6 @@
     </div>
 
     <div id="notes"></div>
-
-    <hr />
-
-    <!-- Bottom actions -->
-    <div class="row">
-      <button type="button" id="editProfileBtn">Edit / 編集</button>
-      <button type="button" class="danger" id="deleteProfileBtn">Delete / 削除</button>
-      <span class="muted" id="actionStatus"></span>
-    </div>
   </div>
 </div>
 
@@ -129,7 +134,7 @@
     return u.searchParams.get("id") || "";
   }
 
-  // Safe API wrapper: no loud timeout banner; show progress instead
+  // Safe API wrapper: each request short; no loud timeout banner
   async function api(path, opts={}){
     const controller = new AbortController();
     const t = setTimeout(() => controller.abort(), 15000);
@@ -271,6 +276,7 @@
     CONTACT_ID = getId();
     if (!CONTACT_ID){ qs("meta").textContent = "Missing ?id="; return; }
 
+    // buttons are now under profile
     qs("editProfileBtn").onclick = () => location.href = "/edit.html?id=" + encodeURIComponent(CONTACT_ID);
     qs("deleteProfileBtn").onclick = () => deleteProfileNoTimeout();
 
@@ -385,7 +391,6 @@
     setStatus("Deleted / 削除しました");
   }
 
-  // no-timeout delete: chunk calls
   async function deleteProfileNoTimeout(){
     if (!confirm("本当に削除していいですか？\nDelete this contact?")) return;
     if (!confirm("この操作は元に戻せません。\n続けて削除しますか？\nThis cannot be undone. Continue?")) return;
