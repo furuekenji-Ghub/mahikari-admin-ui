@@ -8,9 +8,15 @@
   <style>
     .muted { color:#666; font-size:0.9em; }
     .pill { display:inline-block; padding:2px 8px; border:1px solid #ddd; border-radius:999px; font-size:12px; background:#f7fafc; color:#344; white-space:nowrap; }
-    .grid { display:grid; grid-template-columns:220px 1fr; gap:10px 14px; margin-top:12px; }
-    .k { font-weight:700; }
-    input[type="text"], select, textarea {
+
+    .formGrid{
+      display:grid;
+      grid-template-columns:220px 1fr;
+      gap:10px 14px;
+      margin-top:12px;
+    }
+    .k{ font-weight:800; }
+    input[type="text"], select, textarea{
       width:100%;
       padding:10px;
       border:1px solid #ccc;
@@ -18,12 +24,27 @@
       font-family:inherit;
       font-size:14px;
       box-sizing:border-box;
+      overflow-wrap:anywhere;
+      word-break:break-word;
     }
-    textarea { min-height:110px; }
-    .row { display:flex; gap:10px; flex-wrap:wrap; align-items:center; margin-top:12px; }
-    button { padding:10px 12px; border:1px solid #999; background:#fff; border-radius:10px; cursor:pointer; }
-    button.primary { border-color:#0b5; }
-    button.ghost { border-color:#ddd; }
+    textarea{ min-height:110px; }
+
+    /* mobile stacked */
+    .formCards{ display:none; margin-top:12px; }
+    .fitem{ border-bottom:1px dashed #ddd; padding:10px 0; }
+    .fitem .label{ font-weight:800; }
+    .fitem .field{ margin-top:8px; }
+
+    .row{ display:flex; gap:10px; flex-wrap:wrap; align-items:center; margin-top:12px; }
+    button{ padding:10px 12px; border:1px solid #999; background:#fff; border-radius:10px; cursor:pointer; }
+    button.primary{ border-color:#0b5; }
+    button.ghost{ border-color:#ddd; }
+
+    @media (max-width:768px){
+      .formGrid{ display:none; }
+      .formCards{ display:block; }
+      button{ width:100%; }
+    }
   </style>
 </head>
 <body>
@@ -35,7 +56,12 @@
 
 <div class="card">
   <div id="meta" class="muted">Loading...</div>
-  <div class="grid" id="form"></div>
+
+  <!-- Desktop -->
+  <div class="formGrid" id="formGrid"></div>
+
+  <!-- Mobile -->
+  <div class="formCards" id="formCards"></div>
 
   <div class="row">
     <button class="primary" id="saveBtn">Save / 保存</button>
@@ -116,41 +142,60 @@
   let CONTACT_ID = "";
   let CURRENT = {};
 
+  function makeField(key, type, v){
+    let input;
+    if (type === "textarea"){
+      input = document.createElement("textarea");
+      input.value = v;
+    } else if (type === "select_branch"){
+      input = makeSelect(BRANCH_OPTIONS, v);
+    } else if (type === "select_active"){
+      input = makeSelect(ACTIVE_OPTIONS, v);
+    } else if (type === "select_gender"){
+      input = makeSelect(GENDER_OPTIONS, v);
+    } else if (type === "select_yesno"){
+      input = makeSelect(YESNO_OPTIONS, v);
+    } else {
+      input = document.createElement("input");
+      input.type = "text";
+      input.value = v;
+    }
+    input.id = "f_" + key;
+    return input;
+  }
+
   function renderForm(props){
-    const form = qs("form");
-    form.innerHTML = "";
+    const grid = qs("formGrid");
+    const cards = qs("formCards");
+    grid.innerHTML = "";
+    cards.innerHTML = "";
 
     for (const [key,label,type] of EDIT_FIELDS){
+      const v = props[key] != null ? String(props[key]) : "";
+
+      // desktop grid
       const kDiv = document.createElement("div");
       kDiv.className = "k";
       kDiv.textContent = label;
 
       const vDiv = document.createElement("div");
-      let input;
-      const v = props[key] != null ? String(props[key]) : "";
+      vDiv.appendChild(makeField(key, type, v));
 
-      if (type === "textarea") {
-        input = document.createElement("textarea");
-        input.value = v;
-      } else if (type === "select_branch") {
-        input = makeSelect(BRANCH_OPTIONS, v);
-      } else if (type === "select_active") {
-        input = makeSelect(ACTIVE_OPTIONS, v);
-      } else if (type === "select_gender") {
-        input = makeSelect(GENDER_OPTIONS, v);
-      } else if (type === "select_yesno") {
-        input = makeSelect(YESNO_OPTIONS, v);
-      } else {
-        input = document.createElement("input");
-        input.type = "text";
-        input.value = v;
-      }
+      grid.appendChild(kDiv);
+      grid.appendChild(vDiv);
 
-      input.id = "f_" + key;
-      vDiv.appendChild(input);
-
-      form.appendChild(kDiv);
-      form.appendChild(vDiv);
+      // mobile cards
+      const item = document.createElement("div");
+      item.className = "fitem";
+      const labelDiv = document.createElement("div");
+      labelDiv.className = "label";
+      labelDiv.textContent = label;
+      const fieldDiv = document.createElement("div");
+      fieldDiv.className = "field";
+      fieldDiv.appendChild(makeField(key, type, v));
+      item.appendChild(labelDiv);
+      item.appendChild(fieldDiv);
+      cards.appendChild(item);
     }
   }
 
@@ -166,7 +211,7 @@
 
   async function load(){
     CONTACT_ID = getId();
-    if (!CONTACT_ID) { qs("meta").textContent = "Missing ?id="; return; }
+    if (!CONTACT_ID){ qs("meta").textContent = "Missing ?id="; return; }
 
     qs("backLink").href = "/view.html?id=" + encodeURIComponent(CONTACT_ID);
     qs("cancelBtn").onclick = () => location.href = "/view.html?id=" + encodeURIComponent(CONTACT_ID);
