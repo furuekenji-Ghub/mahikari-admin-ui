@@ -110,7 +110,6 @@
       .profileGrid { display:none; }
       .profileCards { display:block; }
       #meta { overflow-wrap:anywhere; word-break:break-word; }
-
       .seminarGrid{ grid-template-columns: 1fr; }
     }
   </style>
@@ -151,17 +150,19 @@
       <span class="muted" id="actionStatus"></span>
     </div>
 
-    <!-- ✅ Added: Basic Seminar Application -->
-    <hr />
-    <div class="section-title">
-      <h3 style="margin: 14px 0 6px;">Basic Seminar Application</h3>
-      <span class="h-ja">（ベーシック申込ステータス）</span>
-    </div>
+    <!-- ✅ Basic Seminar Application (show ONLY when Active Status is Non Kamikumite) -->
+    <div id="basicSeminarSection" style="display:none;">
+      <hr />
+      <div class="section-title">
+        <h3 style="margin: 14px 0 6px;">Basic Seminar Application</h3>
+        <span class="h-ja">（ベーシック申込ステータス）</span>
+      </div>
 
-    <div class="seminarBox">
-      <div class="seminarGrid" id="basicSeminarGrid"></div>
-      <div class="muted" id="basicSeminarHint" style="margin-top:10px; display:none;">
-        ※ Basicセミナー用の8プロパティがAPIレスポンスに含まれていない場合、この欄は「-」になります。
+      <div class="seminarBox">
+        <div class="seminarGrid" id="basicSeminarGrid"></div>
+        <div class="muted" id="basicSeminarHint" style="margin-top:10px; display:none;">
+          ※ Basicセミナー用の8プロパティがAPIレスポンスに含まれていない場合、この欄は「-」になります。
+        </div>
       </div>
     </div>
 
@@ -219,6 +220,7 @@
     return u.searchParams.get("id") || "";
   }
 
+  // Safe API wrapper (short requests)
   async function api(path, opts={}){
     const controller = new AbortController();
     const t = setTimeout(() => controller.abort(), 15000);
@@ -263,6 +265,12 @@
     return Number.isNaN(p) ? 0 : p;
   }
 
+  // Show Basic Seminar Application only for Non Kamikumite
+  function isNonKamikumite(activeStatusRaw){
+    const v = String(activeStatusRaw || "").trim().toLowerCase();
+    return v === "non_kamikumite" || v === "non kamikumite";
+  }
+
   let NOTES_CACHE = [];
   let CONTACT_ID = "";
 
@@ -300,13 +308,16 @@
       ["createdate","Create Date"]
     ];
 
+    // meta header (wrap-safe)
     const name = [props.firstname, props.middle_name, props.lastname].filter(Boolean).join(" ");
     const email = props.email || "";
     qs("meta").innerHTML = `<span class="pill">Contact ID: ${esc(id)}</span> <b>${esc(name||"(no name)")}</b> <span class="muted">(${esc(email)})</span>`;
 
+    // Desktop grid
     const grid = qs("profileGrid");
     grid.innerHTML = "";
 
+    // Mobile cards
     const cards = qs("profileCards");
     cards.innerHTML = "";
 
@@ -315,6 +326,7 @@
       if (key === "branch") v = branchLabel(v);
       if (key === "active_status") v = activeLabel(v);
 
+      // desktop (2 columns)
       const kDiv = document.createElement("div");
       kDiv.className = "k";
       kDiv.textContent = label;
@@ -326,6 +338,7 @@
       grid.appendChild(kDiv);
       grid.appendChild(vDiv);
 
+      // mobile (label then value)
       const item = document.createElement("div");
       item.className = "pitem";
       item.innerHTML = `
@@ -448,8 +461,11 @@
     const props = c.data.properties || {};
     renderProfile(props, CONTACT_ID);
 
-    // ✅ Added: render Basic Seminar box
-    renderBasicSeminar(props);
+    // ✅ Show Basic Seminar ONLY for Non Kamikumite
+    const sec = document.getElementById("basicSeminarSection");
+    const showBasic = isNonKamikumite(props.active_status);
+    if (sec) sec.style.display = showBasic ? "block" : "none";
+    if (showBasic) renderBasicSeminar(props);
 
     const n = await api(`/api/notes/list?contactId=${encodeURIComponent(CONTACT_ID)}`);
     if (!n.ok || !n.data?.ok){
