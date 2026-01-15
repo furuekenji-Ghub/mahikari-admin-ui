@@ -10,40 +10,15 @@
     .pill { display:inline-block; padding:2px 8px; border:1px solid #ddd; border-radius:999px; font-size:12px; background:#f7fafc; color:#344; white-space:nowrap; }
     hr { margin:18px 0; }
 
-    /* ===== Profile (Desktop default: two columns) ===== */
-    .profileGrid {
-      display:grid;
-      grid-template-columns: 220px 1fr;
-      gap: 8px 14px;
-      margin-top: 12px;
-    }
+    .profileGrid { display:grid; grid-template-columns: 220px 1fr; gap: 8px 14px; margin-top: 12px; }
     .k { font-weight:700; }
-    .v {
-      border-bottom:1px dashed #ddd;
-      padding-bottom:4px;
-      overflow-wrap:anywhere;
-      word-break: break-word;
-    }
+    .v { border-bottom:1px dashed #ddd; padding-bottom:4px; overflow-wrap:anywhere; word-break: break-word; }
 
-    /* Mobile-friendly profile cards */
     .profileCards { display:none; margin-top: 12px; }
-    .pitem{
-      border-bottom:1px dashed #ddd;
-      padding:10px 0;
-    }
-    .pitem .label{
-      font-weight:800;
-      font-size:14px;
-      color:#111;
-    }
-    .pitem .value{
-      margin-top:6px;
-      color:#111;
-      overflow-wrap:anywhere;
-      word-break: break-word;
-    }
+    .pitem{ border-bottom:1px dashed #ddd; padding:10px 0; }
+    .pitem .label{ font-weight:800; font-size:14px; color:#111; }
+    .pitem .value{ margin-top:6px; color:#111; overflow-wrap:anywhere; word-break: break-word; }
 
-    /* ===== Notes ===== */
     .note { border:1px solid #ddd; border-radius:10px; padding:10px 12px; margin:10px 0; background:#fff; }
     textarea { width:100%; min-height:120px; padding:10px; box-sizing:border-box; }
     .row { display:flex; gap:10px; flex-wrap:wrap; align-items:center; margin-top:10px; }
@@ -63,41 +38,23 @@
     .noteHeadLeft { display:flex; flex-direction:column; gap:6px; align-items:flex-start; }
     .dateRight { font-size:12px; color:#667; white-space:nowrap; padding-top:2px; }
 
-    .deletedBox{
-      border:1px solid #ddd;
-      border-radius:12px;
-      padding:18px;
-      background:#fff;
-      margin-top:16px;
-    }
+    .deletedBox{ border:1px solid #ddd; border-radius:12px; padding:18px; background:#fff; margin-top:16px; }
 
-    .profileActions {
-      margin-top: 14px;
-      padding-top: 10px;
-      border-top: 1px solid #eee;
-    }
+    .profileActions { margin-top: 14px; padding-top: 10px; border-top: 1px solid #eee; }
 
     /* ===== Basic Seminar ===== */
-    .seminarBox{
-      margin-top: 10px;
-      border: 1px solid #e7e7e7;
-      border-radius: 12px;
-      padding: 12px;
-      background: #fff;
-    }
-    .seminarGrid{
-      display:grid;
-      grid-template-columns: 220px 1fr;
-      gap: 8px 14px;
-    }
+    .seminarBox{ margin-top: 10px; border: 1px solid #e7e7e7; border-radius: 12px; padding: 12px; background: #fff; }
+    .seminarGrid{ display:grid; grid-template-columns: 220px 1fr; gap: 8px 14px; }
+
     .badge{
       display:inline-block;
       padding: 4px 10px;
       border-radius: 999px;
       border: 1px solid #ddd;
-      background: #f7fafc;
+      background: #eef6ff;
       font-size: 12px;
       white-space: nowrap;
+      vertical-align: middle;
     }
     .st_started{ background:#eef6ff; border-color:#cfe6ff; }
     .st_consented{ background:#f2fff0; border-color:#c9f2c1; }
@@ -105,12 +62,24 @@
     .st_paid{ background:#f2fff9; border-color:#bff0da; }
     .st_completed{ background:#f7f7f7; border-color:#dedede; }
 
-    /* ===== Mobile breakpoint ===== */
+    .statusExplain{
+      display:inline-block;
+      margin-left:10px;
+      font-size:12px;
+      color:#445;
+      vertical-align: middle;
+      overflow-wrap:anywhere;
+      word-break: break-word;
+    }
+    .statusExplain .ja{ color:#556; margin-left:6px; }
+    .statusExplain .sep{ margin:0 6px; color:#99a; }
+
     @media (max-width: 768px){
       .profileGrid { display:none; }
       .profileCards { display:block; }
       #meta { overflow-wrap:anywhere; word-break:break-word; }
       .seminarGrid{ grid-template-columns: 1fr; }
+      .statusExplain{ margin-left:0; display:block; margin-top:6px; }
     }
   </style>
 </head>
@@ -137,20 +106,15 @@
       <span class="h-ja">（基本情報）</span>
     </div>
 
-    <!-- Desktop -->
     <div class="profileGrid" id="profileGrid"></div>
-
-    <!-- Mobile -->
     <div class="profileCards" id="profileCards"></div>
 
-    <!-- Action buttons -->
     <div class="row profileActions">
       <button type="button" id="editProfileBtn">Edit / 編集</button>
       <button type="button" class="danger" id="deleteProfileBtn">Delete / 削除</button>
       <span class="muted" id="actionStatus"></span>
     </div>
 
-    <!-- ✅ Basic Seminar Application (show ONLY when Active Status is Non Kamikumite) -->
     <div id="basicSeminarSection" style="display:none;">
       <hr />
       <div class="section-title">
@@ -220,7 +184,6 @@
     return u.searchParams.get("id") || "";
   }
 
-  // Safe API wrapper (short requests)
   async function api(path, opts={}){
     const controller = new AbortController();
     const t = setTimeout(() => controller.abort(), 15000);
@@ -265,11 +228,34 @@
     return Number.isNaN(p) ? 0 : p;
   }
 
-  // Show Basic Seminar Application only for Non Kamikumite
   function isNonKamikumite(activeStatusRaw){
     const v = String(activeStatusRaw || "").trim().toLowerCase();
     return v === "non_kamikumite" || v === "non kamikumite";
   }
+
+  // ✅ Status meaning (EN + JA)
+  const BASIC_STATUS_MEANING = {
+    started: {
+      en: "Application started (record created).",
+      ja: "申込開始（申込レコード作成済み）"
+    },
+    consented: {
+      en: "Consent accepted (terms/privacy/cancellation).",
+      ja: "同意完了（規約・プライバシー・キャンセル）"
+    },
+    pending_payment: {
+      en: "Payment selected; waiting for completion.",
+      ja: "支払選択済み（決済完了待ち）"
+    },
+    paid: {
+      en: "Payment completed.",
+      ja: "決済完了"
+    },
+    completed: {
+      en: "Application fully completed.",
+      ja: "申込完了（全工程終了）"
+    }
+  };
 
   let NOTES_CACHE = [];
   let CONTACT_ID = "";
@@ -308,16 +294,12 @@
       ["createdate","Create Date"]
     ];
 
-    // meta header (wrap-safe)
     const name = [props.firstname, props.middle_name, props.lastname].filter(Boolean).join(" ");
     const email = props.email || "";
     qs("meta").innerHTML = `<span class="pill">Contact ID: ${esc(id)}</span> <b>${esc(name||"(no name)")}</b> <span class="muted">(${esc(email)})</span>`;
 
-    // Desktop grid
     const grid = qs("profileGrid");
     grid.innerHTML = "";
-
-    // Mobile cards
     const cards = qs("profileCards");
     cards.innerHTML = "";
 
@@ -326,7 +308,6 @@
       if (key === "branch") v = branchLabel(v);
       if (key === "active_status") v = activeLabel(v);
 
-      // desktop (2 columns)
       const kDiv = document.createElement("div");
       kDiv.className = "k";
       kDiv.textContent = label;
@@ -338,7 +319,6 @@
       grid.appendChild(kDiv);
       grid.appendChild(vDiv);
 
-      // mobile (label then value)
       const item = document.createElement("div");
       item.className = "pitem";
       item.innerHTML = `
@@ -349,11 +329,19 @@
     }
   }
 
+  function statusExplainHtml(status){
+    const s = String(status || "").trim();
+    if (!s) return `<span class="statusExplain"><span class="muted">No status set</span><span class="sep">|</span><span class="ja muted">未設定</span></span>`;
+    const m = BASIC_STATUS_MEANING[s];
+    if (!m) return `<span class="statusExplain"><span class="muted">Unknown status</span><span class="sep">|</span><span class="ja muted">未定義</span></span>`;
+    return `<span class="statusExplain"><span>${esc(m.en)}</span><span class="sep">|</span><span class="ja">${esc(m.ja)}</span></span>`;
+  }
+
   function badgeForStatus(status){
     const s = String(status || "").trim();
-    if (!s) return `<span class="badge">-</span>`;
+    if (!s) return `<span class="badge">-</span>${statusExplainHtml("")}`;
     const cls = `st_${s}`;
-    return `<span class="badge ${esc(cls)}">${esc(s)}</span>`;
+    return `<span class="badge ${esc(cls)}">${esc(s)}</span>${statusExplainHtml(s)}`;
   }
 
   function renderBasicSeminar(props){
@@ -375,7 +363,7 @@
 
     for (const [key, label, fmt] of fields){
       const raw = (props && props[key] != null) ? props[key] : "";
-      if (String(raw || "").trim() !== "") hasAny = true;
+      if (String(raw ?? "").trim() !== "") hasAny = true;
 
       const kDiv = document.createElement("div");
       kDiv.className = "k";
@@ -389,7 +377,6 @@
       g.appendChild(vDiv);
     }
 
-    // ヒント表示（APIにプロパティが含まれてない場合の判断材料）
     qs("basicSeminarHint").style.display = hasAny ? "none" : "block";
   }
 
@@ -461,7 +448,6 @@
     const props = c.data.properties || {};
     renderProfile(props, CONTACT_ID);
 
-    // ✅ Show Basic Seminar ONLY for Non Kamikumite
     const sec = document.getElementById("basicSeminarSection");
     const showBasic = isNonKamikumite(props.active_status);
     if (sec) sec.style.display = showBasic ? "block" : "none";
