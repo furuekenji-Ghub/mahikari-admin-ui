@@ -21,7 +21,6 @@
     .v {
       border-bottom:1px dashed #ddd;
       padding-bottom:4px;
-      /* critical: prevent overflow */
       overflow-wrap:anywhere;
       word-break: break-word;
     }
@@ -78,14 +77,41 @@
       border-top: 1px solid #eee;
     }
 
+    /* ===== Basic Seminar ===== */
+    .seminarBox{
+      margin-top: 10px;
+      border: 1px solid #e7e7e7;
+      border-radius: 12px;
+      padding: 12px;
+      background: #fff;
+    }
+    .seminarGrid{
+      display:grid;
+      grid-template-columns: 220px 1fr;
+      gap: 8px 14px;
+    }
+    .badge{
+      display:inline-block;
+      padding: 4px 10px;
+      border-radius: 999px;
+      border: 1px solid #ddd;
+      background: #f7fafc;
+      font-size: 12px;
+      white-space: nowrap;
+    }
+    .st_started{ background:#eef6ff; border-color:#cfe6ff; }
+    .st_consented{ background:#f2fff0; border-color:#c9f2c1; }
+    .st_pending_payment{ background:#fff7e6; border-color:#ffe0a8; }
+    .st_paid{ background:#f2fff9; border-color:#bff0da; }
+    .st_completed{ background:#f7f7f7; border-color:#dedede; }
+
     /* ===== Mobile breakpoint ===== */
     @media (max-width: 768px){
-      /* switch Profile to one-column cards */
       .profileGrid { display:none; }
       .profileCards { display:block; }
-
-      /* tighten meta header line wrap */
       #meta { overflow-wrap:anywhere; word-break:break-word; }
+
+      .seminarGrid{ grid-template-columns: 1fr; }
     }
   </style>
 </head>
@@ -118,11 +144,25 @@
     <!-- Mobile -->
     <div class="profileCards" id="profileCards"></div>
 
-    <!-- Action buttons directly under Profile (Create Date row is last item) -->
+    <!-- Action buttons -->
     <div class="row profileActions">
       <button type="button" id="editProfileBtn">Edit / 編集</button>
       <button type="button" class="danger" id="deleteProfileBtn">Delete / 削除</button>
       <span class="muted" id="actionStatus"></span>
+    </div>
+
+    <!-- ✅ Added: Basic Seminar Application -->
+    <hr />
+    <div class="section-title">
+      <h3 style="margin: 14px 0 6px;">Basic Seminar Application</h3>
+      <span class="h-ja">（ベーシック申込ステータス）</span>
+    </div>
+
+    <div class="seminarBox">
+      <div class="seminarGrid" id="basicSeminarGrid"></div>
+      <div class="muted" id="basicSeminarHint" style="margin-top:10px; display:none;">
+        ※ Basicセミナー用の8プロパティがAPIレスポンスに含まれていない場合、この欄は「-」になります。
+      </div>
     </div>
 
     <hr />
@@ -179,7 +219,6 @@
     return u.searchParams.get("id") || "";
   }
 
-  // Safe API wrapper (short requests)
   async function api(path, opts={}){
     const controller = new AbortController();
     const t = setTimeout(() => controller.abort(), 15000);
@@ -261,16 +300,13 @@
       ["createdate","Create Date"]
     ];
 
-    // meta header (wrap-safe)
     const name = [props.firstname, props.middle_name, props.lastname].filter(Boolean).join(" ");
     const email = props.email || "";
     qs("meta").innerHTML = `<span class="pill">Contact ID: ${esc(id)}</span> <b>${esc(name||"(no name)")}</b> <span class="muted">(${esc(email)})</span>`;
 
-    // Desktop grid
     const grid = qs("profileGrid");
     grid.innerHTML = "";
 
-    // Mobile cards
     const cards = qs("profileCards");
     cards.innerHTML = "";
 
@@ -279,7 +315,6 @@
       if (key === "branch") v = branchLabel(v);
       if (key === "active_status") v = activeLabel(v);
 
-      // desktop (2 columns)
       const kDiv = document.createElement("div");
       kDiv.className = "k";
       kDiv.textContent = label;
@@ -291,7 +326,6 @@
       grid.appendChild(kDiv);
       grid.appendChild(vDiv);
 
-      // mobile (label then value)
       const item = document.createElement("div");
       item.className = "pitem";
       item.innerHTML = `
@@ -300,6 +334,50 @@
       `;
       cards.appendChild(item);
     }
+  }
+
+  function badgeForStatus(status){
+    const s = String(status || "").trim();
+    if (!s) return `<span class="badge">-</span>`;
+    const cls = `st_${s}`;
+    return `<span class="badge ${esc(cls)}">${esc(s)}</span>`;
+  }
+
+  function renderBasicSeminar(props){
+    const g = qs("basicSeminarGrid");
+    g.innerHTML = "";
+
+    const fields = [
+      ["basic_seminar_status", "Basic Seminar Status", (v)=>badgeForStatus(v)],
+      ["basic_seminar_consent", "Basic Seminar Consent", (v)=> esc(String(v ?? "")) || "-" ],
+      ["basic_seminar_consent_at", "Basic Seminar Consent At", (v)=> esc(String(v ?? "")) || "-" ],
+      ["basic_seminar_consent_version", "Basic Seminar Consent Version", (v)=> esc(String(v ?? "")) || "-" ],
+      ["basic_payment_method", "Basic Payment Method", (v)=> esc(String(v ?? "")) || "-" ],
+      ["basic_stripe_checkout_session_id", "Basic Stripe Checkout Session ID", (v)=> esc(String(v ?? "")) || "-" ],
+      ["basic_paid_at", "Basic Paid At", (v)=> esc(String(v ?? "")) || "-" ],
+      ["basic_paid_amount", "Basic Paid Amount", (v)=> esc(String(v ?? "")) || "-" ],
+    ];
+
+    let hasAny = false;
+
+    for (const [key, label, fmt] of fields){
+      const raw = (props && props[key] != null) ? props[key] : "";
+      if (String(raw || "").trim() !== "") hasAny = true;
+
+      const kDiv = document.createElement("div");
+      kDiv.className = "k";
+      kDiv.textContent = label;
+
+      const vDiv = document.createElement("div");
+      vDiv.className = "v";
+      vDiv.innerHTML = fmt(raw) || "-";
+
+      g.appendChild(kDiv);
+      g.appendChild(vDiv);
+    }
+
+    // ヒント表示（APIにプロパティが含まれてない場合の判断材料）
+    qs("basicSeminarHint").style.display = hasAny ? "none" : "block";
   }
 
   function renderNotes(){
@@ -366,7 +444,12 @@
       alert(`Failed: ${c.status}\n` + c.raw);
       return;
     }
-    renderProfile(c.data.properties || {}, CONTACT_ID);
+
+    const props = c.data.properties || {};
+    renderProfile(props, CONTACT_ID);
+
+    // ✅ Added: render Basic Seminar box
+    renderBasicSeminar(props);
 
     const n = await api(`/api/notes/list?contactId=${encodeURIComponent(CONTACT_ID)}`);
     if (!n.ok || !n.data?.ok){
