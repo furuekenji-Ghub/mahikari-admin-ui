@@ -23,162 +23,73 @@
       color:#111;
     }
     a{ color:var(--link); }
-    .wrap{
-      max-width: 720px;
-      margin: 0 auto;
-      padding: 18px 14px 60px;
-    }
+    .wrap{ max-width: 760px; margin: 0 auto; padding: 18px 14px 60px; }
     header{ padding: 8px 0 6px; }
-    h1{
-      margin: 6px 0 0;
-      font-size: 22px;
-      letter-spacing: .2px;
-    }
-    .sub{
-      margin: 6px 0 0;
-      color: var(--muted);
-      font-size: 13px;
-      line-height: 1.5;
-    }
-    .card{
-      margin-top: 14px;
-      border: 1px solid var(--border);
-      border-radius: 16px;
-      padding: 14px;
-      background: var(--card);
-    }
-    .stepper{
-      display:flex;
-      gap: 8px;
-      flex-wrap: wrap;
-      margin-top: 10px;
-    }
+    h1{ margin: 6px 0 0; font-size: 22px; letter-spacing: .2px; }
+    .sub{ margin: 6px 0 0; color: var(--muted); font-size: 13px; line-height: 1.5; }
+
+    .card{ margin-top: 14px; border: 1px solid var(--border); border-radius: 16px; padding: 14px; background: var(--card); }
+
+    .stepper{ display:flex; gap: 8px; flex-wrap: wrap; margin-top: 10px; }
     .step{
-      display:flex;
-      align-items:center;
-      gap: 8px;
-      padding: 8px 10px;
-      border:1px solid var(--border);
-      border-radius: 999px;
-      background: var(--soft);
-      font-size: 12px;
-      color:#223;
+      display:flex; align-items:center; gap: 8px;
+      padding: 8px 10px; border:1px solid var(--border);
+      border-radius: 999px; background: var(--soft);
+      font-size: 12px; color:#223;
     }
-    .dot{
-      width:10px; height:10px;
-      border-radius:999px;
-      background:#cbd5e1;
-      flex:0 0 auto;
-    }
-    .step.active{
-      border-color:#cfe6ff;
-      background:#eef6ff;
-      font-weight: 700;
-    }
+    .dot{ width:10px; height:10px; border-radius:999px; background:#cbd5e1; flex:0 0 auto; }
+    .step.active{ border-color:#cfe6ff; background:#eef6ff; font-weight: 700; }
     .step.active .dot{ background:#2563eb; }
-    .step.done{
-      border-color:#c9f2c1;
-      background:#f2fff0;
-    }
+    .step.done{ border-color:#c9f2c1; background:#f2fff0; }
     .step.done .dot{ background:#0b5; }
 
     .row{ display:flex; gap:10px; flex-wrap:wrap; align-items:center; }
     .muted{ color:var(--muted); font-size: 13px; }
     .pill{
-      display:inline-block;
-      padding: 3px 10px;
-      border:1px solid var(--border);
-      border-radius: 999px;
-      background: var(--soft);
-      font-size: 12px;
-      color:#344;
-      white-space: nowrap;
+      display:inline-block; padding: 3px 10px;
+      border:1px solid var(--border); border-radius: 999px;
+      background: var(--soft); font-size: 12px; color:#344; white-space: nowrap;
     }
     label{ font-weight: 800; font-size: 14px; display:block; margin: 12px 0 8px; }
     input{
-      width:100%;
-      padding: 14px 12px;
-      border:1px solid var(--border);
-      border-radius: 12px;
-      font-size: 16px;
-      background:#fff;
+      width:100%; padding: 14px 12px;
+      border:1px solid var(--border); border-radius: 12px;
+      font-size: 16px; background:#fff;
     }
     textarea{
-      width:100%;
-      min-height: 260px;
-      padding: 12px;
-      border:1px solid var(--border);
-      border-radius: 12px;
-      font-size: 14px;
-      background:#fff;
-      line-height: 1.6;
-      resize: vertical;
+      width:100%; min-height: 260px; padding: 12px;
+      border:1px solid var(--border); border-radius: 12px;
+      font-size: 14px; background:#fff; line-height: 1.6; resize: vertical;
     }
     .btn{
-      padding: 12px 14px;
-      border-radius: 12px;
-      border:1px solid #cfcfcf;
-      background:#fff;
-      cursor:pointer;
-      font-size: 14px;
-      font-weight: 800;
+      padding: 12px 14px; border-radius: 12px; border:1px solid #cfcfcf;
+      background:#fff; cursor:pointer; font-size: 14px; font-weight: 800;
     }
     .btn.primary{ border-color: var(--primary); color: var(--primary); }
-    .btn.danger{ border-color: var(--danger); color: var(--danger); }
     .btn.ghost{ border-color: var(--border); color:#1f5bd8; }
+    .btn.danger{ border-color: var(--danger); color: var(--danger); }
     .btn:disabled{ opacity:.5; cursor:not-allowed; }
 
-    .sectionTitle{
-      display:flex;
-      align-items:baseline;
-      gap: 8px;
-      flex-wrap:wrap;
-      margin: 0 0 8px;
-    }
-    .sectionTitle h2{
-      margin:0;
-      font-size: 16px;
-    }
+    .sectionTitle{ display:flex; align-items:baseline; gap: 8px; flex-wrap:wrap; margin: 0 0 8px; }
+    .sectionTitle h2{ margin:0; font-size: 16px; }
+    .box{ border: 1px solid var(--border); border-radius: 12px; padding: 12px; background: #fff; }
 
-    .box{
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      padding: 12px;
-      background: #fff;
-    }
     .warn{
-      border:1px solid #ffe0a8;
-      background:#fff7e6;
-      border-radius: 12px;
-      padding: 10px 12px;
-      font-size: 13px;
-      color:#553;
-      line-height: 1.5;
-      margin-top: 10px;
+      border:1px solid #ffe0a8; background:#fff7e6;
+      border-radius: 12px; padding: 10px 12px;
+      font-size: 13px; color:#553; line-height: 1.5; margin-top: 10px;
     }
     .ok{
-      border:1px solid #bff0da;
-      background:#f2fff9;
-      border-radius: 12px;
-      padding: 10px 12px;
-      font-size: 13px;
-      color:#145;
-      line-height: 1.5;
-      margin-top: 10px;
-      white-space: pre-wrap;
-      overflow-wrap:anywhere;
+      border:1px solid #bff0da; background:#f2fff9;
+      border-radius: 12px; padding: 10px 12px;
+      font-size: 13px; color:#145; line-height: 1.5; margin-top: 10px;
+      white-space: pre-wrap; overflow-wrap:anywhere;
     }
     .err{
-      border:1px solid #f5b6bf;
-      background:#fff1f2;
-      border-radius: 12px;
-      padding: 10px 12px;
-      font-size: 13px;
-      color:#7a1420;
-      line-height: 1.5;
-      margin-top: 10px;
-      white-space: pre-wrap;
-      overflow-wrap:anywhere;
+      border:1px solid #f5b6bf; background:#fff1f2;
+      border-radius: 12px; padding: 10px 12px;
+      font-size: 13px; color:#7a1420; line-height: 1.5; margin-top: 10px;
+      white-space: pre-wrap; overflow-wrap:anywhere;
     }
 
     .hide{ display:none !important; }
@@ -200,7 +111,7 @@
         <div class="step active" id="s1"><span class="dot"></span>1) Email</div>
         <div class="step" id="s2"><span class="dot"></span>2) Consent</div>
         <div class="step" id="s3"><span class="dot"></span>3) Payment</div>
-        <div class="step" id="s4"><span class="dot"></span>4) Complete</div>
+        <div class="step" id="s4"><span class="dot"></span>4) Status</div>
       </div>
     </header>
 
@@ -209,10 +120,7 @@
       <div class="sectionTitle">
         <h2>Step 1: Confirm your email</h2>
       </div>
-
-      <div class="muted">
-        Enter the same email address you used when you first registered.
-      </div>
+      <div class="muted">Enter the same email address you used when you first registered.</div>
 
       <label for="email">Email</label>
       <input id="email" type="email" inputmode="email" autocomplete="email" placeholder="example@gmail.com" />
@@ -291,20 +199,33 @@
       </div>
     </div>
 
-    <!-- STEP 4 (Complete) -->
+    <!-- STEP 4 (Status / Completion / Recovery) -->
     <div class="card hide" id="step4">
       <div class="sectionTitle">
-        <h2>Complete</h2>
+        <h2>Status</h2>
       </div>
 
-      <div class="ok" id="completeMsg"></div>
+      <div class="row" style="margin-bottom:10px;">
+        <span class="pill" id="whoPill3">Contact: -</span>
+        <span class="pill" id="statusPill3">Status: -</span>
+        <span class="pill" id="payPill3">Payment: -</span>
+      </div>
+
+      <div id="statusMsg" class="ok"></div>
+
+      <div id="statusActions" class="hide">
+        <div class="divider"></div>
+        <div class="row">
+          <button class="btn primary" id="btnPayNow" type="button">Proceed to Credit Card Payment</button>
+          <button class="btn" id="btnSwitchToCash" type="button">Switch to Cash / Check</button>
+        </div>
+        <div id="statusMsg2" class="hide"></div>
+      </div>
 
       <div class="divider"></div>
 
       <div class="box">
-        <div class="muted">
-          You may now close this page.
-        </div>
+        <div class="muted">You may now close this page.</div>
       </div>
     </div>
 
@@ -317,10 +238,7 @@
     // ========= CONFIG =========
     const API_BASE = "https://api.mahikari.org";
 
-    // Stored in HubSpot
     const CONSENT_VERSION = "v2026-01-15";
-
-    // Fee policy
     const FEE_CASH_CHECK = 130;
     const FEE_CARD = 135;
 
@@ -375,6 +293,7 @@
     let CONTACT_EMAIL = "";
     let CONTACT_NAME = "";
     let BASIC_STATUS = "";
+    let PAYMENT_METHOD = ""; // "cash" or "card"
 
     // ========= Consent text (FINAL) =========
     const CONSENT_TEXT =
@@ -425,6 +344,10 @@ Consent Version: ${CONSENT_VERSION}
       $("statusPill").textContent = "Status: " + st;
       $("whoPill2").textContent = "Contact: " + who;
       $("statusPill2").textContent = "Status: " + st;
+
+      $("whoPill3").textContent = "Contact: " + who;
+      $("statusPill3").textContent = "Status: " + st;
+      $("payPill3").textContent = "Payment: " + (PAYMENT_METHOD || "-");
     }
 
     function goStep(stepNum){
@@ -464,7 +387,20 @@ Consent Version: ${CONSENT_VERSION}
         email: String(props.email || email || ""),
         firstname: String(props.firstname || ""),
         lastname: String(props.lastname || ""),
+        // IMPORTANT: We need these to prevent duplicate flow
+        basic_seminar_status: String(props.basic_seminar_status || ""),
+        basic_payment_method: String(props.basic_payment_method || ""),
       };
+    }
+
+    // Get full properties (GET) to evaluate exact status/method
+    async function getContact(id){
+      const r = await api(`${API_BASE}/api/contacts/get?id=${encodeURIComponent(id)}`, { method:"GET" });
+      if (!r.ok || !r.data?.ok){
+        throw new Error(`Get failed (${r.status})\n${r.raw}`);
+      }
+      const props = r.data?.properties || {};
+      return props;
     }
 
     // Update contact (POST)
@@ -478,6 +414,104 @@ Consent Version: ${CONSENT_VERSION}
         throw new Error(`Update failed (${r.status})\n${r.raw}`);
       }
       return true;
+    }
+
+    function showAlreadyCompleteCash(){
+      BASIC_STATUS = "completed";
+      PAYMENT_METHOD = "cash";
+      fillHeaderPills();
+      $("statusActions").classList.remove("hide");
+      // completed cash: allow switching to card too
+      $("statusMsg").textContent =
+        "Your Basic Divine Light Seminar registration is already complete.\n\n" +
+        "If you have not made your $130 offering yet, please follow the staff’s guidance to complete the offering (cash/check).\n\n" +
+        "If you prefer to pay by credit card instead, you may proceed to credit card payment below.";
+      show($("statusActions"));
+      clearMsg("statusMsg2");
+      goStep(4);
+    }
+
+    function showPendingCard(){
+      BASIC_STATUS = "pending_payment";
+      PAYMENT_METHOD = "card";
+      fillHeaderPills();
+      $("statusMsg").textContent =
+        "Your registration is complete, but your credit card payment has not been completed yet.\n\n" +
+        "Please proceed to credit card payment, or switch to Cash / Check if you prefer.";
+      show($("statusActions"));
+      clearMsg("statusMsg2");
+      goStep(4);
+    }
+
+    function showCompletedGeneric(){
+      fillHeaderPills();
+      $("statusActions").classList.remove("hide");
+      $("statusMsg").textContent =
+        "Your Basic Divine Light Seminar registration is already complete.\n\n" +
+        "If you prefer to proceed with a credit card payment, you may do so below.";
+      show($("statusActions"));
+      clearMsg("statusMsg2");
+      goStep(4);
+    }
+
+    function showCashSwitchedComplete(){
+      BASIC_STATUS = "completed";
+      PAYMENT_METHOD = "cash";
+      fillHeaderPills();
+      hide($("statusActions"));
+      $("statusMsg").textContent =
+        "Your payment method has been changed to Cash / Check.\n\n" +
+        "Please speak with our staff to complete your $130 offering.\n\n" +
+        "We look forward to seeing you at the seminar.";
+      goStep(4);
+    }
+
+    async function proceedToCardPayment(){
+      clearMsg("statusMsg2");
+
+      // Ensure status is pending_payment + card
+      try{
+        await updateContact(CONTACT_ID, {
+          basic_payment_method: "card",
+          basic_seminar_status: "pending_payment"
+        });
+        BASIC_STATUS = "pending_payment";
+        PAYMENT_METHOD = "card";
+        fillHeaderPills();
+      }catch(e){
+        setMsg("statusMsg2","err", String(e.message || e));
+        return;
+      }
+
+      // Must return checkout_url
+      const r = await api(STRIPE_CREATE_ENDPOINT, {
+        method:"POST",
+        headers:{ "content-type":"application/json" },
+        body: JSON.stringify({ contactId: CONTACT_ID, email: CONTACT_EMAIL })
+      });
+
+      if (r.ok && r.data?.ok && r.data?.checkout_url){
+        window.location.href = r.data.checkout_url;
+        return;
+      }
+
+      setMsg("statusMsg2","err",
+        "Credit card payment is not available yet.\n" +
+        "Stripe checkout URL was not returned."
+      );
+    }
+
+    async function switchToCashCheckFromStatus(){
+      clearMsg("statusMsg2");
+      try{
+        await updateContact(CONTACT_ID, {
+          basic_payment_method: "cash",
+          basic_seminar_status: "completed"
+        });
+        showCashSwitchedComplete();
+      }catch(e){
+        setMsg("statusMsg2","err", String(e.message || e));
+      }
     }
 
     async function onLookup(){
@@ -504,12 +538,41 @@ Consent Version: ${CONSENT_VERSION}
         CONTACT_EMAIL = found.email || email;
         CONTACT_NAME = [found.firstname, found.lastname].filter(Boolean).join(" ").trim();
 
+        // Pull full contact to prevent duplicate flow
+        const props = await getContact(CONTACT_ID);
+
+        const existingStatus = String(props.basic_seminar_status || "").trim();
+        const existingPay = String(props.basic_payment_method || "").trim();
+
+        // Case 1: completed + cash => show "already complete" with option to pay by card
+        if (existingStatus === "completed" && existingPay === "cash") {
+          showAlreadyCompleteCash();
+          clearMsg("msg1");
+          return;
+        }
+
+        // Case 2: pending_payment + card => show payment recovery
+        if (existingStatus === "pending_payment" && existingPay === "card") {
+          showPendingCard();
+          clearMsg("msg1");
+          return;
+        }
+
+        // Case 3: completed (any other method) => show already complete + option to card
+        if (existingStatus === "completed") {
+          BASIC_STATUS = "completed";
+          PAYMENT_METHOD = existingPay || "-";
+          showCompletedGeneric();
+          clearMsg("msg1");
+          return;
+        }
+
+        // Default: new flow start
         await updateContact(CONTACT_ID, { basic_seminar_status: "started" });
         BASIC_STATUS = "started";
-
+        PAYMENT_METHOD = existingPay || "";
         fillHeaderPills();
-        setMsg("msg1","ok","Found your record and started your application.");
-
+        // Move to consent
         goStep(2);
 
       }catch(e){
@@ -537,8 +600,6 @@ Consent Version: ${CONSENT_VERSION}
 
         BASIC_STATUS = "consented";
         fillHeaderPills();
-        setMsg("msg2","ok","Consent recorded.");
-
         goStep(3);
 
       }catch(e){
@@ -549,7 +610,7 @@ Consent Version: ${CONSENT_VERSION}
       }
     }
 
-    // Cash/Check => show completion page and finish
+    // Cash/Check from Step3 => go to completion page and finish
     async function onCash(){
       clearMsg("msg3");
       $("btnCard").disabled = true;
@@ -563,13 +624,15 @@ Consent Version: ${CONSENT_VERSION}
         });
 
         BASIC_STATUS = "completed";
+        PAYMENT_METHOD = "cash";
         fillHeaderPills();
 
-        $("completeMsg").textContent =
+        $("statusMsg").textContent =
           "Your seminar registration is complete.\n\n" +
           "Please follow the staff’s guidance to make the $130 offering (cash/check).\n\n" +
           "We look forward to seeing you at the seminar.";
 
+        hide($("statusActions"));
         goStep(4);
 
       }catch(e){
@@ -581,7 +644,7 @@ Consent Version: ${CONSENT_VERSION}
       }
     }
 
-    // Credit card => go to Stripe checkout
+    // Credit card from Step3 => go to Stripe checkout
     async function onCard(){
       clearMsg("msg3");
       $("btnCard").disabled = true;
@@ -595,9 +658,9 @@ Consent Version: ${CONSENT_VERSION}
         });
 
         BASIC_STATUS = "pending_payment";
+        PAYMENT_METHOD = "card";
         fillHeaderPills();
 
-        // Must return checkout_url
         const r = await api(STRIPE_CREATE_ENDPOINT, {
           method:"POST",
           headers:{ "content-type":"application/json" },
@@ -624,7 +687,6 @@ Consent Version: ${CONSENT_VERSION}
     }
 
     function onReset(){ location.reload(); }
-
     function backTo1(){
       clearMsg("msg2"); clearMsg("msg3");
       goStep(1);
@@ -642,7 +704,9 @@ Consent Version: ${CONSENT_VERSION}
     $("btnCash").addEventListener("click", onCash);
     $("btnCard").addEventListener("click", onCard);
 
-    // init
+    $("btnPayNow").addEventListener("click", proceedToCardPayment);
+    $("btnSwitchToCash").addEventListener("click", switchToCashCheckFromStatus);
+
     goStep(1);
   </script>
 </body>
