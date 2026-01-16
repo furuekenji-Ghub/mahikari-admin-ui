@@ -104,6 +104,7 @@
 
   <div class="card hide" id="step4">
     <div class="sectionTitle"><h2>Status</h2></div>
+
     <div class="row" style="margin-bottom:10px;">
       <span class="pill" id="whoPill3">Contact: -</span>
       <span class="pill" id="statusPill3">Status: -</span>
@@ -129,13 +130,14 @@
 </div>
 
 <script>
+  // ===== Config =====
   const API_BASE = "https://api.mahikari.org";
   const CONSENT_VERSION = "v2026-01-15";
   const FEE_CASH_CHECK = 130;
   const FEE_CARD = 135;
-
   const STRIPE_CREATE_ENDPOINT = `${API_BASE}/api/stripe/create-checkout-session`;
 
+  // ===== Helpers =====
   const $ = (id)=>document.getElementById(id);
   function show(el){ el.classList.remove("hide"); }
   function hide(el){ el.classList.add("hide"); }
@@ -178,12 +180,14 @@
     }
   }
 
+  // ===== State =====
   let CONTACT_ID = "";
   let CONTACT_EMAIL = "";
   let CONTACT_NAME = "";
   let BASIC_STATUS = "";
-  let PAYMENT_METHOD = ""; // cash/card
+  let PAYMENT_METHOD = "";
 
+  // ===== Consent text =====
   const CONSENT_TEXT =
 `Basic Divine Light Seminar Consent
 
@@ -227,14 +231,12 @@ Consent Version: ${CONSENT_VERSION}
 
   function fillHeaderPills(){
     const who = CONTACT_NAME ? `${CONTACT_NAME} (${CONTACT_EMAIL})` : (CONTACT_EMAIL || "-");
-    const st  = BASIC_STATUS || "-";
     $("whoPill").textContent = "Contact: " + who;
-    $("statusPill").textContent = "Status: " + st;
+    $("statusPill").textContent = "Status: " + (BASIC_STATUS || "-");
     $("whoPill2").textContent = "Contact: " + who;
-    $("statusPill2").textContent = "Status: " + st;
-
+    $("statusPill2").textContent = "Status: " + (BASIC_STATUS || "-");
     $("whoPill3").textContent = "Contact: " + who;
-    $("statusPill3").textContent = "Status: " + st;
+    $("statusPill3").textContent = "Status: " + (BASIC_STATUS || "-");
     $("payPill3").textContent = "Payment: " + (PAYMENT_METHOD || "-");
   }
 
@@ -244,7 +246,7 @@ Consent Version: ${CONSENT_VERSION}
     show($("step" + stepNum));
   }
 
-  // Search only (no /contacts/get)
+  // Search only
   async function lookupByEmail(email){
     const body = { keyword: email, branch: "", activeStatus: "" };
 
@@ -292,97 +294,12 @@ Consent Version: ${CONSENT_VERSION}
     return true;
   }
 
-  function showAlreadyCompleteCash(){
-    BASIC_STATUS = "completed";
-    PAYMENT_METHOD = "cash";
+  function showStatusPage(text, showActions){
+    $("statusMsg").textContent = text;
+    if (showActions) show($("statusActions")); else hide($("statusActions"));
+    clearMsg("statusMsg2");
     fillHeaderPills();
-    $("statusMsg").textContent =
-      "Your Basic Divine Light Seminar registration is already complete.\n\n" +
-      "If you have not made your $130 offering yet, please follow the staff’s guidance to complete the offering (cash/check).\n\n" +
-      "If you prefer to pay by credit card instead, you may proceed to credit card payment below.";
-    show($("statusActions"));
-    clearMsg("statusMsg2");
     goStep(4);
-  }
-
-  function showPendingCard(){
-    BASIC_STATUS = "pending_payment";
-    PAYMENT_METHOD = "card";
-    fillHeaderPills();
-    $("statusMsg").textContent =
-      "Your registration is complete, but your credit card payment has not been completed yet.\n\n" +
-      "Please proceed to credit card payment, or switch to Cash / Check if you prefer.";
-    show($("statusActions"));
-    clearMsg("statusMsg2");
-    goStep(4);
-  }
-
-  function showCompletedGeneric(){
-    fillHeaderPills();
-    $("statusMsg").textContent =
-      "Your Basic Divine Light Seminar registration is already complete.\n\n" +
-      "If you prefer to proceed with a credit card payment, you may do so below.";
-    show($("statusActions"));
-    clearMsg("statusMsg2");
-    goStep(4);
-  }
-
-  function showCashSwitchedComplete(){
-    BASIC_STATUS = "completed";
-    PAYMENT_METHOD = "cash";
-    fillHeaderPills();
-    hide($("statusActions"));
-    $("statusMsg").textContent =
-      "Your payment method has been changed to Cash / Check.\n\n" +
-      "Please speak with our staff to complete your $130 offering.\n\n" +
-      "We look forward to seeing you at the seminar.";
-    goStep(4);
-  }
-
-  async function proceedToCardPayment(){
-    clearMsg("statusMsg2");
-
-    try{
-      await updateContact(CONTACT_ID, {
-        basic_payment_method: "card",
-        basic_seminar_status: "pending_payment"
-      });
-      BASIC_STATUS = "pending_payment";
-      PAYMENT_METHOD = "card";
-      fillHeaderPills();
-    }catch(e){
-      setMsg("statusMsg2","err", String(e.message || e));
-      return;
-    }
-
-    const r = await api(STRIPE_CREATE_ENDPOINT, {
-      method:"POST",
-      headers:{ "content-type":"application/json" },
-      body: JSON.stringify({ contactId: CONTACT_ID, email: CONTACT_EMAIL })
-    });
-
-    if (r.ok && r.data?.ok && r.data?.checkout_url){
-      window.location.href = r.data.checkout_url;
-      return;
-    }
-
-    setMsg("statusMsg2","err",
-      "Credit card payment is not available yet.\n" +
-      "Stripe checkout URL was not returned."
-    );
-  }
-
-  async function switchToCashCheckFromStatus(){
-    clearMsg("statusMsg2");
-    try{
-      await updateContact(CONTACT_ID, {
-        basic_payment_method: "cash",
-        basic_seminar_status: "completed"
-      });
-      showCashSwitchedComplete();
-    }catch(e){
-      setMsg("statusMsg2","err", String(e.message || e));
-    }
   }
 
   async function onLookup(){
@@ -412,30 +329,58 @@ Consent Version: ${CONSENT_VERSION}
       const existingStatus = String(found.basic_seminar_status || "").trim();
       const existingPay = String(found.basic_payment_method || "").trim();
 
-      // completed cash
+      // ---- Hard routing (prevents duplicates) ----
       if (existingStatus === "completed" && existingPay === "cash") {
-        showAlreadyCompleteCash();
-        clearMsg("msg1");
-        return;
-      }
-
-      // pending card
-      if (existingStatus === "pending_payment" && existingPay === "card") {
-        showPendingCard();
-        clearMsg("msg1");
-        return;
-      }
-
-      // completed other
-      if (existingStatus === "completed") {
         BASIC_STATUS = "completed";
-        PAYMENT_METHOD = existingPay || "-";
-        showCompletedGeneric();
-        clearMsg("msg1");
+        PAYMENT_METHOD = "cash";
+        showStatusPage(
+          "Your Basic Divine Light Seminar registration is already complete.\n\n" +
+          "If you have not made your $130 offering yet, please follow the staff’s guidance to complete the offering (cash/check).\n\n" +
+          "If you prefer to pay by credit card instead, you may proceed to credit card payment below.",
+          true
+        );
         return;
       }
 
-      // new flow start
+      if (existingStatus === "pending_payment" && existingPay === "card") {
+        BASIC_STATUS = "pending_payment";
+        PAYMENT_METHOD = "card";
+        showStatusPage(
+          "Your registration is complete, but your credit card payment has not been completed yet.\n\n" +
+          "Please proceed to credit card payment, or switch to Cash / Check if you prefer.",
+          true
+        );
+        return;
+      }
+
+      if (existingStatus === "paid" || existingStatus === "completed") {
+        BASIC_STATUS = existingStatus || "completed";
+        PAYMENT_METHOD = existingPay || "-";
+        showStatusPage(
+          "Your Basic Divine Light Seminar registration is already complete.\n\n" +
+          "If you prefer to proceed with a credit card payment, you may do so below.",
+          true
+        );
+        return;
+      }
+
+      if (existingStatus === "consented") {
+        BASIC_STATUS = "consented";
+        PAYMENT_METHOD = existingPay || "";
+        fillHeaderPills();
+        goStep(3);
+        return;
+      }
+
+      if (existingStatus === "started") {
+        BASIC_STATUS = "started";
+        PAYMENT_METHOD = existingPay || "";
+        fillHeaderPills();
+        goStep(2);
+        return;
+      }
+
+      // Only when empty -> set started once
       await updateContact(CONTACT_ID, { basic_seminar_status: "started" });
       BASIC_STATUS = "started";
       PAYMENT_METHOD = existingPay || "";
@@ -491,15 +436,12 @@ Consent Version: ${CONSENT_VERSION}
 
       BASIC_STATUS = "completed";
       PAYMENT_METHOD = "cash";
-      fillHeaderPills();
-
-      $("statusMsg").textContent =
+      showStatusPage(
         "Your seminar registration is complete.\n\n" +
         "Please follow the staff’s guidance to make the $130 offering (cash/check).\n\n" +
-        "We look forward to seeing you at the seminar.";
-
-      hide($("statusActions"));
-      goStep(4);
+        "We look forward to seeing you at the seminar.",
+        false
+      );
 
     }catch(e){
       setMsg("msg3","err", String(e.message || e));
@@ -545,6 +487,56 @@ Consent Version: ${CONSENT_VERSION}
       $("btnCard").disabled = false;
       $("btnCash").disabled = false;
       $("btnBack2").disabled = false;
+    }
+  }
+
+  async function proceedToCardPayment(){
+    clearMsg("statusMsg2");
+    try{
+      await updateContact(CONTACT_ID, {
+        basic_payment_method: "card",
+        basic_seminar_status: "pending_payment"
+      });
+      BASIC_STATUS = "pending_payment";
+      PAYMENT_METHOD = "card";
+      fillHeaderPills();
+    }catch(e){
+      setMsg("statusMsg2","err", String(e.message || e));
+      return;
+    }
+
+    const r = await api(STRIPE_CREATE_ENDPOINT, {
+      method:"POST",
+      headers:{ "content-type":"application/json" },
+      body: JSON.stringify({ contactId: CONTACT_ID, email: CONTACT_EMAIL })
+    });
+
+    if (r.ok && r.data?.ok && r.data?.checkout_url){
+      window.location.href = r.data.checkout_url;
+      return;
+    }
+
+    setMsg("statusMsg2","err","Credit card payment is not available yet.\nStripe checkout URL was not returned.");
+  }
+
+  async function switchToCashCheckFromStatus(){
+    clearMsg("statusMsg2");
+    try{
+      await updateContact(CONTACT_ID, {
+        basic_payment_method: "cash",
+        basic_seminar_status: "completed"
+      });
+
+      BASIC_STATUS = "completed";
+      PAYMENT_METHOD = "cash";
+      showStatusPage(
+        "Your payment method has been changed to Cash / Check.\n\n" +
+        "Please speak with our staff to complete your $130 offering.\n\n" +
+        "We look forward to seeing you at the seminar.",
+        false
+      );
+    }catch(e){
+      setMsg("statusMsg2","err", String(e.message || e));
     }
   }
 
