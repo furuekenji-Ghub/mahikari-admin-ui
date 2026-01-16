@@ -5,298 +5,186 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Basic Divine Light Seminar Application | World Divine Light</title>
   <style>
-    :root{
-      --border:#e6e6e6;
-      --muted:#667;
-      --bg:#fff;
-      --card:#fff;
-      --soft:#f7fafc;
-      --primary:#0b5;
-      --danger:#b00020;
-      --link:#5b2bbf;
-    }
+    :root{ --border:#e6e6e6; --muted:#667; --bg:#fff; --card:#fff; --soft:#f7fafc; --primary:#0b5; --danger:#b00020; --link:#5b2bbf; }
     *{ box-sizing:border-box; }
-    body{
-      margin:0; padding:0;
-      font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
-      background: var(--bg);
-      color:#111;
-    }
+    body{ margin:0; padding:0; font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif; background:var(--bg); color:#111; }
     a{ color:var(--link); }
-    .wrap{ max-width: 760px; margin: 0 auto; padding: 18px 14px 60px; }
-    header{ padding: 8px 0 6px; }
-    h1{ margin: 6px 0 0; font-size: 22px; letter-spacing: .2px; }
-    .sub{ margin: 6px 0 0; color: var(--muted); font-size: 13px; line-height: 1.5; }
-
-    .card{ margin-top: 14px; border: 1px solid var(--border); border-radius: 16px; padding: 14px; background: var(--card); }
-
-    .stepper{ display:flex; gap: 8px; flex-wrap: wrap; margin-top: 10px; }
-    .step{
-      display:flex; align-items:center; gap: 8px;
-      padding: 8px 10px; border:1px solid var(--border);
-      border-radius: 999px; background: var(--soft);
-      font-size: 12px; color:#223;
-    }
+    .wrap{ max-width:760px; margin:0 auto; padding:18px 14px 60px; }
+    header{ padding:8px 0 6px; }
+    h1{ margin:6px 0 0; font-size:22px; letter-spacing:.2px; }
+    .sub{ margin:6px 0 0; color:var(--muted); font-size:13px; line-height:1.5; }
+    .card{ margin-top:14px; border:1px solid var(--border); border-radius:16px; padding:14px; background:var(--card); }
+    .stepper{ display:flex; gap:8px; flex-wrap:wrap; margin-top:10px; }
+    .step{ display:flex; align-items:center; gap:8px; padding:8px 10px; border:1px solid var(--border); border-radius:999px; background:var(--soft); font-size:12px; color:#223; }
     .dot{ width:10px; height:10px; border-radius:999px; background:#cbd5e1; flex:0 0 auto; }
-    .step.active{ border-color:#cfe6ff; background:#eef6ff; font-weight: 700; }
+    .step.active{ border-color:#cfe6ff; background:#eef6ff; font-weight:700; }
     .step.active .dot{ background:#2563eb; }
     .step.done{ border-color:#c9f2c1; background:#f2fff0; }
     .step.done .dot{ background:#0b5; }
-
     .row{ display:flex; gap:10px; flex-wrap:wrap; align-items:center; }
-    .muted{ color:var(--muted); font-size: 13px; }
-    .pill{
-      display:inline-block; padding: 3px 10px;
-      border:1px solid var(--border); border-radius: 999px;
-      background: var(--soft); font-size: 12px; color:#344; white-space: nowrap;
-    }
-    label{ font-weight: 800; font-size: 14px; display:block; margin: 12px 0 8px; }
-    input{
-      width:100%; padding: 14px 12px;
-      border:1px solid var(--border); border-radius: 12px;
-      font-size: 16px; background:#fff;
-    }
-    textarea{
-      width:100%; min-height: 260px; padding: 12px;
-      border:1px solid var(--border); border-radius: 12px;
-      font-size: 14px; background:#fff; line-height: 1.6; resize: vertical;
-    }
-    .btn{
-      padding: 12px 14px; border-radius: 12px; border:1px solid #cfcfcf;
-      background:#fff; cursor:pointer; font-size: 14px; font-weight: 800;
-    }
-    .btn.primary{ border-color: var(--primary); color: var(--primary); }
-    .btn.ghost{ border-color: var(--border); color:#1f5bd8; }
-    .btn.danger{ border-color: var(--danger); color: var(--danger); }
+    .muted{ color:var(--muted); font-size:13px; }
+    .pill{ display:inline-block; padding:3px 10px; border:1px solid var(--border); border-radius:999px; background:var(--soft); font-size:12px; color:#344; white-space:nowrap; }
+    label{ font-weight:800; font-size:14px; display:block; margin:12px 0 8px; }
+    input{ width:100%; padding:14px 12px; border:1px solid var(--border); border-radius:12px; font-size:16px; background:#fff; }
+    textarea{ width:100%; min-height:260px; padding:12px; border:1px solid var(--border); border-radius:12px; font-size:14px; background:#fff; line-height:1.6; resize:vertical; }
+    .btn{ padding:12px 14px; border-radius:12px; border:1px solid #cfcfcf; background:#fff; cursor:pointer; font-size:14px; font-weight:800; }
+    .btn.primary{ border-color:var(--primary); color:var(--primary); }
+    .btn.ghost{ border-color:var(--border); color:#1f5bd8; }
     .btn:disabled{ opacity:.5; cursor:not-allowed; }
-
-    .sectionTitle{ display:flex; align-items:baseline; gap: 8px; flex-wrap:wrap; margin: 0 0 8px; }
-    .sectionTitle h2{ margin:0; font-size: 16px; }
-    .box{ border: 1px solid var(--border); border-radius: 12px; padding: 12px; background: #fff; }
-
-    .warn{
-      border:1px solid #ffe0a8; background:#fff7e6;
-      border-radius: 12px; padding: 10px 12px;
-      font-size: 13px; color:#553; line-height: 1.5; margin-top: 10px;
-    }
-    .ok{
-      border:1px solid #bff0da; background:#f2fff9;
-      border-radius: 12px; padding: 10px 12px;
-      font-size: 13px; color:#145; line-height: 1.5; margin-top: 10px;
-      white-space: pre-wrap; overflow-wrap:anywhere;
-    }
-    .err{
-      border:1px solid #f5b6bf; background:#fff1f2;
-      border-radius: 12px; padding: 10px 12px;
-      font-size: 13px; color:#7a1420; line-height: 1.5; margin-top: 10px;
-      white-space: pre-wrap; overflow-wrap:anywhere;
-    }
-
+    .sectionTitle{ display:flex; align-items:baseline; gap:8px; flex-wrap:wrap; margin:0 0 8px; }
+    .sectionTitle h2{ margin:0; font-size:16px; }
+    .box{ border:1px solid var(--border); border-radius:12px; padding:12px; background:#fff; }
+    .warn{ border:1px solid #ffe0a8; background:#fff7e6; border-radius:12px; padding:10px 12px; font-size:13px; color:#553; line-height:1.5; margin-top:10px; }
+    .ok{ border:1px solid #bff0da; background:#f2fff9; border-radius:12px; padding:10px 12px; font-size:13px; color:#145; line-height:1.5; margin-top:10px; white-space:pre-wrap; overflow-wrap:anywhere; }
+    .err{ border:1px solid #f5b6bf; background:#fff1f2; border-radius:12px; padding:10px 12px; font-size:13px; color:#7a1420; line-height:1.5; margin-top:10px; white-space:pre-wrap; overflow-wrap:anywhere; }
     .hide{ display:none !important; }
-    .divider{ height:1px; background:var(--border); margin: 14px 0; }
-
-    @media (max-width: 420px){
-      h1{ font-size: 20px; }
-      .btn{ width:100%; }
-    }
+    .divider{ height:1px; background:var(--border); margin:14px 0; }
+    @media (max-width:420px){ h1{ font-size:20px; } .btn{ width:100%; } }
   </style>
 </head>
 <body>
-  <div class="wrap">
-    <header>
-      <h1>Basic Divine Light Seminar Application</h1>
-      <p class="sub">Please complete the steps below on your phone.</p>
-
-      <div class="stepper" aria-label="Steps">
-        <div class="step active" id="s1"><span class="dot"></span>1) Email</div>
-        <div class="step" id="s2"><span class="dot"></span>2) Consent</div>
-        <div class="step" id="s3"><span class="dot"></span>3) Payment</div>
-        <div class="step" id="s4"><span class="dot"></span>4) Status</div>
-      </div>
-    </header>
-
-    <!-- STEP 1 -->
-    <div class="card" id="step1">
-      <div class="sectionTitle">
-        <h2>Step 1: Confirm your email</h2>
-      </div>
-      <div class="muted">Enter the same email address you used when you first registered.</div>
-
-      <label for="email">Email</label>
-      <input id="email" type="email" inputmode="email" autocomplete="email" placeholder="example@gmail.com" />
-
-      <div class="row" style="margin-top:12px;">
-        <button class="btn primary" id="btnLookup" type="button">Find my record</button>
-        <button class="btn ghost" id="btnReset" type="button">Reset</button>
-      </div>
-
-      <div id="msg1" class="hide"></div>
-
-      <div class="divider"></div>
-
-      <div class="box">
-        <div class="muted">
-          <b>Privacy note</b>: We only use your email to locate your existing registration record.
-        </div>
-      </div>
+<div class="wrap">
+  <header>
+    <h1>Basic Divine Light Seminar Application</h1>
+    <p class="sub">Please complete the steps below on your phone.</p>
+    <div class="stepper" aria-label="Steps">
+      <div class="step active" id="s1"><span class="dot"></span>1) Email</div>
+      <div class="step" id="s2"><span class="dot"></span>2) Consent</div>
+      <div class="step" id="s3"><span class="dot"></span>3) Payment</div>
+      <div class="step" id="s4"><span class="dot"></span>4) Status</div>
     </div>
+  </header>
 
-    <!-- STEP 2 -->
-    <div class="card hide" id="step2">
-      <div class="sectionTitle">
-        <h2>Step 2: Consent</h2>
-      </div>
-
-      <div class="row">
-        <span class="pill" id="whoPill">Contact: -</span>
-        <span class="pill" id="statusPill">Status: -</span>
-      </div>
-
-      <div class="warn" style="margin-top:12px;">
-        Please read the following and tap “I agree”.
-      </div>
-
-      <label for="consentText">Consent / Terms</label>
-      <textarea id="consentText" readonly></textarea>
-
-      <div class="row" style="margin-top:12px;">
-        <button class="btn primary" id="btnAgree" type="button">I agree</button>
-        <button class="btn ghost" id="btnBack1" type="button">Back</button>
-      </div>
-
-      <div id="msg2" class="hide"></div>
+  <div class="card" id="step1">
+    <div class="sectionTitle"><h2>Step 1: Confirm your email</h2></div>
+    <div class="muted">Enter the same email address you used when you first registered.</div>
+    <label for="email">Email</label>
+    <input id="email" type="email" inputmode="email" autocomplete="email" placeholder="example@gmail.com" />
+    <div class="row" style="margin-top:12px;">
+      <button class="btn primary" id="btnLookup" type="button">Find my record</button>
+      <button class="btn ghost" id="btnReset" type="button">Reset</button>
     </div>
-
-    <!-- STEP 3 -->
-    <div class="card hide" id="step3">
-      <div class="sectionTitle">
-        <h2>Step 3: Payment</h2>
-      </div>
-
-      <div class="row">
-        <span class="pill" id="whoPill2">Contact: -</span>
-        <span class="pill" id="statusPill2">Status: -</span>
-      </div>
-
-      <div class="muted" style="margin-top:10px;">
-        Choose a payment method.
-      </div>
-
-      <div class="row" style="margin-top:12px;">
-        <button class="btn primary" id="btnCard" type="button">Credit Card</button>
-        <button class="btn" id="btnCash" type="button">Cash / Check</button>
-        <button class="btn ghost" id="btnBack2" type="button">Back</button>
-      </div>
-
-      <div id="msg3" class="hide"></div>
-
-      <div class="divider"></div>
-
-      <div class="box">
-        <div class="muted">
-          <b>Note</b>: Credit card payment uses a secure hosted payment page.
-        </div>
-      </div>
-    </div>
-
-    <!-- STEP 4 (Status / Completion / Recovery) -->
-    <div class="card hide" id="step4">
-      <div class="sectionTitle">
-        <h2>Status</h2>
-      </div>
-
-      <div class="row" style="margin-bottom:10px;">
-        <span class="pill" id="whoPill3">Contact: -</span>
-        <span class="pill" id="statusPill3">Status: -</span>
-        <span class="pill" id="payPill3">Payment: -</span>
-      </div>
-
-      <div id="statusMsg" class="ok"></div>
-
-      <div id="statusActions" class="hide">
-        <div class="divider"></div>
-        <div class="row">
-          <button class="btn primary" id="btnPayNow" type="button">Proceed to Credit Card Payment</button>
-          <button class="btn" id="btnSwitchToCash" type="button">Switch to Cash / Check</button>
-        </div>
-        <div id="statusMsg2" class="hide"></div>
-      </div>
-
-      <div class="divider"></div>
-
-      <div class="box">
-        <div class="muted">You may now close this page.</div>
-      </div>
-    </div>
-
-    <div class="muted" style="margin-top:16px; text-align:center;">
-      © World Divine Light
-    </div>
+    <div id="msg1" class="hide"></div>
+    <div class="divider"></div>
+    <div class="box"><div class="muted"><b>Privacy note</b>: We only use your email to locate your existing registration record.</div></div>
   </div>
 
-  <script>
-    // ========= CONFIG =========
-    const API_BASE = "https://api.mahikari.org";
+  <div class="card hide" id="step2">
+    <div class="sectionTitle"><h2>Step 2: Consent</h2></div>
+    <div class="row">
+      <span class="pill" id="whoPill">Contact: -</span>
+      <span class="pill" id="statusPill">Status: -</span>
+    </div>
+    <div class="warn" style="margin-top:12px;">Please read the following and tap “I agree”.</div>
+    <label for="consentText">Consent / Terms</label>
+    <textarea id="consentText" readonly></textarea>
+    <div class="row" style="margin-top:12px;">
+      <button class="btn primary" id="btnAgree" type="button">I agree</button>
+      <button class="btn ghost" id="btnBack1" type="button">Back</button>
+    </div>
+    <div id="msg2" class="hide"></div>
+  </div>
 
-    const CONSENT_VERSION = "v2026-01-15";
-    const FEE_CASH_CHECK = 130;
-    const FEE_CARD = 135;
+  <div class="card hide" id="step3">
+    <div class="sectionTitle"><h2>Step 3: Payment</h2></div>
+    <div class="row">
+      <span class="pill" id="whoPill2">Contact: -</span>
+      <span class="pill" id="statusPill2">Status: -</span>
+    </div>
+    <div class="muted" style="margin-top:10px;">Choose a payment method.</div>
+    <div class="row" style="margin-top:12px;">
+      <button class="btn primary" id="btnCard" type="button">Credit Card</button>
+      <button class="btn" id="btnCash" type="button">Cash / Check</button>
+      <button class="btn ghost" id="btnBack2" type="button">Back</button>
+    </div>
+    <div id="msg3" class="hide"></div>
+    <div class="divider"></div>
+    <div class="box"><div class="muted"><b>Note</b>: Credit card payment uses a secure hosted payment page.</div></div>
+  </div>
 
-    // Stripe endpoint (must exist in Worker)
-    const STRIPE_CREATE_ENDPOINT = `${API_BASE}/api/stripe/create-checkout-session`;
+  <div class="card hide" id="step4">
+    <div class="sectionTitle"><h2>Status</h2></div>
+    <div class="row" style="margin-bottom:10px;">
+      <span class="pill" id="whoPill3">Contact: -</span>
+      <span class="pill" id="statusPill3">Status: -</span>
+      <span class="pill" id="payPill3">Payment: -</span>
+    </div>
 
-    // ========= helpers =========
-    const $ = (id)=>document.getElementById(id);
-    function show(el){ el.classList.remove("hide"); }
-    function hide(el){ el.classList.add("hide"); }
-    function setMsg(boxId, kind, text){
-      const box = $(boxId);
-      box.className = kind;
-      box.textContent = text;
-      show(box);
+    <div id="statusMsg" class="ok"></div>
+
+    <div id="statusActions" class="hide">
+      <div class="divider"></div>
+      <div class="row">
+        <button class="btn primary" id="btnPayNow" type="button">Proceed to Credit Card Payment</button>
+        <button class="btn" id="btnSwitchToCash" type="button">Switch to Cash / Check</button>
+      </div>
+      <div id="statusMsg2" class="hide"></div>
+    </div>
+
+    <div class="divider"></div>
+    <div class="box"><div class="muted">You may now close this page.</div></div>
+  </div>
+
+  <div class="muted" style="margin-top:16px; text-align:center;">© World Divine Light</div>
+</div>
+
+<script>
+  const API_BASE = "https://api.mahikari.org";
+  const CONSENT_VERSION = "v2026-01-15";
+  const FEE_CASH_CHECK = 130;
+  const FEE_CARD = 135;
+
+  const STRIPE_CREATE_ENDPOINT = `${API_BASE}/api/stripe/create-checkout-session`;
+
+  const $ = (id)=>document.getElementById(id);
+  function show(el){ el.classList.remove("hide"); }
+  function hide(el){ el.classList.add("hide"); }
+  function setMsg(boxId, kind, text){
+    const box = $(boxId);
+    box.className = kind;
+    box.textContent = text;
+    show(box);
+  }
+  function clearMsg(boxId){
+    const box = $(boxId);
+    box.className = "hide";
+    box.textContent = "";
+    hide(box);
+  }
+  function setStep(activeIndex){
+    const steps = [$("s1"), $("s2"), $("s3"), $("s4")];
+    steps.forEach((s,i)=>{
+      s.classList.remove("active");
+      s.classList.remove("done");
+      if (i < activeIndex) s.classList.add("done");
+      if (i === activeIndex) s.classList.add("active");
+    });
+  }
+  function safeLower(s){ return String(s||"").trim().toLowerCase(); }
+
+  async function api(url, opts={}){
+    const controller = new AbortController();
+    const t = setTimeout(()=>controller.abort(), 15000);
+    try{
+      const res = await fetch(url, { ...opts, signal: controller.signal, headers: { ...(opts.headers||{}) }});
+      const text = await res.text();
+      let data = null;
+      try { data = text ? JSON.parse(text) : null; } catch { data = { raw:text }; }
+      return { ok: res.ok, status: res.status, data, raw: text };
+    }catch(e){
+      return { ok:false, status:0, data:null, raw:String(e?.message||e) };
+    }finally{
+      clearTimeout(t);
     }
-    function clearMsg(boxId){
-      const box = $(boxId);
-      box.className = "hide";
-      box.textContent = "";
-      hide(box);
-    }
-    function setStep(activeIndex){
-      const steps = [$("s1"), $("s2"), $("s3"), $("s4")];
-      steps.forEach((s,i)=>{
-        s.classList.remove("active");
-        s.classList.remove("done");
-        if (i < activeIndex) s.classList.add("done");
-        if (i === activeIndex) s.classList.add("active");
-      });
-    }
-    function safeLower(s){ return String(s||"").trim().toLowerCase(); }
+  }
 
-    async function api(url, opts={}){
-      const controller = new AbortController();
-      const t = setTimeout(()=>controller.abort(), 15000);
-      try{
-        const res = await fetch(url, { ...opts, signal: controller.signal, headers: { ...(opts.headers||{}) }});
-        const text = await res.text();
-        let data = null;
-        try { data = text ? JSON.parse(text) : null; } catch { data = { raw:text }; }
-        return { ok: res.ok, status: res.status, data, raw: text };
-      }catch(e){
-        return { ok:false, status:0, data:null, raw:String(e?.message||e) };
-      }finally{
-        clearTimeout(t);
-      }
-    }
+  let CONTACT_ID = "";
+  let CONTACT_EMAIL = "";
+  let CONTACT_NAME = "";
+  let BASIC_STATUS = "";
+  let PAYMENT_METHOD = ""; // cash/card
 
-    // ========= State =========
-    let CONTACT_ID = "";
-    let CONTACT_EMAIL = "";
-    let CONTACT_NAME = "";
-    let BASIC_STATUS = "";
-    let PAYMENT_METHOD = ""; // "cash" or "card"
-
-    // ========= Consent text (FINAL) =========
-    const CONSENT_TEXT =
+  const CONSENT_TEXT =
 `Basic Divine Light Seminar Consent
 
 By proceeding with this application, I acknowledge and agree to the following:
@@ -335,155 +223,309 @@ I confirm that I have read and understand all of the above statements and agree 
 
 Consent Version: ${CONSENT_VERSION}
 `;
-    $("consentText").value = CONSENT_TEXT;
+  $("consentText").value = CONSENT_TEXT;
 
-    function fillHeaderPills(){
-      const who = CONTACT_NAME ? `${CONTACT_NAME} (${CONTACT_EMAIL})` : (CONTACT_EMAIL || "-");
-      const st  = BASIC_STATUS || "-";
-      $("whoPill").textContent = "Contact: " + who;
-      $("statusPill").textContent = "Status: " + st;
-      $("whoPill2").textContent = "Contact: " + who;
-      $("statusPill2").textContent = "Status: " + st;
+  function fillHeaderPills(){
+    const who = CONTACT_NAME ? `${CONTACT_NAME} (${CONTACT_EMAIL})` : (CONTACT_EMAIL || "-");
+    const st  = BASIC_STATUS || "-";
+    $("whoPill").textContent = "Contact: " + who;
+    $("statusPill").textContent = "Status: " + st;
+    $("whoPill2").textContent = "Contact: " + who;
+    $("statusPill2").textContent = "Status: " + st;
 
-      $("whoPill3").textContent = "Contact: " + who;
-      $("statusPill3").textContent = "Status: " + st;
-      $("payPill3").textContent = "Payment: " + (PAYMENT_METHOD || "-");
+    $("whoPill3").textContent = "Contact: " + who;
+    $("statusPill3").textContent = "Status: " + st;
+    $("payPill3").textContent = "Payment: " + (PAYMENT_METHOD || "-");
+  }
+
+  function goStep(stepNum){
+    hide($("step1")); hide($("step2")); hide($("step3")); hide($("step4"));
+    setStep(stepNum - 1);
+    show($("step" + stepNum));
+  }
+
+  // Search only (no /contacts/get)
+  async function lookupByEmail(email){
+    const body = { keyword: email, branch: "", activeStatus: "" };
+
+    const r = await api(`${API_BASE}/api/contacts/search`, {
+      method:"POST",
+      headers:{ "content-type":"application/json" },
+      body: JSON.stringify(body)
+    });
+
+    if (!r.ok || !r.data?.ok){
+      throw new Error(`Search failed (${r.status})\n${r.raw}`);
     }
 
-    function goStep(stepNum){
-      hide($("step1")); hide($("step2")); hide($("step3")); hide($("step4"));
-      setStep(stepNum - 1);
-      show($("step" + stepNum));
+    const results = r.data?.results || [];
+    if (!Array.isArray(results) || results.length === 0){
+      return null;
     }
 
-    // Lookup by email (POST)
-    async function lookupByEmail(email){
-      const body = { keyword: email, branch: "", activeStatus: "" };
+    const target = safeLower(email);
+    let exact = results.find(x => safeLower(x?.properties?.email) === target);
+    if (!exact) exact = results[0];
 
-      const r = await api(`${API_BASE}/api/contacts/search`, {
-        method:"POST",
-        headers:{ "content-type":"application/json" },
-        body: JSON.stringify(body)
+    const id = exact.id || exact?.properties?.hs_object_id || exact?.properties?.id;
+    const props = exact.properties || {};
+
+    return {
+      id: String(id || ""),
+      email: String(props.email || email || ""),
+      firstname: String(props.firstname || ""),
+      lastname: String(props.lastname || ""),
+      basic_seminar_status: String(props.basic_seminar_status || ""),
+      basic_payment_method: String(props.basic_payment_method || ""),
+    };
+  }
+
+  async function updateContact(id, properties){
+    const r = await api(`${API_BASE}/api/contacts/update`, {
+      method:"POST",
+      headers:{ "content-type":"application/json" },
+      body: JSON.stringify({ id, properties })
+    });
+    if (!r.ok || !r.data?.ok){
+      throw new Error(`Update failed (${r.status})\n${r.raw}`);
+    }
+    return true;
+  }
+
+  function showAlreadyCompleteCash(){
+    BASIC_STATUS = "completed";
+    PAYMENT_METHOD = "cash";
+    fillHeaderPills();
+    $("statusMsg").textContent =
+      "Your Basic Divine Light Seminar registration is already complete.\n\n" +
+      "If you have not made your $130 offering yet, please follow the staff’s guidance to complete the offering (cash/check).\n\n" +
+      "If you prefer to pay by credit card instead, you may proceed to credit card payment below.";
+    show($("statusActions"));
+    clearMsg("statusMsg2");
+    goStep(4);
+  }
+
+  function showPendingCard(){
+    BASIC_STATUS = "pending_payment";
+    PAYMENT_METHOD = "card";
+    fillHeaderPills();
+    $("statusMsg").textContent =
+      "Your registration is complete, but your credit card payment has not been completed yet.\n\n" +
+      "Please proceed to credit card payment, or switch to Cash / Check if you prefer.";
+    show($("statusActions"));
+    clearMsg("statusMsg2");
+    goStep(4);
+  }
+
+  function showCompletedGeneric(){
+    fillHeaderPills();
+    $("statusMsg").textContent =
+      "Your Basic Divine Light Seminar registration is already complete.\n\n" +
+      "If you prefer to proceed with a credit card payment, you may do so below.";
+    show($("statusActions"));
+    clearMsg("statusMsg2");
+    goStep(4);
+  }
+
+  function showCashSwitchedComplete(){
+    BASIC_STATUS = "completed";
+    PAYMENT_METHOD = "cash";
+    fillHeaderPills();
+    hide($("statusActions"));
+    $("statusMsg").textContent =
+      "Your payment method has been changed to Cash / Check.\n\n" +
+      "Please speak with our staff to complete your $130 offering.\n\n" +
+      "We look forward to seeing you at the seminar.";
+    goStep(4);
+  }
+
+  async function proceedToCardPayment(){
+    clearMsg("statusMsg2");
+
+    try{
+      await updateContact(CONTACT_ID, {
+        basic_payment_method: "card",
+        basic_seminar_status: "pending_payment"
       });
-
-      if (!r.ok || !r.data?.ok){
-        throw new Error(`Search failed (${r.status})\n${r.raw}`);
-      }
-
-      const results = r.data?.results || [];
-      if (!Array.isArray(results) || results.length === 0){
-        return null;
-      }
-
-      const target = safeLower(email);
-      let exact = results.find(x => safeLower(x?.properties?.email) === target);
-      if (!exact) exact = results[0];
-
-      const id = exact.id || exact?.properties?.hs_object_id || exact?.properties?.id;
-      const props = exact.properties || {};
-
-      return {
-        id: String(id || ""),
-        email: String(props.email || email || ""),
-        firstname: String(props.firstname || ""),
-        lastname: String(props.lastname || ""),
-        // IMPORTANT: We need these to prevent duplicate flow
-        basic_seminar_status: String(props.basic_seminar_status || ""),
-        basic_payment_method: String(props.basic_payment_method || ""),
-      };
-    }
-
-    // Get full properties (GET) to evaluate exact status/method
-    async function getContact(id){
-      const r = await api(`${API_BASE}/api/contacts/get?id=${encodeURIComponent(id)}`, { method:"GET" });
-      if (!r.ok || !r.data?.ok){
-        throw new Error(`Get failed (${r.status})\n${r.raw}`);
-      }
-      const props = r.data?.properties || {};
-      return props;
-    }
-
-    // Update contact (POST)
-    async function updateContact(id, properties){
-      const r = await api(`${API_BASE}/api/contacts/update`, {
-        method:"POST",
-        headers:{ "content-type":"application/json" },
-        body: JSON.stringify({ id, properties })
-      });
-      if (!r.ok || !r.data?.ok){
-        throw new Error(`Update failed (${r.status})\n${r.raw}`);
-      }
-      return true;
-    }
-
-    function showAlreadyCompleteCash(){
-      BASIC_STATUS = "completed";
-      PAYMENT_METHOD = "cash";
-      fillHeaderPills();
-      $("statusActions").classList.remove("hide");
-      // completed cash: allow switching to card too
-      $("statusMsg").textContent =
-        "Your Basic Divine Light Seminar registration is already complete.\n\n" +
-        "If you have not made your $130 offering yet, please follow the staff’s guidance to complete the offering (cash/check).\n\n" +
-        "If you prefer to pay by credit card instead, you may proceed to credit card payment below.";
-      show($("statusActions"));
-      clearMsg("statusMsg2");
-      goStep(4);
-    }
-
-    function showPendingCard(){
       BASIC_STATUS = "pending_payment";
       PAYMENT_METHOD = "card";
       fillHeaderPills();
-      $("statusMsg").textContent =
-        "Your registration is complete, but your credit card payment has not been completed yet.\n\n" +
-        "Please proceed to credit card payment, or switch to Cash / Check if you prefer.";
-      show($("statusActions"));
-      clearMsg("statusMsg2");
-      goStep(4);
+    }catch(e){
+      setMsg("statusMsg2","err", String(e.message || e));
+      return;
     }
 
-    function showCompletedGeneric(){
-      fillHeaderPills();
-      $("statusActions").classList.remove("hide");
-      $("statusMsg").textContent =
-        "Your Basic Divine Light Seminar registration is already complete.\n\n" +
-        "If you prefer to proceed with a credit card payment, you may do so below.";
-      show($("statusActions"));
-      clearMsg("statusMsg2");
-      goStep(4);
+    const r = await api(STRIPE_CREATE_ENDPOINT, {
+      method:"POST",
+      headers:{ "content-type":"application/json" },
+      body: JSON.stringify({ contactId: CONTACT_ID, email: CONTACT_EMAIL })
+    });
+
+    if (r.ok && r.data?.ok && r.data?.checkout_url){
+      window.location.href = r.data.checkout_url;
+      return;
     }
 
-    function showCashSwitchedComplete(){
-      BASIC_STATUS = "completed";
-      PAYMENT_METHOD = "cash";
-      fillHeaderPills();
-      hide($("statusActions"));
-      $("statusMsg").textContent =
-        "Your payment method has been changed to Cash / Check.\n\n" +
-        "Please speak with our staff to complete your $130 offering.\n\n" +
-        "We look forward to seeing you at the seminar.";
-      goStep(4);
+    setMsg("statusMsg2","err",
+      "Credit card payment is not available yet.\n" +
+      "Stripe checkout URL was not returned."
+    );
+  }
+
+  async function switchToCashCheckFromStatus(){
+    clearMsg("statusMsg2");
+    try{
+      await updateContact(CONTACT_ID, {
+        basic_payment_method: "cash",
+        basic_seminar_status: "completed"
+      });
+      showCashSwitchedComplete();
+    }catch(e){
+      setMsg("statusMsg2","err", String(e.message || e));
+    }
+  }
+
+  async function onLookup(){
+    clearMsg("msg1");
+    const email = $("email").value.trim();
+    if (!email){
+      setMsg("msg1","err","Please enter your email.");
+      return;
     }
 
-    async function proceedToCardPayment(){
-      clearMsg("statusMsg2");
+    $("btnLookup").disabled = true;
+    $("btnReset").disabled = true;
 
-      // Ensure status is pending_payment + card
-      try{
-        await updateContact(CONTACT_ID, {
-          basic_payment_method: "card",
-          basic_seminar_status: "pending_payment"
-        });
-        BASIC_STATUS = "pending_payment";
-        PAYMENT_METHOD = "card";
-        fillHeaderPills();
-      }catch(e){
-        setMsg("statusMsg2","err", String(e.message || e));
+    try{
+      setMsg("msg1","ok","Searching...");
+      const found = await lookupByEmail(email);
+
+      if (!found || !found.id){
+        setMsg("msg1","err","No matching record found.");
         return;
       }
 
-      // Must return checkout_url
+      CONTACT_ID = found.id;
+      CONTACT_EMAIL = found.email || email;
+      CONTACT_NAME = [found.firstname, found.lastname].filter(Boolean).join(" ").trim();
+
+      const existingStatus = String(found.basic_seminar_status || "").trim();
+      const existingPay = String(found.basic_payment_method || "").trim();
+
+      // completed cash
+      if (existingStatus === "completed" && existingPay === "cash") {
+        showAlreadyCompleteCash();
+        clearMsg("msg1");
+        return;
+      }
+
+      // pending card
+      if (existingStatus === "pending_payment" && existingPay === "card") {
+        showPendingCard();
+        clearMsg("msg1");
+        return;
+      }
+
+      // completed other
+      if (existingStatus === "completed") {
+        BASIC_STATUS = "completed";
+        PAYMENT_METHOD = existingPay || "-";
+        showCompletedGeneric();
+        clearMsg("msg1");
+        return;
+      }
+
+      // new flow start
+      await updateContact(CONTACT_ID, { basic_seminar_status: "started" });
+      BASIC_STATUS = "started";
+      PAYMENT_METHOD = existingPay || "";
+      fillHeaderPills();
+      goStep(2);
+
+    }catch(e){
+      setMsg("msg1","err", String(e.message || e));
+    }finally{
+      $("btnLookup").disabled = false;
+      $("btnReset").disabled = false;
+    }
+  }
+
+  async function onAgree(){
+    clearMsg("msg2");
+    $("btnAgree").disabled = true;
+    $("btnBack1").disabled = true;
+
+    try{
+      const nowIso = new Date().toISOString();
+
+      await updateContact(CONTACT_ID, {
+        basic_seminar_consent: "true",
+        basic_seminar_consent_at: nowIso,
+        basic_seminar_consent_version: CONSENT_VERSION,
+        basic_seminar_status: "consented"
+      });
+
+      BASIC_STATUS = "consented";
+      fillHeaderPills();
+      goStep(3);
+
+    }catch(e){
+      setMsg("msg2","err", String(e.message || e));
+    }finally{
+      $("btnAgree").disabled = false;
+      $("btnBack1").disabled = false;
+    }
+  }
+
+  async function onCash(){
+    clearMsg("msg3");
+    $("btnCard").disabled = true;
+    $("btnCash").disabled = true;
+    $("btnBack2").disabled = true;
+
+    try{
+      await updateContact(CONTACT_ID, {
+        basic_payment_method: "cash",
+        basic_seminar_status: "completed"
+      });
+
+      BASIC_STATUS = "completed";
+      PAYMENT_METHOD = "cash";
+      fillHeaderPills();
+
+      $("statusMsg").textContent =
+        "Your seminar registration is complete.\n\n" +
+        "Please follow the staff’s guidance to make the $130 offering (cash/check).\n\n" +
+        "We look forward to seeing you at the seminar.";
+
+      hide($("statusActions"));
+      goStep(4);
+
+    }catch(e){
+      setMsg("msg3","err", String(e.message || e));
+    }finally{
+      $("btnCard").disabled = false;
+      $("btnCash").disabled = false;
+      $("btnBack2").disabled = false;
+    }
+  }
+
+  async function onCard(){
+    clearMsg("msg3");
+    $("btnCard").disabled = true;
+    $("btnCash").disabled = true;
+    $("btnBack2").disabled = true;
+
+    try{
+      await updateContact(CONTACT_ID, {
+        basic_payment_method: "card",
+        basic_seminar_status: "pending_payment"
+      });
+
+      BASIC_STATUS = "pending_payment";
+      PAYMENT_METHOD = "card";
+      fillHeaderPills();
+
       const r = await api(STRIPE_CREATE_ENDPOINT, {
         method:"POST",
         headers:{ "content-type":"application/json" },
@@ -495,219 +537,32 @@ Consent Version: ${CONSENT_VERSION}
         return;
       }
 
-      setMsg("statusMsg2","err",
-        "Credit card payment is not available yet.\n" +
-        "Stripe checkout URL was not returned."
-      );
+      throw new Error("Credit card payment is not available yet.\nStripe checkout URL was not returned.");
+
+    }catch(e){
+      setMsg("msg3","err", String(e.message || e));
+    }finally{
+      $("btnCard").disabled = false;
+      $("btnCash").disabled = false;
+      $("btnBack2").disabled = false;
     }
+  }
 
-    async function switchToCashCheckFromStatus(){
-      clearMsg("statusMsg2");
-      try{
-        await updateContact(CONTACT_ID, {
-          basic_payment_method: "cash",
-          basic_seminar_status: "completed"
-        });
-        showCashSwitchedComplete();
-      }catch(e){
-        setMsg("statusMsg2","err", String(e.message || e));
-      }
-    }
+  function onReset(){ location.reload(); }
+  function backTo1(){ clearMsg("msg2"); clearMsg("msg3"); goStep(1); }
+  function backTo2(){ clearMsg("msg3"); goStep(2); }
 
-    async function onLookup(){
-      clearMsg("msg1");
-      const email = $("email").value.trim();
-      if (!email){
-        setMsg("msg1","err","Please enter your email.");
-        return;
-      }
+  $("btnLookup").addEventListener("click", onLookup);
+  $("btnReset").addEventListener("click", onReset);
+  $("btnAgree").addEventListener("click", onAgree);
+  $("btnBack1").addEventListener("click", backTo1);
+  $("btnBack2").addEventListener("click", backTo2);
+  $("btnCash").addEventListener("click", onCash);
+  $("btnCard").addEventListener("click", onCard);
+  $("btnPayNow").addEventListener("click", proceedToCardPayment);
+  $("btnSwitchToCash").addEventListener("click", switchToCashCheckFromStatus);
 
-      $("btnLookup").disabled = true;
-      $("btnReset").disabled = true;
-
-      try{
-        setMsg("msg1","ok","Searching...");
-        const found = await lookupByEmail(email);
-
-        if (!found || !found.id){
-          setMsg("msg1","err","No matching record found.");
-          return;
-        }
-
-        CONTACT_ID = found.id;
-        CONTACT_EMAIL = found.email || email;
-        CONTACT_NAME = [found.firstname, found.lastname].filter(Boolean).join(" ").trim();
-
-        // Pull full contact to prevent duplicate flow
-        const props = await getContact(CONTACT_ID);
-
-        const existingStatus = String(props.basic_seminar_status || "").trim();
-        const existingPay = String(props.basic_payment_method || "").trim();
-
-        // Case 1: completed + cash => show "already complete" with option to pay by card
-        if (existingStatus === "completed" && existingPay === "cash") {
-          showAlreadyCompleteCash();
-          clearMsg("msg1");
-          return;
-        }
-
-        // Case 2: pending_payment + card => show payment recovery
-        if (existingStatus === "pending_payment" && existingPay === "card") {
-          showPendingCard();
-          clearMsg("msg1");
-          return;
-        }
-
-        // Case 3: completed (any other method) => show already complete + option to card
-        if (existingStatus === "completed") {
-          BASIC_STATUS = "completed";
-          PAYMENT_METHOD = existingPay || "-";
-          showCompletedGeneric();
-          clearMsg("msg1");
-          return;
-        }
-
-        // Default: new flow start
-        await updateContact(CONTACT_ID, { basic_seminar_status: "started" });
-        BASIC_STATUS = "started";
-        PAYMENT_METHOD = existingPay || "";
-        fillHeaderPills();
-        // Move to consent
-        goStep(2);
-
-      }catch(e){
-        setMsg("msg1","err", String(e.message || e));
-      }finally{
-        $("btnLookup").disabled = false;
-        $("btnReset").disabled = false;
-      }
-    }
-
-    async function onAgree(){
-      clearMsg("msg2");
-      $("btnAgree").disabled = true;
-      $("btnBack1").disabled = true;
-
-      try{
-        const nowIso = new Date().toISOString();
-
-        await updateContact(CONTACT_ID, {
-          basic_seminar_consent: "true",
-          basic_seminar_consent_at: nowIso,
-          basic_seminar_consent_version: CONSENT_VERSION,
-          basic_seminar_status: "consented"
-        });
-
-        BASIC_STATUS = "consented";
-        fillHeaderPills();
-        goStep(3);
-
-      }catch(e){
-        setMsg("msg2","err", String(e.message || e));
-      }finally{
-        $("btnAgree").disabled = false;
-        $("btnBack1").disabled = false;
-      }
-    }
-
-    // Cash/Check from Step3 => go to completion page and finish
-    async function onCash(){
-      clearMsg("msg3");
-      $("btnCard").disabled = true;
-      $("btnCash").disabled = true;
-      $("btnBack2").disabled = true;
-
-      try{
-        await updateContact(CONTACT_ID, {
-          basic_payment_method: "cash",
-          basic_seminar_status: "completed"
-        });
-
-        BASIC_STATUS = "completed";
-        PAYMENT_METHOD = "cash";
-        fillHeaderPills();
-
-        $("statusMsg").textContent =
-          "Your seminar registration is complete.\n\n" +
-          "Please follow the staff’s guidance to make the $130 offering (cash/check).\n\n" +
-          "We look forward to seeing you at the seminar.";
-
-        hide($("statusActions"));
-        goStep(4);
-
-      }catch(e){
-        setMsg("msg3","err", String(e.message || e));
-      }finally{
-        $("btnCard").disabled = false;
-        $("btnCash").disabled = false;
-        $("btnBack2").disabled = false;
-      }
-    }
-
-    // Credit card from Step3 => go to Stripe checkout
-    async function onCard(){
-      clearMsg("msg3");
-      $("btnCard").disabled = true;
-      $("btnCash").disabled = true;
-      $("btnBack2").disabled = true;
-
-      try{
-        await updateContact(CONTACT_ID, {
-          basic_payment_method: "card",
-          basic_seminar_status: "pending_payment"
-        });
-
-        BASIC_STATUS = "pending_payment";
-        PAYMENT_METHOD = "card";
-        fillHeaderPills();
-
-        const r = await api(STRIPE_CREATE_ENDPOINT, {
-          method:"POST",
-          headers:{ "content-type":"application/json" },
-          body: JSON.stringify({ contactId: CONTACT_ID, email: CONTACT_EMAIL })
-        });
-
-        if (r.ok && r.data?.ok && r.data?.checkout_url){
-          window.location.href = r.data.checkout_url;
-          return;
-        }
-
-        throw new Error(
-          "Credit card payment is not available yet.\n" +
-          "Stripe checkout URL was not returned."
-        );
-
-      }catch(e){
-        setMsg("msg3","err", String(e.message || e));
-      }finally{
-        $("btnCard").disabled = false;
-        $("btnCash").disabled = false;
-        $("btnBack2").disabled = false;
-      }
-    }
-
-    function onReset(){ location.reload(); }
-    function backTo1(){
-      clearMsg("msg2"); clearMsg("msg3");
-      goStep(1);
-    }
-    function backTo2(){
-      clearMsg("msg3");
-      goStep(2);
-    }
-
-    $("btnLookup").addEventListener("click", onLookup);
-    $("btnReset").addEventListener("click", onReset);
-    $("btnAgree").addEventListener("click", onAgree);
-    $("btnBack1").addEventListener("click", backTo1);
-    $("btnBack2").addEventListener("click", backTo2);
-    $("btnCash").addEventListener("click", onCash);
-    $("btnCard").addEventListener("click", onCard);
-
-    $("btnPayNow").addEventListener("click", proceedToCardPayment);
-    $("btnSwitchToCash").addEventListener("click", switchToCashCheckFromStatus);
-
-    goStep(1);
-  </script>
+  goStep(1);
+</script>
 </body>
 </html>
