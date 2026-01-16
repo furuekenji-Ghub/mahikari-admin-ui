@@ -105,13 +105,14 @@
     }
     textarea{
       width:100%;
-      min-height: 160px;
+      min-height: 260px;
       padding: 12px;
       border:1px solid var(--border);
       border-radius: 12px;
       font-size: 14px;
       background:#fff;
       line-height: 1.6;
+      resize: vertical;
     }
     .btn{
       padding: 12px 14px;
@@ -272,7 +273,7 @@
 
       <div class="row" style="margin-top:12px;">
         <button class="btn primary" id="btnCard" type="button">Credit Card</button>
-        <button class="btn" id="btnCash" type="button">Cash / In-person</button>
+        <button class="btn" id="btnCash" type="button">Cash / Check</button>
         <button class="btn ghost" id="btnBack2" type="button">Back</button>
       </div>
 
@@ -294,15 +295,15 @@
 
   <script>
     // ========= CONFIG =========
-    // IMPORTANT: api.worlddivinelight.org may not have a valid SSL cert for Workers.
-    // api.mahikari.org is already configured as a Worker custom domain and is HTTPS-safe.
+    // IMPORTANT: Use a Worker domain that is known HTTPS-safe.
     const API_BASE = "https://api.mahikari.org";
 
     // Stored in HubSpot
     const CONSENT_VERSION = "v2026-01-15";
 
-    // Display-only. Replace anytime.
-    const BASIC_FEE_DISPLAY = "$XX (set by organizer)";
+    // Fee policy
+    const FEE_CASH_CHECK = 130;
+    const FEE_CARD = 135;
 
     // Optional (future). If you implement Stripe, return { ok:true, checkout_url:"https://..." } from this endpoint.
     const STRIPE_CREATE_ENDPOINT = `${API_BASE}/api/stripe/create-checkout-session`;
@@ -356,14 +357,46 @@
     let CONTACT_NAME = "";
     let BASIC_STATUS = "";
 
-    // ========= Consent text =========
-    const CONSENT_TEXT = `Basic Divine Light Seminar Consent
+    // ========= Consent text (FINAL) =========
+    const CONSENT_TEXT =
+`Basic Divine Light Seminar Consent
 
-1) I agree to the terms, privacy policy, and cancellation policy.
-2) I understand this application is linked to my registered email address.
-3) I understand payment rules as instructed by the organizer.
+By proceeding with this application, I acknowledge and agree to the following:
 
-(Version: ${CONSENT_VERSION})`;
+1. Seminar Fee and Payment Method
+I understand that the seminar fee for the Basic Divine Light Seminar is as follows:
+- $${FEE_CASH_CHECK} if paid by cash or check
+- $${FEE_CARD} if paid by credit card, which includes payment processing fees charged by the card processor (Stripe)
+
+I understand that credit card payments are processed securely through Stripe and that the additional amount reflects processing costs.
+All fees are non-refundable unless otherwise stated by the organizers.
+
+2. Divine Pendant (Omitama)
+I understand that at the conclusion of the seminar, I will receive a Divine Pendant known as an Omitama during the Omitama Granting Ceremony.
+Upon receiving the Omitama, I will be recognized as a Divine Light Practitioner (“Kamikumite”).
+I accept full responsibility for the proper care and safekeeping of my Omitama.
+
+3. Monthly Membership Offering
+I understand that a monthly offering of $10 is expected of all practitioners.
+This offering is made through the Center as an expression of gratitude and as part of maintaining an ongoing spiritual connection.
+
+I acknowledge that if I fail to make this offering for one (1) year, my active membership status will be lost.
+To be reinstated, I understand that I must return my Omitama, retake the Basic Seminar, and pay the required fees.
+
+4. Conduct and Business Activities
+I agree that I will not conduct, promote, or solicit any personal or commercial business activities within any organizational facilities, seminars, events, or activities.
+This includes, but is not limited to, distributing business cards, promotional materials, digital links, or promoting products or services.
+
+5. Photography, Video, and Media Release
+I understand that photographs and video recordings may be taken during seminars, events, and activities.
+I grant permission for my image, likeness, and voice to be used in photographs, videos, or other media for purposes including education, documentation, and public communications of the organization.
+If I do not wish for my image or likeness to be used publicly, I understand that it is my responsibility to notify the organizers in advance.
+
+6. Understanding and Agreement
+I confirm that I have read and understand all of the above statements and agree to proceed with the Basic Divine Light Seminar under these terms.
+
+Consent Version: ${CONSENT_VERSION}
+`;
 
     $("consentText").value = CONSENT_TEXT;
 
@@ -510,7 +543,7 @@
 
         BASIC_STATUS = "completed";
         fillHeaderPills();
-        setMsg("msg3","ok","Cash selected. Your application is completed.");
+        setMsg("msg3","ok",`Payment method selected: Cash/Check ($${FEE_CASH_CHECK}). Your application is completed.`);
 
       }catch(e){
         setMsg("msg3","err", String(e.message || e));
@@ -554,9 +587,9 @@
         }
 
         setMsg("msg3","warn",
-          "Credit card payment is marked as pending.\n\n" +
-          "Payment page is not connected yet.\n\n" +
-          "Fee: " + BASIC_FEE_DISPLAY
+          `Credit card payment is marked as pending.\n\n` +
+          `Payment page is not connected yet.\n\n` +
+          `Credit card fee: $${FEE_CARD}`
         );
 
       }catch(e){
