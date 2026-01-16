@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Basic Seminar Application | World Divine Light</title>
+  <title>Basic Divine Light Seminar Application | World Divine Light</title>
   <style>
     :root{
       --border:#e6e6e6;
@@ -191,9 +191,7 @@
   <div class="wrap">
     <header>
       <h1>Basic Divine Light Seminar Application</h1>
-      <p class="sub">
-        Please complete the steps below on your phone.
-      </p>
+      <p class="sub">Please complete the steps below on your phone.</p>
 
       <div class="stepper" aria-label="Steps">
         <div class="step active" id="s1"><span class="dot"></span>1) Email</div>
@@ -296,13 +294,17 @@
 
   <script>
     // ========= CONFIG =========
+    // Use absolute API URLs so we never hit Pages endpoints (prevents 405).
+    const API_BASE = "https://api.worlddivinelight.org";
+
+    // Stored in HubSpot
     const CONSENT_VERSION = "v2026-01-15";
 
-    // Display-only. You can replace with your actual fee text anytime.
+    // Display-only. Replace anytime.
     const BASIC_FEE_DISPLAY = "$XX (set by organizer)";
 
     // Optional (future). If you implement Stripe, return { ok:true, checkout_url:"https://..." } from this endpoint.
-    const STRIPE_CREATE_ENDPOINT = "/api/stripe/create-checkout-session";
+    const STRIPE_CREATE_ENDPOINT = `${API_BASE}/api/stripe/create-checkout-session`;
 
     // ========= helpers =========
     const $ = (id)=>document.getElementById(id);
@@ -331,11 +333,11 @@
     }
     function safeLower(s){ return String(s||"").trim().toLowerCase(); }
 
-    async function api(path, opts={}){
+    async function api(url, opts={}){
       const controller = new AbortController();
       const t = setTimeout(()=>controller.abort(), 15000);
       try{
-        const res = await fetch(path, { ...opts, signal: controller.signal, headers: { ...(opts.headers||{}) }});
+        const res = await fetch(url, { ...opts, signal: controller.signal, headers: { ...(opts.headers||{}) }});
         const text = await res.text();
         let data = null;
         try { data = text ? JSON.parse(text) : null; } catch { data = { raw:text }; }
@@ -351,11 +353,10 @@
     let CONTACT_ID = "";
     let CONTACT_EMAIL = "";
     let CONTACT_NAME = "";
-    let ACTIVE_STATUS = "";
     let BASIC_STATUS = "";
 
-    // ========= Consent text (edit freely) =========
-    const CONSENT_TEXT = `Basic Seminar Consent
+    // ========= Consent text =========
+    const CONSENT_TEXT = `Basic Divine Light Seminar Consent
 
 1) I agree to the terms, privacy policy, and cancellation policy.
 2) I understand this application is linked to my registered email address.
@@ -376,14 +377,12 @@
 
     // ========= Worker operations =========
 
-    // Lookup by email using /api/contacts/search
+    // Lookup by email using Worker search (POST)
     async function lookupByEmail(email){
-      const API_BASE = "https://api.worlddivinelight.org";
-      // Your /api/contacts/search expects JSON body like:
-      // { keyword, branch, activeStatus }
       const body = { keyword: email, branch: "", activeStatus: "" };
 
-　　　const r = await api(`${API_BASE}/api/contacts/search`, {        method:"POST",
+      const r = await api(`${API_BASE}/api/contacts/search`, {
+        method:"POST",
         headers:{ "content-type":"application/json" },
         body: JSON.stringify(body)
       });
@@ -409,14 +408,12 @@
         email: String(props.email || email || ""),
         firstname: String(props.firstname || ""),
         lastname: String(props.lastname || ""),
-        active_status: String(props.active_status || ""),
-        basic_seminar_status: String(props.basic_seminar_status || "")
       };
     }
 
-    // Update contact properties via /api/contacts/update
+    // Update HubSpot contact via Worker (POST)
     async function updateContact(id, properties){
-      const r = await api("/api/contacts/update", {
+      const r = await api(`${API_BASE}/api/contacts/update`, {
         method:"POST",
         headers:{ "content-type":"application/json" },
         body: JSON.stringify({ id, properties })
@@ -451,8 +448,6 @@
         CONTACT_ID = found.id;
         CONTACT_EMAIL = found.email || email;
         CONTACT_NAME = [found.firstname, found.lastname].filter(Boolean).join(" ").trim();
-        ACTIVE_STATUS = found.active_status || "";
-        BASIC_STATUS = found.basic_seminar_status || "";
 
         // Mark as started
         await updateContact(CONTACT_ID, { basic_seminar_status: "started" });
@@ -461,7 +456,6 @@
         fillHeaderPills();
         setMsg("msg1","ok","Found your record and started your application.");
 
-        // Go Step2
         setStep(1);
         hide($("step1"));
         show($("step2"));
@@ -491,10 +485,8 @@
 
         BASIC_STATUS = "consented";
         fillHeaderPills();
-
         setMsg("msg2","ok","Consent recorded.");
 
-        // Go Step3
         setStep(2);
         hide($("step2"));
         show($("step3"));
@@ -521,7 +513,6 @@
 
         BASIC_STATUS = "completed";
         fillHeaderPills();
-
         setMsg("msg3","ok","Cash selected. Your application is completed.");
 
       }catch(e){
@@ -548,6 +539,7 @@
         BASIC_STATUS = "pending_payment";
         fillHeaderPills();
 
+        // Optional Stripe integration
         let checkoutUrl = "";
         const r = await api(STRIPE_CREATE_ENDPOINT, {
           method:"POST",
