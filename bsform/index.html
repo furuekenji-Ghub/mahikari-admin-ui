@@ -294,8 +294,9 @@
 
   <script>
     // ========= CONFIG =========
-    // Use absolute API URLs so we never hit Pages endpoints (prevents 405).
-    const API_BASE = "https://api.worlddivinelight.org";
+    // IMPORTANT: api.worlddivinelight.org may not have a valid SSL cert for Workers.
+    // api.mahikari.org is already configured as a Worker custom domain and is HTTPS-safe.
+    const API_BASE = "https://api.mahikari.org";
 
     // Stored in HubSpot
     const CONSENT_VERSION = "v2026-01-15";
@@ -343,7 +344,7 @@
         try { data = text ? JSON.parse(text) : null; } catch { data = { raw:text }; }
         return { ok: res.ok, status: res.status, data, raw: text };
       }catch(e){
-        return { ok:false, status:0, data:null, raw:String(e?.message||e), aborted:true };
+        return { ok:false, status:0, data:null, raw:String(e?.message||e) };
       }finally{
         clearTimeout(t);
       }
@@ -375,9 +376,7 @@
       $("statusPill2").textContent = "Status: " + st;
     }
 
-    // ========= Worker operations =========
-
-    // Lookup by email using Worker search (POST)
+    // Lookup by email (POST)
     async function lookupByEmail(email){
       const body = { keyword: email, branch: "", activeStatus: "" };
 
@@ -411,7 +410,7 @@
       };
     }
 
-    // Update HubSpot contact via Worker (POST)
+    // Update contact (POST)
     async function updateContact(id, properties){
       const r = await api(`${API_BASE}/api/contacts/update`, {
         method:"POST",
@@ -424,7 +423,6 @@
       return true;
     }
 
-    // ========= Step actions =========
     async function onLookup(){
       clearMsg("msg1");
       const email = $("email").value.trim();
@@ -449,7 +447,6 @@
         CONTACT_EMAIL = found.email || email;
         CONTACT_NAME = [found.firstname, found.lastname].filter(Boolean).join(" ").trim();
 
-        // Mark as started
         await updateContact(CONTACT_ID, { basic_seminar_status: "started" });
         BASIC_STATUS = "started";
 
@@ -539,7 +536,6 @@
         BASIC_STATUS = "pending_payment";
         fillHeaderPills();
 
-        // Optional Stripe integration
         let checkoutUrl = "";
         const r = await api(STRIPE_CREATE_ENDPOINT, {
           method:"POST",
@@ -573,14 +569,12 @@
     }
 
     function onReset(){ location.reload(); }
-
     function backTo1(){
       setStep(0);
       hide($("step2")); hide($("step3"));
       show($("step1"));
       clearMsg("msg2"); clearMsg("msg3");
     }
-
     function backTo2(){
       setStep(1);
       hide($("step3"));
@@ -588,7 +582,6 @@
       clearMsg("msg3");
     }
 
-    // Bind
     $("btnLookup").addEventListener("click", onLookup);
     $("btnReset").addEventListener("click", onReset);
     $("btnAgree").addEventListener("click", onAgree);
@@ -597,7 +590,6 @@
     $("btnCash").addEventListener("click", onCash);
     $("btnCard").addEventListener("click", onCard);
 
-    // Init
     setStep(0);
   </script>
 </body>
