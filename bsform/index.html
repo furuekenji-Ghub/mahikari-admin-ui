@@ -1,0 +1,665 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Basic Seminar Application | World Divine Light</title>
+  <style>
+    :root{
+      --border:#e6e6e6;
+      --muted:#667;
+      --bg:#fff;
+      --card:#fff;
+      --soft:#f7fafc;
+      --primary:#0b5;
+      --danger:#b00020;
+      --link:#5b2bbf;
+    }
+    *{ box-sizing:border-box; }
+    body{
+      margin:0; padding:0;
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+      background: var(--bg);
+      color:#111;
+    }
+    a{ color:var(--link); }
+    .wrap{
+      max-width: 720px;
+      margin: 0 auto;
+      padding: 18px 14px 60px;
+    }
+    header{
+      padding: 8px 0 6px;
+    }
+    h1{
+      margin: 6px 0 0;
+      font-size: 22px;
+      letter-spacing: .2px;
+    }
+    .sub{
+      margin: 6px 0 0;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.5;
+    }
+    .card{
+      margin-top: 14px;
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 14px;
+      background: var(--card);
+    }
+    .stepper{
+      display:flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-top: 10px;
+    }
+    .step{
+      display:flex;
+      align-items:center;
+      gap: 8px;
+      padding: 8px 10px;
+      border:1px solid var(--border);
+      border-radius: 999px;
+      background: var(--soft);
+      font-size: 12px;
+      color:#223;
+    }
+    .dot{
+      width:10px; height:10px;
+      border-radius:999px;
+      background:#cbd5e1;
+      flex:0 0 auto;
+    }
+    .step.active{
+      border-color:#cfe6ff;
+      background:#eef6ff;
+      font-weight: 700;
+    }
+    .step.active .dot{ background:#2563eb; }
+    .step.done{
+      border-color:#c9f2c1;
+      background:#f2fff0;
+    }
+    .step.done .dot{ background:#0b5; }
+
+    .row{ display:flex; gap:10px; flex-wrap:wrap; align-items:center; }
+    .muted{ color:var(--muted); font-size: 13px; }
+    .pill{
+      display:inline-block;
+      padding: 3px 10px;
+      border:1px solid var(--border);
+      border-radius: 999px;
+      background: var(--soft);
+      font-size: 12px;
+      color:#344;
+      white-space: nowrap;
+    }
+    label{ font-weight: 800; font-size: 14px; display:block; margin: 12px 0 8px; }
+    input{
+      width:100%;
+      padding: 14px 12px;
+      border:1px solid var(--border);
+      border-radius: 12px;
+      font-size: 16px;
+      background:#fff;
+    }
+    textarea{
+      width:100%;
+      min-height: 160px;
+      padding: 12px;
+      border:1px solid var(--border);
+      border-radius: 12px;
+      font-size: 14px;
+      background:#fff;
+      line-height: 1.6;
+    }
+    .btn{
+      padding: 12px 14px;
+      border-radius: 12px;
+      border:1px solid #cfcfcf;
+      background:#fff;
+      cursor:pointer;
+      font-size: 14px;
+      font-weight: 800;
+    }
+    .btn.primary{ border-color: var(--primary); color: var(--primary); }
+    .btn.danger{ border-color: var(--danger); color: var(--danger); }
+    .btn.ghost{ border-color: var(--border); color:#1f5bd8; }
+    .btn:disabled{ opacity:.5; cursor:not-allowed; }
+
+    .sectionTitle{
+      display:flex;
+      align-items:baseline;
+      gap: 8px;
+      flex-wrap:wrap;
+      margin: 0 0 8px;
+    }
+    .sectionTitle h2{
+      margin:0;
+      font-size: 16px;
+    }
+    .ja{
+      font-size: 12px;
+      color:#556;
+      font-weight: 700;
+    }
+    .box{
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 12px;
+      background: #fff;
+    }
+    .warn{
+      border:1px solid #ffe0a8;
+      background:#fff7e6;
+      border-radius: 12px;
+      padding: 10px 12px;
+      font-size: 13px;
+      color:#553;
+      line-height: 1.5;
+      margin-top: 10px;
+    }
+    .ok{
+      border:1px solid #bff0da;
+      background:#f2fff9;
+      border-radius: 12px;
+      padding: 10px 12px;
+      font-size: 13px;
+      color:#145;
+      line-height: 1.5;
+      margin-top: 10px;
+    }
+    .err{
+      border:1px solid #f5b6bf;
+      background:#fff1f2;
+      border-radius: 12px;
+      padding: 10px 12px;
+      font-size: 13px;
+      color:#7a1420;
+      line-height: 1.5;
+      margin-top: 10px;
+      white-space: pre-wrap;
+      overflow-wrap:anywhere;
+    }
+
+    .hide{ display:none !important; }
+    .divider{ height:1px; background:var(--border); margin: 14px 0; }
+
+    @media (max-width: 420px){
+      h1{ font-size: 20px; }
+      .btn{ width:100%; }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <h1>Basic Seminar Application <span class="ja">（ベーシック申込）</span></h1>
+      <p class="sub">
+        Please complete the steps below on your phone.<br>
+        <span class="ja">スマホで以下の手順に沿ってお申し込みください。</span>
+      </p>
+
+      <div class="stepper" aria-label="Steps">
+        <div class="step active" id="s1"><span class="dot"></span>1) Email <span class="ja">（照合）</span></div>
+        <div class="step" id="s2"><span class="dot"></span>2) Consent <span class="ja">（同意）</span></div>
+        <div class="step" id="s3"><span class="dot"></span>3) Payment <span class="ja">（支払い）</span></div>
+      </div>
+    </header>
+
+    <!-- STEP 1 -->
+    <div class="card" id="step1">
+      <div class="sectionTitle">
+        <h2>Step 1: Confirm your email</h2>
+        <span class="ja">手順1：メール照合</span>
+      </div>
+
+      <div class="muted">
+        Enter the same email address you used when you first registered.<br>
+        <span class="ja">最初に登録したメールアドレスを入力してください。</span>
+      </div>
+
+      <label for="email">Email <span class="ja">（メール）</span></label>
+      <input id="email" type="email" inputmode="email" autocomplete="email" placeholder="example@gmail.com" />
+
+      <div class="row" style="margin-top:12px;">
+        <button class="btn primary" id="btnLookup">Find my record <span class="ja">（照合）</span></button>
+        <button class="btn ghost" id="btnReset" type="button">Reset <span class="ja">（リセット）</span></button>
+      </div>
+
+      <div id="msg1" class="hide"></div>
+
+      <div class="divider"></div>
+
+      <div class="box">
+        <div class="muted">
+          <b>Privacy note</b>: We only use your email to locate your existing registration record.<br>
+          <span class="ja"><b>プライバシー</b>：入力されたメールは既存登録の照合にのみ使用します。</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- STEP 2 -->
+    <div class="card hide" id="step2">
+      <div class="sectionTitle">
+        <h2>Step 2: Consent</h2>
+        <span class="ja">手順2：同意</span>
+      </div>
+
+      <div class="row">
+        <span class="pill" id="whoPill">Contact: -</span>
+        <span class="pill" id="statusPill">Status: -</span>
+      </div>
+
+      <div class="warn" style="margin-top:12px;">
+        Please read the following and tap “I agree”.<br>
+        <span class="ja">以下をお読みの上、「同意する」を押してください。</span>
+      </div>
+
+      <label for="consentText">Consent / Terms</label>
+      <textarea id="consentText" readonly></textarea>
+
+      <div class="row" style="margin-top:12px;">
+        <button class="btn primary" id="btnAgree">I agree <span class="ja">（同意する）</span></button>
+        <button class="btn ghost" id="btnBack1" type="button">Back <span class="ja">（戻る）</span></button>
+      </div>
+
+      <div id="msg2" class="hide"></div>
+    </div>
+
+    <!-- STEP 3 -->
+    <div class="card hide" id="step3">
+      <div class="sectionTitle">
+        <h2>Step 3: Payment</h2>
+        <span class="ja">手順3：支払い</span>
+      </div>
+
+      <div class="row">
+        <span class="pill" id="whoPill2">Contact: -</span>
+        <span class="pill" id="statusPill2">Status: -</span>
+      </div>
+
+      <div class="muted" style="margin-top:10px;">
+        Choose a payment method.<br>
+        <span class="ja">支払い方法を選択してください。</span>
+      </div>
+
+      <div class="row" style="margin-top:12px;">
+        <button class="btn primary" id="btnCard">Credit Card <span class="ja">（クレカ）</span></button>
+        <button class="btn" id="btnCash">Cash / In-person <span class="ja">（現金）</span></button>
+        <button class="btn ghost" id="btnBack2" type="button">Back <span class="ja">（戻る）</span></button>
+      </div>
+
+      <div id="msg3" class="hide"></div>
+
+      <div class="divider"></div>
+
+      <div class="box">
+        <div class="muted">
+          <b>Note</b>: Credit card payment uses a secure hosted payment page.<br>
+          <span class="ja"><b>注</b>：クレカ決済は安全な外部決済画面（Hosted）を使用します。</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- footer tiny -->
+    <div class="muted" style="margin-top:16px; text-align:center;">
+      © World Divine Light
+    </div>
+  </div>
+
+  <script>
+    // ========= CONFIG =========
+    // 同意文バージョン（HubSpotに保存します）
+    const CONSENT_VERSION = "v2026-01-15";
+
+    // Basic Seminar fee (表示用。会計処理は別でOK)
+    const BASIC_FEE_DISPLAY_EN = "$XX (set by organizer)";
+    const BASIC_FEE_DISPLAY_JA = "（主催側で設定）";
+
+    // Stripeが未実装でも進められるようにしてあります
+    // 実装済みの場合は Worker に /api/stripe/create-checkout-session を追加して返す（後で対応）
+    const STRIPE_CREATE_ENDPOINT = "/api/stripe/create-checkout-session";
+
+    // ========= helpers =========
+    const $ = (id)=>document.getElementById(id);
+    function show(el){ el.classList.remove("hide"); }
+    function hide(el){ el.classList.add("hide"); }
+    function setMsg(boxId, kind, text){
+      const box = $(boxId);
+      box.className = kind;
+      box.textContent = text;
+      show(box);
+    }
+    function clearMsg(boxId){
+      const box = $(boxId);
+      box.className = "hide";
+      box.textContent = "";
+      hide(box);
+    }
+    function setStep(activeIndex){
+      const steps = [$("s1"), $("s2"), $("s3")];
+      steps.forEach((s,i)=>{
+        s.classList.remove("active");
+        s.classList.remove("done");
+        if (i < activeIndex) s.classList.add("done");
+        if (i === activeIndex) s.classList.add("active");
+      });
+    }
+    function safeLower(s){ return String(s||"").trim().toLowerCase(); }
+
+    async function api(path, opts={}){
+      const controller = new AbortController();
+      const t = setTimeout(()=>controller.abort(), 15000);
+      try{
+        const res = await fetch(path, { ...opts, signal: controller.signal, headers: { ...(opts.headers||{}) }});
+        const text = await res.text();
+        let data = null;
+        try { data = text ? JSON.parse(text) : null; } catch { data = { raw:text }; }
+        return { ok: res.ok, status: res.status, data, raw: text };
+      }catch(e){
+        return { ok:false, status:0, data:null, raw:String(e?.message||e), aborted:true };
+      }finally{
+        clearTimeout(t);
+      }
+    }
+
+    // ========= State =========
+    let CONTACT_ID = "";
+    let CONTACT_EMAIL = "";
+    let CONTACT_NAME = "";
+    let ACTIVE_STATUS = "";
+    let BASIC_STATUS = "";
+
+    // ========= Consent text (あなたの運用文言に差し替えOK) =========
+    const CONSENT_TEXT = `Basic Seminar Consent / 同意事項
+
+1) I agree to the terms, privacy policy, and cancellation policy.
+　規約・プライバシー・キャンセル規定に同意します。
+
+2) I understand this application is linked to my registered email address.
+　この申込は登録済みメールアドレスに紐づくことを理解します。
+
+3) I understand payment rules as instructed by the organizer.
+　支払い方法・規定は主催者の案内に従います。
+
+(Version: ${CONSENT_VERSION})`;
+
+    $("consentText").value = CONSENT_TEXT;
+
+    function fillHeaderPills(){
+      const who = CONTACT_NAME ? `${CONTACT_NAME} (${CONTACT_EMAIL})` : CONTACT_EMAIL || "-";
+      const st  = BASIC_STATUS || "-";
+      $("whoPill").textContent = "Contact: " + who;
+      $("statusPill").textContent = "Status: " + st;
+      $("whoPill2").textContent = "Contact: " + who;
+      $("statusPill2").textContent = "Status: " + st;
+    }
+
+    // ========= HubSpot/Worker operations =========
+
+    // 1) Lookup by email using /api/contacts/search
+    async function lookupByEmail(email){
+      // NOTE: your /api/contacts/search expects JSON body like:
+      // { keyword, branch, activeStatus }  (based on your earlier tests)
+      const body = { keyword: email, branch: "", activeStatus: "" };
+
+      const r = await api("/api/contacts/search", {
+        method:"POST",
+        headers:{ "content-type":"application/json" },
+        body: JSON.stringify(body)
+      });
+
+      if (!r.ok || !r.data?.ok){
+        throw new Error(`Search failed (${r.status})\n${r.raw}`);
+      }
+
+      const results = r.data?.results || [];
+      if (!Array.isArray(results) || results.length === 0){
+        return null;
+      }
+
+      // Prefer exact email match (case-insensitive)
+      const target = safeLower(email);
+
+      // HubSpot search results generally: { id, properties: { email, firstname, lastname, active_status, ... } }
+      let exact = results.find(x => safeLower(x?.properties?.email) === target);
+      if (!exact) exact = results[0];
+
+      const id = exact.id || exact?.properties?.hs_object_id || exact?.properties?.id;
+      const props = exact.properties || {};
+
+      return {
+        id: String(id || ""),
+        email: String(props.email || email || ""),
+        firstname: String(props.firstname || ""),
+        lastname: String(props.lastname || ""),
+        active_status: String(props.active_status || ""),
+        basic_seminar_status: String(props.basic_seminar_status || "")
+      };
+    }
+
+    // 2) Update contact properties
+    async function updateContact(id, properties){
+      const r = await api("/api/contacts/update", {
+        method:"POST",
+        headers:{ "content-type":"application/json" },
+        body: JSON.stringify({ id, properties })
+      });
+      if (!r.ok || !r.data?.ok){
+        throw new Error(`Update failed (${r.status})\n${r.raw}`);
+      }
+      return true;
+    }
+
+    // ========= Step actions =========
+
+    async function onLookup(){
+      clearMsg("msg1");
+      const email = $("email").value.trim();
+      if (!email){
+        setMsg("msg1","err","Please enter your email.\nメールを入力してください。");
+        return;
+      }
+
+      $("btnLookup").disabled = true;
+      $("btnReset").disabled = true;
+
+      try{
+        setMsg("msg1","ok","Searching...\n照合中...");
+        const found = await lookupByEmail(email);
+
+        if (!found || !found.id){
+          setMsg("msg1","err","No matching record found.\n一致する登録が見つかりませんでした。");
+          return;
+        }
+
+        CONTACT_ID = found.id;
+        CONTACT_EMAIL = found.email || email;
+        CONTACT_NAME = [found.firstname, found.lastname].filter(Boolean).join(" ").trim();
+        ACTIVE_STATUS = found.active_status || "";
+        BASIC_STATUS = found.basic_seminar_status || "";
+
+        // started を自動で入れる（申込開始）
+        await updateContact(CONTACT_ID, {
+          basic_seminar_status: "started"
+        });
+        BASIC_STATUS = "started";
+
+        fillHeaderPills();
+
+        setMsg("msg1","ok",
+          "Found your record and started your application.\n" +
+          "登録を確認し、申込を開始しました。"
+        );
+
+        // Go Step2
+        setStep(1);
+        hide($("step1"));
+        show($("step2"));
+
+      }catch(e){
+        setMsg("msg1","err", String(e.message || e));
+      }finally{
+        $("btnLookup").disabled = false;
+        $("btnReset").disabled = false;
+      }
+    }
+
+    async function onAgree(){
+      clearMsg("msg2");
+      $("btnAgree").disabled = true;
+      $("btnBack1").disabled = true;
+
+      try{
+        // consented を更新
+        const nowIso = new Date().toISOString();
+
+        await updateContact(CONTACT_ID, {
+          basic_seminar_consent: "true",
+          basic_seminar_consent_at: nowIso,
+          basic_seminar_consent_version: CONSENT_VERSION,
+          basic_seminar_status: "consented"
+        });
+
+        BASIC_STATUS = "consented";
+        fillHeaderPills();
+
+        setMsg("msg2","ok","Consent recorded.\n同意を記録しました。");
+
+        // Go Step3
+        setStep(2);
+        hide($("step2"));
+        show($("step3"));
+
+      }catch(e){
+        setMsg("msg2","err", String(e.message || e));
+      }finally{
+        $("btnAgree").disabled = false;
+        $("btnBack1").disabled = false;
+      }
+    }
+
+    async function onCash(){
+      clearMsg("msg3");
+      $("btnCard").disabled = true;
+      $("btnCash").disabled = true;
+      $("btnBack2").disabled = true;
+
+      try{
+        // 現金：ここでは完了扱い（運用に合わせて変更可）
+        await updateContact(CONTACT_ID, {
+          basic_payment_method: "cash",
+          basic_seminar_status: "completed"
+        });
+
+        BASIC_STATUS = "completed";
+        fillHeaderPills();
+
+        setMsg("msg3","ok",
+          "Cash selected. Your application is completed.\n" +
+          "現金を選択しました。申込は完了です。"
+        );
+
+      }catch(e){
+        setMsg("msg3","err", String(e.message || e));
+      }finally{
+        $("btnCard").disabled = false;
+        $("btnCash").disabled = false;
+        $("btnBack2").disabled = false;
+      }
+    }
+
+    async function onCard(){
+      clearMsg("msg3");
+      $("btnCard").disabled = true;
+      $("btnCash").disabled = true;
+      $("btnBack2").disabled = true;
+
+      try{
+        // pending_payment にする
+        await updateContact(CONTACT_ID, {
+          basic_payment_method: "card",
+          basic_seminar_status: "pending_payment"
+        });
+
+        BASIC_STATUS = "pending_payment";
+        fillHeaderPills();
+
+        // Stripeがまだ無い場合でも進む（次に繋ぐ）
+        // 実装済みなら /api/stripe/create-checkout-session が checkout_url を返す想定
+        let checkoutUrl = "";
+        const r = await api(STRIPE_CREATE_ENDPOINT, {
+          method:"POST",
+          headers:{ "content-type":"application/json" },
+          body: JSON.stringify({
+            contactId: CONTACT_ID,
+            email: CONTACT_EMAIL
+          })
+        });
+
+        if (r.ok && r.data?.ok && r.data?.checkout_url){
+          checkoutUrl = r.data.checkout_url;
+        }
+
+        if (checkoutUrl){
+          setMsg("msg3","ok",
+            "Redirecting to secure payment page...\n" +
+            "安全な決済画面へ移動します..."
+          );
+          // redirect
+          window.location.href = checkoutUrl;
+          return;
+        }
+
+        setMsg("msg3","warn",
+          "Credit card payment is marked as pending.\n" +
+          "カード決済は「決済待ち」に更新しました。\n\n" +
+          "Payment page is not connected yet.\n" +
+          "（決済ページは後で接続します）\n\n" +
+          "Fee: " + BASIC_FEE_DISPLAY_EN + " | " + BASIC_FEE_DISPLAY_JA
+        );
+
+      }catch(e){
+        setMsg("msg3","err", String(e.message || e));
+      }finally{
+        $("btnCard").disabled = false;
+        $("btnCash").disabled = false;
+        $("btnBack2").disabled = false;
+      }
+    }
+
+    function onReset(){
+      location.reload();
+    }
+
+    function backTo1(){
+      setStep(0);
+      hide($("step2")); hide($("step3"));
+      show($("step1"));
+      clearMsg("msg2"); clearMsg("msg3");
+    }
+
+    function backTo2(){
+      setStep(1);
+      hide($("step3"));
+      show($("step2"));
+      clearMsg("msg3");
+    }
+
+    // ========= Bind =========
+    $("btnLookup").addEventListener("click", onLookup);
+    $("btnReset").addEventListener("click", onReset);
+    $("btnAgree").addEventListener("click", onAgree);
+    $("btnBack1").addEventListener("click", backTo1);
+    $("btnBack2").addEventListener("click", backTo2);
+    $("btnCash").addEventListener("click", onCash);
+    $("btnCard").addEventListener("click", onCard);
+
+    // initial
+    setStep(0);
+  </script>
+</body>
+</html>
