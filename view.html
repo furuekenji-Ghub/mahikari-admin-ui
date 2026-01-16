@@ -10,40 +10,15 @@
     .pill { display:inline-block; padding:2px 8px; border:1px solid #ddd; border-radius:999px; font-size:12px; background:#f7fafc; color:#344; white-space:nowrap; }
     hr { margin:18px 0; }
 
-    /* ===== Profile (Desktop default: two columns) ===== */
-    .profileGrid {
-      display:grid;
-      grid-template-columns: 220px 1fr;
-      gap: 8px 14px;
-      margin-top: 12px;
-    }
+    .profileGrid { display:grid; grid-template-columns: 220px 1fr; gap: 8px 14px; margin-top: 12px; }
     .k { font-weight:700; }
-    .v {
-      border-bottom:1px dashed #ddd;
-      padding-bottom:4px;
-      overflow-wrap:anywhere;
-      word-break: break-word;
-    }
+    .v { border-bottom:1px dashed #ddd; padding-bottom:4px; overflow-wrap:anywhere; word-break: break-word; }
 
-    /* Mobile-friendly profile cards */
     .profileCards { display:none; margin-top: 12px; }
-    .pitem{
-      border-bottom:1px dashed #ddd;
-      padding:10px 0;
-    }
-    .pitem .label{
-      font-weight:800;
-      font-size:14px;
-      color:#111;
-    }
-    .pitem .value{
-      margin-top:6px;
-      color:#111;
-      overflow-wrap:anywhere;
-      word-break: break-word;
-    }
+    .pitem{ border-bottom:1px dashed #ddd; padding:10px 0; }
+    .pitem .label{ font-weight:800; font-size:14px; color:#111; }
+    .pitem .value{ margin-top:6px; color:#111; overflow-wrap:anywhere; word-break: break-word; }
 
-    /* ===== Notes ===== */
     .note { border:1px solid #ddd; border-radius:10px; padding:10px 12px; margin:10px 0; background:#fff; }
     textarea { width:100%; min-height:120px; padding:10px; box-sizing:border-box; }
     .row { display:flex; gap:10px; flex-wrap:wrap; align-items:center; margin-top:10px; }
@@ -63,54 +38,21 @@
     .noteHeadLeft { display:flex; flex-direction:column; gap:6px; align-items:flex-start; }
     .dateRight { font-size:12px; color:#667; white-space:nowrap; padding-top:2px; }
 
-    .deletedBox{
-      border:1px solid #ddd;
-      border-radius:12px;
-      padding:18px;
-      background:#fff;
-      margin-top:16px;
-    }
+    .deletedBox{ border:1px solid #ddd; border-radius:12px; padding:18px; background:#fff; margin-top:16px; }
 
-    .profileActions {
-      margin-top: 14px;
-      padding-top: 10px;
-      border-top: 1px solid #eee;
-    }
+    .profileActions { margin-top: 14px; padding-top: 10px; border-top: 1px solid #eee; }
 
-    /* ===== Basic Seminar ===== */
-    .seminarBox{
-      margin-top: 10px;
-      border: 1px solid #e7e7e7;
-      border-radius: 12px;
-      padding: 12px;
-      background: #fff;
-    }
-    .seminarGrid{
-      display:grid;
-      grid-template-columns: 220px 1fr;
-      gap: 8px 14px;
-    }
-    .desc{
-      font-size:13px;
-      color:#555;
-      margin-left:10px;
-      overflow-wrap:anywhere;
-      word-break: break-word;
-    }
+    /* Seminar */
+    .seminarBox{ margin-top: 10px; border: 1px solid #e7e7e7; border-radius: 12px; padding: 12px; background: #fff; }
+    .seminarGrid{ display:grid; grid-template-columns: 220px 1fr; gap: 8px 14px; }
+    .desc{ font-size:13px; color:#555; margin-left:10px; overflow-wrap:anywhere; word-break: break-word; }
     .badge{
-      display:inline-block;
-      padding: 4px 10px;
-      border-radius: 999px;
-      border: 1px solid #ddd;
-      background: #f3f4f6;
-      font-size: 12px;
-      white-space: nowrap;
-      vertical-align: middle;
+      display:inline-block; padding: 4px 10px; border-radius: 999px;
+      border: 1px solid #ddd; background: #f3f4f6; font-size: 12px; white-space: nowrap; vertical-align: middle;
     }
     .badge.primary{ background:#e8f1ff; border-color:#c7ddff; color:#1d4ed8; }
     .badge.neutral{ background:#f3f4f6; border-color:#ddd; color:#555; }
 
-    /* ===== Mobile breakpoint ===== */
     @media (max-width: 768px){
       .profileGrid { display:none; }
       .profileCards { display:block; }
@@ -148,11 +90,11 @@
 
     <div class="row profileActions">
       <button type="button" id="editProfileBtn">Edit / 編集</button>
-      <button type="button" class="danger" id="deleteProfileBtn">Delete / 削除</button>
+      <button type="button" class="danger" id="deleteProfileBtn">Delete Contact / 連絡先削除</button>
       <span class="muted" id="actionStatus"></span>
     </div>
 
-    <!-- ✅ Basic Seminar Application (show ONLY when Active Status is Non Kamikumite) -->
+    <!-- Basic Seminar (Non Kamikumite only) -->
     <div id="basicSeminarSection" style="display:none;">
       <hr />
       <div class="section-title">
@@ -162,6 +104,15 @@
 
       <div class="seminarBox">
         <div class="seminarGrid" id="basicSeminarGrid"></div>
+
+        <div class="row" style="margin-top:14px;">
+          <button type="button" class="ghost" id="resetSeminarBtn">Reset Seminar / 申込リセット</button>
+          <span class="muted" id="seminarActionStatus"></span>
+        </div>
+
+        <div class="muted" style="margin-top:8px;">
+          ※ Reset Seminar は「Contactは残して、申込関連の8項目だけ初期化」します
+        </div>
       </div>
     </div>
 
@@ -172,11 +123,6 @@
       <span class="h-ja">（施真カード）</span>
       <span id="mePill" class="pill" style="display:none;"></span>
     </div>
-
-    <p class="muted" style="margin-top:0;">
-      Seshin card is stored and displayed as plain content only.
-      <span class="h-ja">（本文のみを保存・表示します）</span>
-    </p>
 
     <textarea id="newNote" placeholder="Type a note... / メモを入力してください"></textarea>
     <div class="row">
@@ -207,6 +153,7 @@
   function qs(id){ return document.getElementById(id); }
   function setStatus(msg){ qs("status").textContent = msg || ""; }
   function setActionStatus(msg){ qs("actionStatus").textContent = msg || ""; }
+  function setSeminarActionStatus(msg){ qs("seminarActionStatus").textContent = msg || ""; }
 
   function esc(s){
     return String(s ?? "")
@@ -235,40 +182,15 @@
     }
   }
 
-  function htmlToPlainText(html) {
-    if (!html) return "";
-    try {
-      const normalized = String(html)
-        .replaceAll("<br>", "\n").replaceAll("<br/>", "\n").replaceAll("<br />", "\n")
-        .replaceAll("</p>", "\n").replaceAll("</div>", "\n").replaceAll("</li>", "\n");
-      const doc = new DOMParser().parseFromString(normalized, "text/html");
-      const text = (doc.body && doc.body.textContent) ? doc.body.textContent : "";
-      return text.replace(/\n{3,}/g, "\n\n").trim();
-    } catch { return String(html); }
-  }
-  function looksLikeHtml(s){
-    const t = String(s || "").trim();
-    return t.startsWith("<") && t.includes(">") && /<\/?[a-z][\s\S]*>/i.test(t);
-  }
-  function normalizeToPlain(textOrHtml){
-    const raw = String(textOrHtml || "");
-    return looksLikeHtml(raw) ? htmlToPlainText(raw) : raw;
-  }
-
   function branchLabel(v){ const k=String(v||"").trim(); return BRANCH_LABEL[k] || k; }
   function activeLabel(v){ const k=String(v||"").trim(); return ACTIVE_LABEL[k] || k; }
-
-  function toEpoch(note){
-    const p = note?.createdate ? Date.parse(String(note.createdate)) : NaN;
-    return Number.isNaN(p) ? 0 : p;
-  }
+  function toEpoch(note){ const p = note?.createdate ? Date.parse(String(note.createdate)) : NaN; return Number.isNaN(p) ? 0 : p; }
 
   function isNonKamikumite(activeStatusRaw){
     const v = String(activeStatusRaw || "").trim().toLowerCase();
     return v === "non_kamikumite" || v === "non kamikumite";
   }
 
-  // ===== Seminar label maps (EN | JA) =====
   const SEM_STATUS_DESC = {
     started: "Application started (record created). ｜ 申込開始（申込レコード作成済み）",
     consented: "Consent completed. ｜ 同意完了",
@@ -292,56 +214,14 @@
     g.innerHTML = "";
 
     const rows = [
-      {
-        label:"Basic Seminar Status",
-        value: props.basic_seminar_status,
-        desc: SEM_STATUS_DESC[String(props.basic_seminar_status||"").trim()] || "Status not set. ｜ 未設定",
-        primary:true
-      },
-      {
-        label:"Basic Seminar Consent",
-        value: props.basic_seminar_consent,
-        desc: (String(props.basic_seminar_consent||"").trim()==="true")
-          ? "Consent given. ｜ 同意済み"
-          : "Consent not yet given. ｜ 未同意",
-        primary:true
-      },
-      {
-        label:"Basic Seminar Consent At",
-        value: props.basic_seminar_consent_at,
-        desc: "Consent timestamp. ｜ 同意日時",
-        primary:false
-      },
-      {
-        label:"Basic Seminar Consent Version",
-        value: props.basic_seminar_consent_version,
-        desc: "Consent document version. ｜ 同意文書バージョン",
-        primary:false
-      },
-      {
-        label:"Basic Payment Method",
-        value: props.basic_payment_method,
-        desc: PAY_METHOD_DESC[String(props.basic_payment_method||"").trim()] || "Payment method not set. ｜ 未設定",
-        primary:true
-      },
-      {
-        label:"Basic Stripe Checkout Session ID",
-        value: props.basic_stripe_checkout_session_id,
-        desc: "Stripe checkout session ID. ｜ Stripe決済ID",
-        primary:false
-      },
-      {
-        label:"Basic Paid At",
-        value: props.basic_paid_at,
-        desc: "Payment completed timestamp. ｜ 支払い完了日時",
-        primary:false
-      },
-      {
-        label:"Basic Paid Amount",
-        value: props.basic_paid_amount,
-        desc: "Paid amount (USD). ｜ 支払金額（USD）",
-        primary:false
-      },
+      { label:"Basic Seminar Status", value: props.basic_seminar_status, desc: SEM_STATUS_DESC[String(props.basic_seminar_status||"").trim()] || "Status not set. ｜ 未設定", primary:true },
+      { label:"Basic Seminar Consent", value: props.basic_seminar_consent, desc: (String(props.basic_seminar_consent||"").trim()==="true") ? "Consent given. ｜ 同意済み" : "Consent not yet given. ｜ 未同意", primary:true },
+      { label:"Basic Seminar Consent At", value: props.basic_seminar_consent_at, desc: "Consent timestamp. ｜ 同意日時", primary:false },
+      { label:"Basic Seminar Consent Version", value: props.basic_seminar_consent_version, desc: "Consent document version. ｜ 同意文書バージョン", primary:false },
+      { label:"Basic Payment Method", value: props.basic_payment_method, desc: PAY_METHOD_DESC[String(props.basic_payment_method||"").trim()] || "Payment method not set. ｜ 未設定", primary:true },
+      { label:"Basic Stripe Checkout Session ID", value: props.basic_stripe_checkout_session_id, desc: "Stripe checkout session ID. ｜ Stripe決済ID", primary:false },
+      { label:"Basic Paid At", value: props.basic_paid_at, desc: "Payment completed timestamp. ｜ 支払い完了日時", primary:false },
+      { label:"Basic Paid Amount", value: props.basic_paid_amount, desc: "Paid amount (USD). ｜ 支払金額（USD）", primary:false },
     ];
 
     for (const r of rows){
@@ -355,19 +235,6 @@
 
       g.appendChild(kDiv);
       g.appendChild(vDiv);
-    }
-  }
-
-  let NOTES_CACHE = [];
-  let CONTACT_ID = "";
-
-  async function loadMe(){
-    const r = await api("/api/me");
-    if (!r.ok || !r.data?.ok) return;
-    const label = (r.data?.name || r.data?.email || "").trim();
-    if (label) {
-      qs("mePill").textContent = "Logged in as: " + label;
-      qs("mePill").style.display = "inline-block";
     }
   }
 
@@ -422,13 +289,35 @@
 
       const item = document.createElement("div");
       item.className = "pitem";
-      item.innerHTML = `
-        <div class="label">${esc(label)}</div>
-        <div class="value">${esc(v)}</div>
-      `;
+      item.innerHTML = `<div class="label">${esc(label)}</div><div class="value">${esc(v)}</div>`;
       cards.appendChild(item);
     }
   }
+
+  // notes rendering (same as before)
+  function htmlToPlainText(html) {
+    if (!html) return "";
+    try {
+      const normalized = String(html)
+        .replaceAll("<br>", "\n").replaceAll("<br/>", "\n").replaceAll("<br />", "\n")
+        .replaceAll("</p>", "\n").replaceAll("</div>", "\n").replaceAll("</li>", "\n");
+      const doc = new DOMParser().parseFromString(normalized, "text/html");
+      const text = (doc.body && doc.body.textContent) ? doc.body.textContent : "";
+      return text.replace(/\n{3,}/g, "\n\n").trim();
+    } catch { return String(html); }
+  }
+  function looksLikeHtml(s){
+    const t = String(s || "").trim();
+    return t.startsWith("<") && t.includes(">") && /<\/?[a-z][\s\S]*>/i.test(t);
+  }
+  function normalizeToPlain(textOrHtml){
+    const raw = String(textOrHtml || "");
+    return looksLikeHtml(raw) ? htmlToPlainText(raw) : raw;
+  }
+
+  let NOTES_CACHE = [];
+  let CONTACT_ID = "";
+  let CONTACT_PROPS = {};
 
   function renderNotes(){
     const box = qs("notes");
@@ -456,21 +345,7 @@
           </div>
           <div class="dateRight">${esc(dateStr)}</div>
         </div>
-
         <pre>${esc(bodyText)}</pre>
-
-        <div class="row">
-          <button type="button" onclick="openEdit('${esc(noteId)}')">Edit / 編集</button>
-          <button type="button" class="danger" onclick="deleteNote('${esc(noteId)}')">Delete / 削除</button>
-        </div>
-
-        <div class="appendBox" id="appendBox_${esc(noteId)}">
-          <textarea id="appendText_${esc(noteId)}"></textarea>
-          <div class="row">
-            <button type="button" class="primary" onclick="saveEdit('${esc(noteId)}')">Save / 保存</button>
-            <button type="button" class="ghost" onclick="closeEdit('${esc(noteId)}')">Cancel / キャンセル</button>
-          </div>
-        </div>
       `;
       box.appendChild(div);
     }
@@ -485,132 +360,78 @@
 
     setStatus("Loading... / 読み込み中...");
     setActionStatus("");
+    setSeminarActionStatus("");
 
-    try { await loadMe(); } catch {}
-
+    // Contact
     const c = await api(`/api/contacts/get?id=${encodeURIComponent(CONTACT_ID)}`);
     if (!c.ok || !c.data?.ok){
       setStatus("");
       alert(`Failed: ${c.status}\n` + c.raw);
       return;
     }
+    CONTACT_PROPS = c.data.properties || {};
+    renderProfile(CONTACT_PROPS, CONTACT_ID);
 
-    const props = c.data.properties || {};
-    renderProfile(props, CONTACT_ID);
-
-    // Show Basic Seminar ONLY for Non Kamikumite
+    // Seminar section
     const sec = document.getElementById("basicSeminarSection");
-    const showBasic = isNonKamikumite(props.active_status);
+    const showBasic = isNonKamikumite(CONTACT_PROPS.active_status);
     if (sec) sec.style.display = showBasic ? "block" : "none";
-    if (showBasic) renderBasicSeminar(props);
+    if (showBasic) renderBasicSeminar(CONTACT_PROPS);
 
+    // Notes list
     const n = await api(`/api/notes/list?contactId=${encodeURIComponent(CONTACT_ID)}`);
-    if (!n.ok || !n.data?.ok){
-      setStatus("");
-      alert(`Failed notes: ${n.status}\n` + n.raw);
-      return;
+    if (n.ok && n.data?.ok) {
+      NOTES_CACHE = (n.data.notes || []).slice();
+      renderNotes( );
     }
-    NOTES_CACHE = (n.data.notes || []).slice();
-    renderNotes();
     setStatus("");
   }
 
-  async function addNote(){
-    const body = (qs("newNote").value||"").trim();
-    if (!body){ alert("Please enter a note. / メモを入力してください"); return; }
-    setStatus("Saving... / 保存中...");
+  // ✅ Reset seminar fields only (safe)
+  async function resetSeminar(){
+    if (!confirm("Reset seminar fields only?\n（申込関連の項目だけ初期化します）")) return;
 
-    const r = await api(`/api/notes/create`, {
+    qs("resetSeminarBtn").disabled = true;
+    setSeminarActionStatus("Resetting... / 初期化中...");
+
+    const props = {
+      basic_seminar_status: "",
+      basic_seminar_consent: "",
+      basic_seminar_consent_at: "",
+      basic_seminar_consent_version: "",
+      basic_payment_method: "",
+      basic_stripe_checkout_session_id: "",
+      basic_paid_at: "",
+      basic_paid_amount: "",
+    };
+
+    const r = await api(`/api/contacts/update`, {
       method:"POST",
       headers:{ "content-type":"application/json" },
-      body: JSON.stringify({ contactId: CONTACT_ID, body })
+      body: JSON.stringify({ id: CONTACT_ID, properties: props })
     });
 
+    qs("resetSeminarBtn").disabled = false;
+
     if (!r.ok || !r.data?.ok){
-      setStatus("");
-      alert(`Add note failed: ${r.status}\n` + r.raw);
+      setSeminarActionStatus("");
+      alert(`Reset failed: ${r.status}\n${r.raw}`);
       return;
     }
 
-    qs("newNote").value = "";
+    setSeminarActionStatus("Done / 完了");
     await loadAll();
-    setStatus("Saved / 保存しました");
   }
 
-  function openEdit(noteId){
-    for (const n of NOTES_CACHE){
-      const b = document.getElementById("appendBox_" + n.id);
-      if (b) b.style.display = "none";
-    }
-    const box = document.getElementById("appendBox_" + noteId);
-    const ta = document.getElementById("appendText_" + noteId);
-    if (!box || !ta) return;
-
-    const note = NOTES_CACHE.find(x => String(x.id) === String(noteId));
-    ta.value = normalizeToPlain(note?.body || "");
-    box.style.display = "block";
-    ta.focus();
-  }
-
-  function closeEdit(noteId){
-    const box = document.getElementById("appendBox_" + noteId);
-    if (box) box.style.display = "none";
-  }
-
-  async function saveEdit(noteId){
-    const ta = document.getElementById("appendText_" + noteId);
-    const text = (ta?.value||"").trim();
-    if (!text){ alert("Please enter content. / 内容を入力してください"); return; }
-
-    setStatus("Updating... / 更新中...");
-
-    const r = await api(`/api/notes/update`, {
-      method:"POST",
-      headers:{ "content-type":"application/json" },
-      body: JSON.stringify({ noteId, body: text })
-    });
-
-    if (!r.ok || !r.data?.ok){
-      setStatus("");
-      alert(`Update failed: ${r.status}\n` + r.raw);
-      return;
-    }
-
-    await loadAll();
-    setStatus("Saved / 保存しました");
-  }
-
-  async function deleteNote(noteId){
-    if (!confirm("Delete this note? / このメモを削除しますか？")) return;
-    if (!confirm("This cannot be undone. Continue? / 元に戻せません。続行しますか？")) return;
-
-    setStatus("Deleting... / 削除中...");
-
-    const r = await api(`/api/notes/delete`, {
-      method:"POST",
-      headers:{ "content-type":"application/json" },
-      body: JSON.stringify({ noteId })
-    });
-
-    if (!r.ok || !r.data?.ok){
-      setStatus("");
-      alert(`Delete failed: ${r.status}\n` + r.raw);
-      return;
-    }
-
-    await loadAll();
-    setStatus("Deleted / 削除しました");
-  }
-
+  // ✅ FIXED delete: always POST /api/contacts/delete (chunk notes then delete)
   async function deleteProfileNoTimeout(){
-    if (!confirm("本当に削除していいですか？\nDelete this contact?")) return;
-    if (!confirm("この操作は元に戻せません。\n続けて削除しますか？\nThis cannot be undone. Continue?")) return;
+    if (!confirm("Delete this contact?\n本当に削除していいですか？")) return;
+    if (!confirm("This cannot be undone.\n元に戻せません。続けますか？")) return;
 
     qs("deleteProfileBtn").disabled = true;
     qs("editProfileBtn").disabled = true;
     setActionStatus("Deleting... / 削除中...");
 
-    // Use your existing delete endpoint behavior (notes chunking)
     let cursor = null;
     let total = 0;
 
@@ -621,13 +442,11 @@
         body: JSON.stringify({ id: CONTACT_ID, phase:"notes", cursor, notes_deleted_total: total })
       });
 
-      if (r.aborted) { await new Promise(res => setTimeout(res, 600)); continue; }
-
       if (!r.ok || !r.data?.ok){
         qs("deleteProfileBtn").disabled = false;
         qs("editProfileBtn").disabled = false;
         setActionStatus("");
-        alert(`Delete failed: ${r.status}\n` + r.raw);
+        alert(`Delete failed: ${r.status}\n${r.raw}`);
         return;
       }
 
@@ -640,13 +459,15 @@
 
       cursor = r.data.cursor;
       total = r.data.notes_deleted_total || total;
-      setActionStatus(`Deleting... / 削除中...（Seshin card削除 ${total}件）`);
+      setActionStatus(`Deleting... / 削除中...（Notes deleted: ${total}）`);
       await new Promise(res => setTimeout(res, 250));
     }
   }
 
-  qs("addBtn").onclick = addNote;
+  // bind
+  qs("resetSeminarBtn").onclick = resetSeminar;
   qs("reloadBtn").onclick = loadAll;
+
   loadAll();
 </script>
 
