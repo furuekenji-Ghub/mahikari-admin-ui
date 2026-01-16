@@ -378,12 +378,12 @@
 
     // Lookup by email using /api/contacts/search
     async function lookupByEmail(email){
+      const API_BASE = "https://api.worlddivinelight.org";
       // Your /api/contacts/search expects JSON body like:
       // { keyword, branch, activeStatus }
       const body = { keyword: email, branch: "", activeStatus: "" };
 
-      const r = await api("/api/contacts/search", {
-        method:"POST",
+　　　const r = await api(`${API_BASE}/api/contacts/search`, {        method:"POST",
         headers:{ "content-type":"application/json" },
         body: JSON.stringify(body)
       });
