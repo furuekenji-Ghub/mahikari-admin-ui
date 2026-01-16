@@ -1,605 +1,153 @@
-<!doctype html>
-<html lang="ja">
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>View | World Divine Light Admin</title>
-  <link rel="stylesheet" href="/css/style.css" />
-  <style>
-    .muted { color:#666; font-size:0.9em; }
-    .pill { display:inline-block; padding:2px 8px; border:1px solid #ddd; border-radius:999px; font-size:12px; background:#f7fafc; color:#344; white-space:nowrap; }
-    hr { margin:18px 0; }
+<!-- ===== Basic Seminar Application Status ===== -->
+<section class="card" style="margin-top:20px;">
+  <h3>Basic Seminar Application <span class="muted">（ベーシック申込ステータス）</span></h3>
 
-    .profileGrid { display:grid; grid-template-columns: 220px 1fr; gap: 8px 14px; margin-top: 12px; }
-    .k { font-weight:700; }
-    .v { border-bottom:1px dashed #ddd; padding-bottom:4px; overflow-wrap:anywhere; word-break: break-word; }
+  <table class="status-table">
+    <tr>
+      <th>Basic Seminar Status</th>
+      <td>
+        <span class="badge primary" id="bs_status_badge">-</span>
+        <span class="desc" id="bs_status_desc"></span>
+      </td>
+    </tr>
 
-    .profileCards { display:none; margin-top: 12px; }
-    .pitem{ border-bottom:1px dashed #ddd; padding:10px 0; }
-    .pitem .label{ font-weight:800; font-size:14px; color:#111; }
-    .pitem .value{ margin-top:6px; color:#111; overflow-wrap:anywhere; word-break: break-word; }
+    <tr>
+      <th>Basic Seminar Consent</th>
+      <td>
+        <span class="badge primary" id="bs_consent_badge">-</span>
+        <span class="desc">Consent given / 同意済み</span>
+      </td>
+    </tr>
 
-    .note { border:1px solid #ddd; border-radius:10px; padding:10px 12px; margin:10px 0; background:#fff; }
-    textarea { width:100%; min-height:120px; padding:10px; box-sizing:border-box; }
-    .row { display:flex; gap:10px; flex-wrap:wrap; align-items:center; margin-top:10px; }
-    pre { white-space:pre-wrap; margin:8px 0 0; overflow-wrap:anywhere; word-break: break-word; }
-    .appendBox { margin-top:10px; display:none; }
-    .appendBox textarea { min-height:140px; }
+    <tr>
+      <th>Basic Seminar Consent At</th>
+      <td>
+        <span class="badge neutral" id="bs_consent_at">-</span>
+        <span class="desc">Consent timestamp / 同意日時</span>
+      </td>
+    </tr>
 
-    button { padding:10px 12px; border:1px solid #999; background:#fff; border-radius:10px; cursor:pointer; }
-    button.primary { border-color:#0b5; }
-    button.ghost { border-color:#ddd; }
-    button.danger { border-color:#b00020; color:#b00020; }
+    <tr>
+      <th>Basic Seminar Consent Version</th>
+      <td>
+        <span class="badge neutral" id="bs_consent_version">-</span>
+        <span class="desc">Consent document version / 同意文書バージョン</span>
+      </td>
+    </tr>
 
-    .section-title { display:flex; align-items:baseline; gap:8px; flex-wrap:wrap; }
-    .h-ja { font-size:0.85em; font-weight:600; color:#444; }
+    <tr>
+      <th>Basic Payment Method</th>
+      <td>
+        <span class="badge primary" id="bs_payment_badge">-</span>
+        <span class="desc" id="bs_payment_desc"></span>
+      </td>
+    </tr>
 
-    .noteHead { display:flex; align-items:flex-start; justify-content:space-between; gap:10px; margin-bottom:6px; }
-    .noteHeadLeft { display:flex; flex-direction:column; gap:6px; align-items:flex-start; }
-    .dateRight { font-size:12px; color:#667; white-space:nowrap; padding-top:2px; }
+    <tr>
+      <th>Basic Stripe Checkout Session ID</th>
+      <td>
+        <span class="badge neutral" id="bs_stripe_session">-</span>
+        <span class="desc">Stripe checkout session ID / Stripe決済ID</span>
+      </td>
+    </tr>
 
-    .deletedBox{ border:1px solid #ddd; border-radius:12px; padding:18px; background:#fff; margin-top:16px; }
+    <tr>
+      <th>Basic Paid At</th>
+      <td>
+        <span class="badge neutral" id="bs_paid_at">-</span>
+        <span class="desc">Payment completed time / 支払い完了日時</span>
+      </td>
+    </tr>
 
-    .profileActions { margin-top: 14px; padding-top: 10px; border-top: 1px solid #eee; }
+    <tr>
+      <th>Basic Paid Amount</th>
+      <td>
+        <span class="badge neutral" id="bs_paid_amount">-</span>
+        <span class="desc">Paid amount (USD) / 支払金額（USD）</span>
+      </td>
+    </tr>
+  </table>
+</section>
 
-    /* ===== Basic Seminar ===== */
-    .seminarBox{ margin-top: 10px; border: 1px solid #e7e7e7; border-radius: 12px; padding: 12px; background: #fff; }
-    .seminarGrid{ display:grid; grid-template-columns: 220px 1fr; gap: 8px 14px; }
-
-    .badge{
-      display:inline-block;
-      padding: 4px 10px;
-      border-radius: 999px;
-      border: 1px solid #ddd;
-      background: #eef6ff;
-      font-size: 12px;
-      white-space: nowrap;
-      vertical-align: middle;
-    }
-    .st_started{ background:#eef6ff; border-color:#cfe6ff; }
-    .st_consented{ background:#f2fff0; border-color:#c9f2c1; }
-    .st_pending_payment{ background:#fff7e6; border-color:#ffe0a8; }
-    .st_paid{ background:#f2fff9; border-color:#bff0da; }
-    .st_completed{ background:#f7f7f7; border-color:#dedede; }
-
-    .statusExplain{
-      display:inline-block;
-      margin-left:10px;
-      font-size:12px;
-      color:#445;
-      vertical-align: middle;
-      overflow-wrap:anywhere;
-      word-break: break-word;
-    }
-    .statusExplain .ja{ color:#556; margin-left:6px; }
-    .statusExplain .sep{ margin:0 6px; color:#99a; }
-
-    @media (max-width: 768px){
-      .profileGrid { display:none; }
-      .profileCards { display:block; }
-      #meta { overflow-wrap:anywhere; word-break:break-word; }
-      .seminarGrid{ grid-template-columns: 1fr; }
-      .statusExplain{ margin-left:0; display:block; margin-top:6px; }
-    }
-  </style>
-</head>
-<body>
-
-<header>
-  <h2>View <span class="h-ja">（個人詳細）</span></h2>
-  <small><a href="/contacts.html">← Back to Contacts / 連絡先一覧へ戻る</a></small>
-</header>
-
-<div class="card">
-  <div class="muted" id="meta">Loading...</div>
-
-  <div id="deletedState" style="display:none;">
-    <div class="deletedBox">
-      <b>この情報は削除されました。</b>
-      <div class="muted" style="margin-top:6px;">This record has been deleted.</div>
-    </div>
-  </div>
-
-  <div id="contentState">
-    <div class="section-title">
-      <h3 style="margin: 14px 0 6px;">Profile</h3>
-      <span class="h-ja">（基本情報）</span>
-    </div>
-
-    <div class="profileGrid" id="profileGrid"></div>
-    <div class="profileCards" id="profileCards"></div>
-
-    <div class="row profileActions">
-      <button type="button" id="editProfileBtn">Edit / 編集</button>
-      <button type="button" class="danger" id="deleteProfileBtn">Delete / 削除</button>
-      <span class="muted" id="actionStatus"></span>
-    </div>
-
-    <div id="basicSeminarSection" style="display:none;">
-      <hr />
-      <div class="section-title">
-        <h3 style="margin: 14px 0 6px;">Basic Seminar Application</h3>
-        <span class="h-ja">（ベーシック申込ステータス）</span>
-      </div>
-
-      <div class="seminarBox">
-        <div class="seminarGrid" id="basicSeminarGrid"></div>
-        <div class="muted" id="basicSeminarHint" style="margin-top:10px; display:none;">
-          ※ Basicセミナー用の8プロパティがAPIレスポンスに含まれていない場合、この欄は「-」になります。
-        </div>
-      </div>
-    </div>
-
-    <hr />
-
-    <div class="section-title">
-      <h3 style="margin: 14px 0 6px;">Seshin card</h3>
-      <span class="h-ja">（施真カード）</span>
-      <span id="mePill" class="pill" style="display:none;"></span>
-    </div>
-
-    <p class="muted" style="margin-top:0;">
-      Seshin card is stored and displayed as plain content only.
-      <span class="h-ja">（本文のみを保存・表示します）</span>
-    </p>
-
-    <textarea id="newNote" placeholder="Type a note... / メモを入力してください"></textarea>
-    <div class="row">
-      <button type="button" class="primary" id="addBtn">Add Note / 追加</button>
-      <button type="button" class="ghost" id="reloadBtn">Reload / 再読み込み</button>
-      <span class="muted" id="status"></span>
-    </div>
-
-    <div id="notes"></div>
-  </div>
-</div>
+<style>
+  .status-table {
+    width:100%;
+    border-collapse:collapse;
+    margin-top:12px;
+  }
+  .status-table th {
+    text-align:left;
+    padding:8px;
+    width:32%;
+    color:#333;
+    vertical-align:top;
+  }
+  .status-table td {
+    padding:8px;
+  }
+  .badge {
+    display:inline-block;
+    padding:4px 10px;
+    border-radius:999px;
+    font-size:12px;
+    font-weight:700;
+    margin-right:8px;
+  }
+  .badge.primary {
+    background:#e8f1ff;
+    color:#1d4ed8;
+    border:1px solid #c7ddff;
+  }
+  .badge.neutral {
+    background:#f3f4f6;
+    color:#555;
+    border:1px solid #ddd;
+  }
+  .desc {
+    font-size:13px;
+    color:#555;
+  }
+</style>
 
 <script>
-  const BRANCH_LABEL = {
-    canada:"Canada", new_york:"New York", chicago:"Chicago", los_angeles:"Los Angeles",
-    california:"California", houston:"Houston", hawaii:"Hawaii"
-  };
-  const ACTIVE_LABEL = {
-    non_kamikumite:"Non Kamikumite",
-    basic_kamikumite:"Basic Kamikumite",
-    intermediate_kamikumite:"Intermediate Kamikumite",
-    advanced_kamikumite:"Advanced Kamikumite",
-    kanbu:"Kanbu",
-    doshi:"Doshi",
-    sleeping_kamikumite:"Sleeping Kamikumite"
-  };
+  const p = window.__CONTACT_PROPERTIES__ || {};
 
-  function qs(id){ return document.getElementById(id); }
-  function setStatus(msg){ qs("status").textContent = msg || ""; }
-  function setActionStatus(msg){ qs("actionStatus").textContent = msg || ""; }
-
-  function esc(s){
-    return String(s ?? "")
-      .replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;")
-      .replaceAll('"',"&quot;").replaceAll("'","&#39;");
+  function setText(id, v){
+    document.getElementById(id).textContent = v || "-";
   }
 
-  function getId(){
-    const u = new URL(location.href);
-    return u.searchParams.get("id") || "";
-  }
-
-  async function api(path, opts={}){
-    const controller = new AbortController();
-    const t = setTimeout(() => controller.abort(), 15000);
-    try {
-      const res = await fetch(path, { ...opts, signal: controller.signal, headers: { ...(opts.headers||{}) }});
-      const text = await res.text();
-      let data;
-      try { data = text ? JSON.parse(text) : null; } catch { data = { raw:text }; }
-      return { ok: res.ok, status: res.status, data, raw: text };
-    } catch (e) {
-      return { ok:false, status:0, data:null, raw:String(e?.message||e), aborted:true };
-    } finally {
-      clearTimeout(t);
-    }
-  }
-
-  function htmlToPlainText(html) {
-    if (!html) return "";
-    try {
-      const normalized = String(html)
-        .replaceAll("<br>", "\n").replaceAll("<br/>", "\n").replaceAll("<br />", "\n")
-        .replaceAll("</p>", "\n").replaceAll("</div>", "\n").replaceAll("</li>", "\n");
-      const doc = new DOMParser().parseFromString(normalized, "text/html");
-      const text = (doc.body && doc.body.textContent) ? doc.body.textContent : "";
-      return text.replace(/\n{3,}/g, "\n\n").trim();
-    } catch { return String(html); }
-  }
-  function looksLikeHtml(s){
-    const t = String(s || "").trim();
-    return t.startsWith("<") && t.includes(">") && /<\/?[a-z][\s\S]*>/i.test(t);
-  }
-  function normalizeToPlain(textOrHtml){
-    const raw = String(textOrHtml || "");
-    return looksLikeHtml(raw) ? htmlToPlainText(raw) : raw;
-  }
-
-  function branchLabel(v){ const k=String(v||"").trim(); return BRANCH_LABEL[k] || k; }
-  function activeLabel(v){ const k=String(v||"").trim(); return ACTIVE_LABEL[k] || k; }
-
-  function toEpoch(note){
-    const p = note?.createdate ? Date.parse(String(note.createdate)) : NaN;
-    return Number.isNaN(p) ? 0 : p;
-  }
-
-  function isNonKamikumite(activeStatusRaw){
-    const v = String(activeStatusRaw || "").trim().toLowerCase();
-    return v === "non_kamikumite" || v === "non kamikumite";
-  }
-
-  // ✅ Status meaning (EN + JA)
-  const BASIC_STATUS_MEANING = {
-    started: {
-      en: "Application started (record created).",
-      ja: "申込開始（申込レコード作成済み）"
-    },
-    consented: {
-      en: "Consent accepted (terms/privacy/cancellation).",
-      ja: "同意完了（規約・プライバシー・キャンセル）"
-    },
-    pending_payment: {
-      en: "Payment selected; waiting for completion.",
-      ja: "支払選択済み（決済完了待ち）"
-    },
-    paid: {
-      en: "Payment completed.",
-      ja: "決済完了"
-    },
-    completed: {
-      en: "Application fully completed.",
-      ja: "申込完了（全工程終了）"
-    }
+  // Status
+  const statusMap = {
+    started: "Application started (record created) ｜ 申込開始（申込レコード作成済み）",
+    consented: "Consent completed ｜ 同意完了",
+    pending_payment: "Waiting for payment ｜ 支払い待ち",
+    completed: "Registration completed ｜ 登録完了"
   };
 
-  let NOTES_CACHE = [];
-  let CONTACT_ID = "";
+  const st = p.basic_seminar_status || "";
+  setText("bs_status_badge", st || "-");
+  document.getElementById("bs_status_desc").textContent =
+    statusMap[st] || "Status not set ｜ 未設定";
 
-  async function loadMe(){
-    const r = await api("/api/me");
-    if (!r.ok || !r.data?.ok) return;
-    const label = (r.data?.name || r.data?.email || "").trim();
-    if (label) {
-      qs("mePill").textContent = "Logged in as: " + label;
-      qs("mePill").style.display = "inline-block";
-    }
-  }
+  // Consent
+  setText("bs_consent_badge", p.basic_seminar_consent === "true" ? "true" : "-");
 
-  function renderProfile(props, id){
-    const orderKeys = [
-      ["firstname","First Name"],
-      ["middle_name","Middle Name"],
-      ["lastname","Last Name"],
-      ["email","Email"],
-      ["member_id","Member ID"],
-      ["branch","Branch"],
-      ["active_status","Active Status"],
-      ["preferred_language","Preferred Language"],
-      ["mobilephone","Mobile Phone"],
-      ["address","Address"],
-      ["city","City"],
-      ["state__province","State / Province"],
-      ["zip","ZIP"],
-      ["gender","Gender"],
-      ["date_of_birth","Date of Birth"],
-      ["taking_medication","Taking Medication"],
-      ["medication_names","Medication Names"],
-      ["initial_notes","Initial Notes"],
-      ["notes_last_updated","Notes Last Updated"],
-      ["createdate","Create Date"]
-    ];
+  // Dates / versions
+  setText("bs_consent_at", p.basic_seminar_consent_at);
+  setText("bs_consent_version", p.basic_seminar_consent_version);
 
-    const name = [props.firstname, props.middle_name, props.lastname].filter(Boolean).join(" ");
-    const email = props.email || "";
-    qs("meta").innerHTML = `<span class="pill">Contact ID: ${esc(id)}</span> <b>${esc(name||"(no name)")}</b> <span class="muted">(${esc(email)})</span>`;
+  // Payment
+  const payMap = {
+    cash: "Cash / Check ｜ 現金・小切手",
+    card: "Credit Card (Stripe) ｜ クレジットカード（Stripe）"
+  };
+  const pm = p.basic_payment_method || "";
+  setText("bs_payment_badge", pm || "-");
+  document.getElementById("bs_payment_desc").textContent =
+    payMap[pm] || "Payment method not set ｜ 未設定";
 
-    const grid = qs("profileGrid");
-    grid.innerHTML = "";
-    const cards = qs("profileCards");
-    cards.innerHTML = "";
-
-    for (const [key,label] of orderKeys){
-      let v = (props && props[key] != null) ? String(props[key]) : "";
-      if (key === "branch") v = branchLabel(v);
-      if (key === "active_status") v = activeLabel(v);
-
-      const kDiv = document.createElement("div");
-      kDiv.className = "k";
-      kDiv.textContent = label;
-
-      const vDiv = document.createElement("div");
-      vDiv.className = "v";
-      vDiv.textContent = v;
-
-      grid.appendChild(kDiv);
-      grid.appendChild(vDiv);
-
-      const item = document.createElement("div");
-      item.className = "pitem";
-      item.innerHTML = `
-        <div class="label">${esc(label)}</div>
-        <div class="value">${esc(v)}</div>
-      `;
-      cards.appendChild(item);
-    }
-  }
-
-  function statusExplainHtml(status){
-    const s = String(status || "").trim();
-    if (!s) return `<span class="statusExplain"><span class="muted">No status set</span><span class="sep">|</span><span class="ja muted">未設定</span></span>`;
-    const m = BASIC_STATUS_MEANING[s];
-    if (!m) return `<span class="statusExplain"><span class="muted">Unknown status</span><span class="sep">|</span><span class="ja muted">未定義</span></span>`;
-    return `<span class="statusExplain"><span>${esc(m.en)}</span><span class="sep">|</span><span class="ja">${esc(m.ja)}</span></span>`;
-  }
-
-  function badgeForStatus(status){
-    const s = String(status || "").trim();
-    if (!s) return `<span class="badge">-</span>${statusExplainHtml("")}`;
-    const cls = `st_${s}`;
-    return `<span class="badge ${esc(cls)}">${esc(s)}</span>${statusExplainHtml(s)}`;
-  }
-
-  function renderBasicSeminar(props){
-    const g = qs("basicSeminarGrid");
-    g.innerHTML = "";
-
-    const fields = [
-      ["basic_seminar_status", "Basic Seminar Status", (v)=>badgeForStatus(v)],
-      ["basic_seminar_consent", "Basic Seminar Consent", (v)=> esc(String(v ?? "")) || "-" ],
-      ["basic_seminar_consent_at", "Basic Seminar Consent At", (v)=> esc(String(v ?? "")) || "-" ],
-      ["basic_seminar_consent_version", "Basic Seminar Consent Version", (v)=> esc(String(v ?? "")) || "-" ],
-      ["basic_payment_method", "Basic Payment Method", (v)=> esc(String(v ?? "")) || "-" ],
-      ["basic_stripe_checkout_session_id", "Basic Stripe Checkout Session ID", (v)=> esc(String(v ?? "")) || "-" ],
-      ["basic_paid_at", "Basic Paid At", (v)=> esc(String(v ?? "")) || "-" ],
-      ["basic_paid_amount", "Basic Paid Amount", (v)=> esc(String(v ?? "")) || "-" ],
-    ];
-
-    let hasAny = false;
-
-    for (const [key, label, fmt] of fields){
-      const raw = (props && props[key] != null) ? props[key] : "";
-      if (String(raw ?? "").trim() !== "") hasAny = true;
-
-      const kDiv = document.createElement("div");
-      kDiv.className = "k";
-      kDiv.textContent = label;
-
-      const vDiv = document.createElement("div");
-      vDiv.className = "v";
-      vDiv.innerHTML = fmt(raw) || "-";
-
-      g.appendChild(kDiv);
-      g.appendChild(vDiv);
-    }
-
-    qs("basicSeminarHint").style.display = hasAny ? "none" : "block";
-  }
-
-  function renderNotes(){
-    const box = qs("notes");
-    box.innerHTML = "";
-
-    const notes = NOTES_CACHE.slice().sort((a,b)=>toEpoch(b)-toEpoch(a));
-    if (!notes.length){
-      box.innerHTML = `<p class="muted">No notes found. / メモはまだありません。</p>`;
-      return;
-    }
-
-    for (const note of notes){
-      const noteId = note.id;
-      const appendedBy = (note.appendedBy || "").trim();
-      const bodyText = normalizeToPlain(note.body || "");
-      const dateStr = note.createdate ? new Date(note.createdate).toLocaleString() : "";
-
-      const div = document.createElement("div");
-      div.className = "note";
-      div.innerHTML = `
-        <div class="noteHead">
-          <div class="noteHeadLeft">
-            <span class="pill">Note ID: ${esc(noteId)}</span>
-            <span class="pill">Appended by: ${esc(appendedBy || "(unknown)")}</span>
-          </div>
-          <div class="dateRight">${esc(dateStr)}</div>
-        </div>
-
-        <pre>${esc(bodyText)}</pre>
-
-        <div class="row">
-          <button type="button" onclick="openEdit('${esc(noteId)}')">Edit / 編集</button>
-          <button type="button" class="danger" onclick="deleteNote('${esc(noteId)}')">Delete / 削除</button>
-        </div>
-
-        <div class="appendBox" id="appendBox_${esc(noteId)}">
-          <textarea id="appendText_${esc(noteId)}"></textarea>
-          <div class="row">
-            <button type="button" class="primary" onclick="saveEdit('${esc(noteId)}')">Save / 保存</button>
-            <button type="button" class="ghost" onclick="closeEdit('${esc(noteId)}')">Cancel / キャンセル</button>
-          </div>
-        </div>
-      `;
-      box.appendChild(div);
-    }
-  }
-
-  async function loadAll(){
-    CONTACT_ID = getId();
-    if (!CONTACT_ID){ qs("meta").textContent = "Missing ?id="; return; }
-
-    qs("editProfileBtn").onclick = () => location.href = "/edit.html?id=" + encodeURIComponent(CONTACT_ID);
-    qs("deleteProfileBtn").onclick = () => deleteProfileNoTimeout();
-
-    setStatus("Loading... / 読み込み中...");
-    setActionStatus("");
-
-    try { await loadMe(); } catch {}
-
-    const c = await api(`/api/contacts/get?id=${encodeURIComponent(CONTACT_ID)}`);
-    if (!c.ok || !c.data?.ok){
-      setStatus("");
-      alert(`Failed: ${c.status}\n` + c.raw);
-      return;
-    }
-
-    const props = c.data.properties || {};
-    renderProfile(props, CONTACT_ID);
-
-    const sec = document.getElementById("basicSeminarSection");
-    const showBasic = isNonKamikumite(props.active_status);
-    if (sec) sec.style.display = showBasic ? "block" : "none";
-    if (showBasic) renderBasicSeminar(props);
-
-    const n = await api(`/api/notes/list?contactId=${encodeURIComponent(CONTACT_ID)}`);
-    if (!n.ok || !n.data?.ok){
-      setStatus("");
-      alert(`Failed notes: ${n.status}\n` + n.raw);
-      return;
-    }
-    NOTES_CACHE = (n.data.notes || []).slice();
-    renderNotes();
-    setStatus("");
-  }
-
-  async function addNote(){
-    const body = (qs("newNote").value||"").trim();
-    if (!body){ alert("Please enter a note. / メモを入力してください"); return; }
-    setStatus("Saving... / 保存中...");
-
-    const r = await api(`/api/notes/create`, {
-      method:"POST",
-      headers:{ "content-type":"application/json" },
-      body: JSON.stringify({ contactId: CONTACT_ID, body })
-    });
-
-    if (!r.ok || !r.data?.ok){
-      setStatus("");
-      alert(`Add note failed: ${r.status}\n` + r.raw);
-      return;
-    }
-
-    qs("newNote").value = "";
-    await loadAll();
-    setStatus("Saved / 保存しました");
-  }
-
-  function openEdit(noteId){
-    for (const n of NOTES_CACHE){
-      const b = document.getElementById("appendBox_" + n.id);
-      if (b) b.style.display = "none";
-    }
-    const box = document.getElementById("appendBox_" + noteId);
-    const ta = document.getElementById("appendText_" + noteId);
-    if (!box || !ta) return;
-
-    const note = NOTES_CACHE.find(x => String(x.id) === String(noteId));
-    ta.value = normalizeToPlain(note?.body || "");
-    box.style.display = "block";
-    ta.focus();
-  }
-
-  function closeEdit(noteId){
-    const box = document.getElementById("appendBox_" + noteId);
-    if (box) box.style.display = "none";
-  }
-
-  async function saveEdit(noteId){
-    const ta = document.getElementById("appendText_" + noteId);
-    const text = (ta?.value||"").trim();
-    if (!text){ alert("Please enter content. / 内容を入力してください"); return; }
-
-    setStatus("Updating... / 更新中...");
-
-    const r = await api(`/api/notes/update`, {
-      method:"POST",
-      headers:{ "content-type":"application/json" },
-      body: JSON.stringify({ noteId, body: text })
-    });
-
-    if (!r.ok || !r.data?.ok){
-      setStatus("");
-      alert(`Update failed: ${r.status}\n` + r.raw);
-      return;
-    }
-
-    await loadAll();
-    setStatus("Saved / 保存しました");
-  }
-
-  async function deleteNote(noteId){
-    if (!confirm("Delete this note? / このメモを削除しますか？")) return;
-    if (!confirm("This cannot be undone. Continue? / 元に戻せません。続行しますか？")) return;
-
-    setStatus("Deleting... / 削除中...");
-
-    const r = await api(`/api/notes/delete`, {
-      method:"POST",
-      headers:{ "content-type":"application/json" },
-      body: JSON.stringify({ noteId })
-    });
-
-    if (!r.ok || !r.data?.ok){
-      setStatus("");
-      alert(`Delete failed: ${r.status}\n` + r.raw);
-      return;
-    }
-
-    await loadAll();
-    setStatus("Deleted / 削除しました");
-  }
-
-  async function deleteProfileNoTimeout(){
-    if (!confirm("本当に削除していいですか？\nDelete this contact?")) return;
-    if (!confirm("この操作は元に戻せません。\n続けて削除しますか？\nThis cannot be undone. Continue?")) return;
-
-    qs("deleteProfileBtn").disabled = true;
-    qs("editProfileBtn").disabled = true;
-    setActionStatus("Deleting... / 削除中...");
-
-    let cursor = null;
-    let total = 0;
-
-    while (true) {
-      const r = await api(`/api/contacts/delete`, {
-        method:"POST",
-        headers:{ "content-type":"application/json" },
-        body: JSON.stringify({ id: CONTACT_ID, phase:"notes", cursor, notes_deleted_total: total })
-      });
-
-      if (r.aborted) {
-        await new Promise(res => setTimeout(res, 600));
-        continue;
-      }
-
-      if (!r.ok || !r.data?.ok){
-        qs("deleteProfileBtn").disabled = false;
-        qs("editProfileBtn").disabled = false;
-        setActionStatus("");
-        alert(`Delete failed: ${r.status}\n` + r.raw);
-        return;
-      }
-
-      if (r.data.done) {
-        setActionStatus("");
-        qs("contentState").style.display = "none";
-        qs("deletedState").style.display = "block";
-        return;
-      }
-
-      cursor = r.data.cursor;
-      total = r.data.notes_deleted_total || total;
-      setActionStatus(`Deleting... / 削除中...（Seshin card削除 ${total}件）`);
-      await new Promise(res => setTimeout(res, 250));
-    }
-  }
-
-  qs("addBtn").onclick = addNote;
-  qs("reloadBtn").onclick = loadAll;
-  loadAll();
+  // Stripe / paid
+  setText("bs_stripe_session", p.basic_stripe_checkout_session_id);
+  setText("bs_paid_at", p.basic_paid_at);
+  setText("bs_paid_amount", p.basic_paid_amount);
 </script>
-
-</body>
-</html>
