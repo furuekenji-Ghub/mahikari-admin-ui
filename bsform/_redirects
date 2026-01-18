@@ -1,5 +1,5 @@
-# --- API is handled by Worker (do NOT rewrite) ---
-/api/*       /api/:splat       200
+# --- API is handled by Worker (force pass-through) ---
+/api/*       /api/:splat       404
 
 # --- Receipt page (do NOT rewrite to SPA) ---
 /receipt/*   /receipt/:splat   200
