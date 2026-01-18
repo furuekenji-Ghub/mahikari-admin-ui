@@ -1,5 +1,2 @@
-# ---- receipt is NOT SPA ----
 /receipt/*   /receipt/:splat   200
-
-# ---- everything else is SPA ----
 /*           /index.html       200
