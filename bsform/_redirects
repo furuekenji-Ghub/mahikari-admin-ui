@@ -1,2 +1,8 @@
+# --- API is handled by Worker (do NOT rewrite) ---
+/api/*       /api/:splat       200
+
+# --- Receipt page (do NOT rewrite to SPA) ---
 /receipt/*   /receipt/:splat   200
+
+# --- Everything else is SPA ---
 /*           /index.html       200
