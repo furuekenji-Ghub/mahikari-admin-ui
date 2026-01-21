@@ -3,14 +3,16 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Admin | Receipt Manager</title>
+  <title>Receipt Admin | World Divine Light</title>
   <meta name="robots" content="noindex,nofollow" />
   <style>
     *{box-sizing:border-box}
-    body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;margin:0;padding:24px;background:#fafafa;color:#111827}
+    body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,"Noto Sans JP",sans-serif;margin:0;padding:24px;background:#fafafa;color:#111827}
     .wrap{max-width:1100px;margin:0 auto}
     h1{margin:0 0 8px;font-size:22px}
     .muted{color:#6b7280;font-size:14px;margin-bottom:16px}
+    .nav{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:12px}
+    .nav a{font-size:13px;color:#111827;text-decoration:none;border:1px solid #e5e7eb;background:#fff;padding:6px 10px;border-radius:999px}
     .card{background:#fff;border:1px solid #e5e7eb;border-radius:12px;padding:16px;margin:12px 0}
     label{display:block;font-size:13px;margin:8px 0 6px}
     input,select{width:100%;padding:10px;border:1px solid #d1d5db;border-radius:8px;font-size:14px}
@@ -29,22 +31,20 @@
     .warn{border-color:#f59e0b}
     .good{border-color:#10b981}
     code{background:#f3f4f6;padding:2px 6px;border-radius:6px}
-    .nav{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:12px}
-    .nav a{font-size:13px;color:#111827;text-decoration:none;border:1px solid #e5e7eb;background:#fff;padding:6px 10px;border-radius:999px}
   </style>
 </head>
 <body>
 <div class="wrap">
   <div class="nav">
-    <!-- 既存Admin導線（必要に応じてリンク先を調整） -->
+    <a href="/index.html">Home</a>
     <a href="/contacts.html">Contacts</a>
     <a href="/create.html">Add</a>
     <a href="/receipt.html"><b>Receipt</b></a>
   </div>
 
-  <h1>Receipt Manager (Admin)</h1>
+  <h1>Receipt Admin</h1>
   <div class="muted">
-    Search a contact by email, check readiness (eligible / member_id / years), update fields, and send a login link.
+    Search by email → verify readiness (eligible / member_id / years) → update fields → send login link.
   </div>
 
   <div class="card">
@@ -55,7 +55,7 @@
       </div>
 
       <div>
-        <label>Status filter (exclude Non Kamikumite)</label>
+        <label>Status filter (optional)</label>
         <select id="statusFilter">
           <option value="">(no filter)</option>
           <option value="Basic">Basic</option>
@@ -137,6 +137,8 @@
     <div id="msg3" class="msg"></div>
     <div id="tableWrap"></div>
   </div>
+
+  <div class="muted">© World Divine Light</div>
 </div>
 
 <script>
@@ -186,8 +188,10 @@
     node.textContent = text || "";
   }
 
+  function isTruthy(v){ return v === true || v === "true" || v === "1" || v === 1; }
+
   function readiness(p) {
-    const eligible = p.receipt_portal_eligible === "true" || p.receipt_portal_eligible === true;
+    const eligible = isTruthy(p.receipt_portal_eligible);
     const memberId = (p.member_id || "").trim();
     const years = (p.receipt_years_available || "").trim();
     const ok = eligible && memberId && years;
@@ -217,7 +221,7 @@
 
     const p = data.properties || {};
 
-    // status filter: exclude "Non Kamikumite" by only allowing selected statuses
+    // optional client-side filter by status
     const filter = el.statusFilter.value;
     if (filter) {
       const st = (p[HS_STATUS_PROP] || "").toString();
@@ -231,7 +235,7 @@
     const rdy = readiness(p);
 
     el.resultCard.style.display = "block";
-    el.eligible.value = (p.receipt_portal_eligible === "true" || p.receipt_portal_eligible === true) ? "true" : "false";
+    el.eligible.value = isTruthy(p.receipt_portal_eligible) ? "true" : "false";
     el.memberId.value = p.member_id || "";
     el.years.value = p.receipt_years_available || "";
     el.status.value = p[HS_STATUS_PROP] || "";
@@ -291,7 +295,7 @@
     const data = await r.json().catch(()=> ({}));
     if (!r.ok) return setMsg(el.msg2, data?.error || "Send failed.", "err");
 
-    setMsg(el.msg2, "If eligible, a login link has been sent.", "ok");
+    setMsg(el.msg2, "Login link sent (if eligible).", "ok");
   }
 
   async function loadList() {
