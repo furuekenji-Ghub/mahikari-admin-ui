@@ -1,77 +1,93 @@
 <!doctype html>
-<html lang="ja">
+<html lang="en">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>World Divine Light Admin</title>
-  <link rel="stylesheet" href="/css/style.css" />
+  <meta name="robots" content="noindex,nofollow" />
   <style>
-    .muted { color:#666; }
-    .addBox{
-      margin-top:14px;
-      border:1px solid #eee;
-      border-radius:14px;
-      padding:14px;
+    *{box-sizing:border-box}
+    body{
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Noto Sans JP", sans-serif;
+      margin:0; padding:24px; background:#fff; color:#111827;
+    }
+    .wrap{max-width:1100px;margin:0 auto}
+    h1{font-size:44px; margin:0 0 8px; letter-spacing:-0.02em}
+    .sub{color:#6b7280; margin:0 0 22px; font-size:16px}
+    .domain{color:#6b7280; font-size:14px; margin:0 0 18px}
+    .divider{border-top:1px solid #e5e7eb; margin:18px 0 22px}
+    .card{
+      border:1px solid #e5e7eb; border-radius:14px; padding:18px 18px 16px; margin:18px 0;
       background:#fff;
     }
-    .addBox h3{ margin:0 0 8px; }
-    .addBox p{ margin:6px 0; line-height:1.5; }
-    .row{ display:flex; gap:10px; flex-wrap:wrap; align-items:center; margin-top:10px; }
+    h2{font-size:28px; margin:0 0 10px}
+    .desc{color:#374151; line-height:1.55; margin:0 0 14px}
+    .desc-ja{color:#374151; line-height:1.6; margin:0 0 14px}
     .btn{
-      display:inline-block;
-      padding:10px 14px;
-      border:1px solid #0b5;
-      border-radius:12px;
-      background:#fff;
-      cursor:pointer;
-      text-decoration:none;
-      color:#0b5;
-      font-weight:700;
+      display:inline-block; padding:10px 18px; border-radius:12px; font-weight:600;
+      border:2px solid #22c55e; color:#16a34a; text-decoration:none; background:#fff;
     }
-    @media (max-width: 768px){
-      .btn{ width:100%; text-align:center; }
+    .btn:hover{filter:brightness(0.98)}
+    .btn-fill{
+      border-color:#22c55e; background:#22c55e; color:#fff;
     }
+    .row{display:flex; gap:14px; flex-wrap:wrap}
+    .row .card{flex:1; min-width:320px}
+    .small{font-size:13px; color:#6b7280}
   </style>
 </head>
 <body>
+  <div class="wrap">
+    <h1>World Divine Light Admin</h1>
+    <div class="domain">admin.mahikari.org</div>
+    <div class="divider"></div>
 
-<header>
-  <h1>World Divine Light Admin</h1>
-  <div class="muted">admin.mahikari.org</div>
-</header>
+    <!-- Contacts -->
+    <div class="card">
+      <h2>Contacts</h2>
+      <p class="desc">
+        Search and filter HubSpot contacts by <b>Branch</b> and <b>Active Status</b>.
+        You can open each record to <b>view</b>, <b>edit</b>, or <b>delete</b>.
+        Newly created records are shown first.
+      </p>
+      <p class="desc-ja">
+        HubSpot に登録されている連絡先を、拠点（Branch）やステータス（Active Status）で検索・絞り込みできます。<br/>
+        各連絡先は、詳細確認・編集・削除が可能です。<br/>
+        新しく登録されたデータほど、上位に表示されます。
+      </p>
+      <a class="btn" href="/contacts.html">Open</a>
+    </div>
 
-<div class="card">
-  <h2>Contacts</h2>
-  <p class="muted">
-    Search and filter HubSpot contacts by <b>Branch</b> and <b>Active Status</b>.
-    You can open each record to <b>view</b>, <b>edit</b>, or <b>delete</b>.
-    Newly created records are shown first.
-  </p>
-
-  <p class="muted">
-    HubSpot に登録されている連絡先を、<b>拠点（Branch）</b>や<b>ステータス（Active Status）</b>で検索・絞り込みできます。<br/>
-    各連絡先は、詳細確認・編集・削除が可能です。<br/>
-    新しく登録されたデータほど、上位に表示されます。
-  </p>
-
-  <div class="row">
-    <a class="btn" href="/contacts.html">Open</a>
-  </div>
-
-  <!-- ✅ Add New block -->
-  <div class="addBox">
-    <h3>Add New Contact <span class="muted">／新規追加</span></h3>
-    <p class="muted">
-      Add a new contact record to HubSpot, then review it immediately on the View page.
-    </p>
-    <p class="muted">
-      HubSpot に新しい連絡先を追加し、登録直後に View 画面で内容を確認できます。
-    </p>
-    <div class="row">
+    <!-- Add New Contact -->
+    <div class="card">
+      <h2>Add New Contact / 新規追加</h2>
+      <p class="desc">
+        Add a new contact record to HubSpot, then review it immediately on the View page.
+      </p>
+      <p class="desc-ja">
+        HubSpot に新しい連絡先を追加し、登録直後に View 画面で内容を確認できます。
+      </p>
       <a class="btn" href="/create.html">Add New / 新規追加</a>
     </div>
-  </div>
-</div>
 
+    <!-- Receipt Admin (NEW) -->
+    <div class="card">
+      <h2>Receipt Admin / レシート管理</h2>
+      <p class="desc">
+        Verify eligibility for the Receipt Portal, update required fields, and send login links.
+        This is the single admin place for receipt operations.
+      </p>
+      <p class="desc-ja">
+        レシートポータルの利用可否（eligible）を確認し、必要項目（member_id / years）を管理者が更新し、ログインリンクを送信します。<br/>
+        レシート関連の管理はここに集約します。
+      </p>
+      <a class="btn btn-fill" href="/receipt.html">Open Receipt Admin</a>
+      <div class="small" style="margin-top:10px;">
+        Uses API: <code>api.kamikumite.worlddivinelight.org</code>
+      </div>
+    </div>
+
+    <div class="sub">© World Divine Light</div>
+  </div>
 </body>
 </html>
