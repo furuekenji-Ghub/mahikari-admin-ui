@@ -112,6 +112,26 @@
       color: #9ca3af;
       text-align: center;
     }
+
+    /* --- Fix overflow on inputs/buttons (mobile & desktop) --- */
+* { box-sizing: border-box; }
+
+input[type="email"] {
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+.row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.row > * {
+  min-width: 0; /* flex内でのはみ出し防止 */
+}
+    
   </style>
 </head>
 
