@@ -154,12 +154,15 @@
   </div>
 
   <script>
-    // ===== APIエンドポイント定義 =====
-    const API = {
-      requestLink: "/api/receipt/request-link",
-      years: "/api/receipt/years",
-      download: (year) => `/api/receipt/download?year=${encodeURIComponent(year)}`
-    };
+// ===== APIエンドポイント定義 =====
+const API_BASE = "https://api.kamikumite.worlddivinelight.org";
+
+const API = {
+  requestLink: `${API_BASE}/api/receipt/request-link`,
+  years: `${API_BASE}/api/receipt/years`,
+  download: (year) =>
+    `${API_BASE}/api/receipt/download?year=${encodeURIComponent(year)}`
+};
 
     // ===== DOM参照 =====
     const el = {
