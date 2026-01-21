@@ -1,0 +1,364 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Admin | Receipt Manager</title>
+  <meta name="robots" content="noindex,nofollow" />
+  <style>
+    *{box-sizing:border-box}
+    body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;margin:0;padding:24px;background:#fafafa;color:#111827}
+    .wrap{max-width:1100px;margin:0 auto}
+    h1{margin:0 0 8px;font-size:22px}
+    .muted{color:#6b7280;font-size:14px;margin-bottom:16px}
+    .card{background:#fff;border:1px solid #e5e7eb;border-radius:12px;padding:16px;margin:12px 0}
+    label{display:block;font-size:13px;margin:8px 0 6px}
+    input,select{width:100%;padding:10px;border:1px solid #d1d5db;border-radius:8px;font-size:14px}
+    .row{display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end}
+    .row > *{flex:1;min-width:220px}
+    button{padding:10px 14px;border-radius:10px;border:0;cursor:pointer;font-size:14px}
+    button.primary{background:#111827;color:#fff}
+    button.secondary{background:#e5e7eb;color:#111827}
+    .msg{margin-top:8px;font-size:13px}
+    .ok{color:#065f46}
+    .err{color:#b91c1c}
+    table{width:100%;border-collapse:collapse;margin-top:12px}
+    th,td{border-top:1px solid #e5e7eb;padding:10px;font-size:13px;vertical-align:top}
+    th{text-align:left;color:#374151}
+    .pill{display:inline-block;padding:3px 8px;border-radius:999px;border:1px solid #d1d5db;font-size:12px;margin-right:6px}
+    .warn{border-color:#f59e0b}
+    .good{border-color:#10b981}
+    code{background:#f3f4f6;padding:2px 6px;border-radius:6px}
+    .nav{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:12px}
+    .nav a{font-size:13px;color:#111827;text-decoration:none;border:1px solid #e5e7eb;background:#fff;padding:6px 10px;border-radius:999px}
+  </style>
+</head>
+<body>
+<div class="wrap">
+  <div class="nav">
+    <!-- 既存Admin導線（必要に応じてリンク先を調整） -->
+    <a href="/contacts.html">Contacts</a>
+    <a href="/create.html">Add</a>
+    <a href="/receipt.html"><b>Receipt</b></a>
+  </div>
+
+  <h1>Receipt Manager (Admin)</h1>
+  <div class="muted">
+    Search a contact by email, check readiness (eligible / member_id / years), update fields, and send a login link.
+  </div>
+
+  <div class="card">
+    <div class="row">
+      <div>
+        <label>Email (search)</label>
+        <input id="email" placeholder="member@example.com" />
+      </div>
+
+      <div>
+        <label>Status filter (exclude Non Kamikumite)</label>
+        <select id="statusFilter">
+          <option value="">(no filter)</option>
+          <option value="Basic">Basic</option>
+          <option value="Intermediate">Intermediate</option>
+          <option value="Advanced">Advanced</option>
+          <option value="Kamikumite">Kamikumite</option>
+        </select>
+      </div>
+
+      <div style="flex:0;min-width:220px">
+        <button class="primary" id="btnSearch">Search</button>
+        <button class="secondary" id="btnClear" style="margin-left:8px">Clear</button>
+      </div>
+    </div>
+
+    <div id="msg" class="msg"></div>
+  </div>
+
+  <div class="card" id="resultCard" style="display:none">
+    <div id="summary"></div>
+
+    <div class="row" style="margin-top:10px">
+      <div>
+        <label>receipt_portal_eligible</label>
+        <select id="eligible">
+          <option value="false">false</option>
+          <option value="true">true</option>
+        </select>
+      </div>
+
+      <div>
+        <label>member_id</label>
+        <input id="memberId" placeholder="(required)" />
+      </div>
+
+      <div>
+        <label>receipt_years_available (semicolon separated)</label>
+        <input id="years" placeholder="2024;2025" />
+      </div>
+
+      <div>
+        <label>Member status (HubSpot property)</label>
+        <input id="status" placeholder="Basic / Intermediate / ..." />
+      </div>
+
+      <div style="flex:0;min-width:320px">
+        <button class="primary" id="btnSave">Save</button>
+        <button class="secondary" id="btnSend">Send login link</button>
+      </div>
+    </div>
+
+    <div id="msg2" class="msg"></div>
+  </div>
+
+  <div class="card">
+    <div class="row">
+      <div>
+        <label>List by status</label>
+        <select id="listStatus">
+          <option value="">(all)</option>
+          <option value="Basic">Basic</option>
+          <option value="Intermediate">Intermediate</option>
+          <option value="Advanced">Advanced</option>
+          <option value="Kamikumite">Kamikumite</option>
+        </select>
+      </div>
+      <div>
+        <label>Show only missing</label>
+        <select id="missingOnly">
+          <option value="1">Yes</option>
+          <option value="0">No</option>
+        </select>
+      </div>
+      <div style="flex:0;min-width:220px">
+        <button class="secondary" id="btnList">Load list</button>
+      </div>
+    </div>
+
+    <div id="msg3" class="msg"></div>
+    <div id="tableWrap"></div>
+  </div>
+</div>
+
+<script>
+  // ===== APIベースURL（AdminはAPIサブドメインを叩く）=====
+  const API_BASE = "https://api.kamikumite.worlddivinelight.org";
+
+  // ===== HubSpot status property internal name（あなたの環境に合わせてここだけ変更）=====
+  // 例: "wdl_member_status" / "member_status" / "seminar_status" 等
+  const HS_STATUS_PROP = "wdl_member_status";
+
+  const API = {
+    byEmail: (email) => `${API_BASE}/api/admin/receipt/contact-by-email?email=${encodeURIComponent(email)}`,
+    update: `${API_BASE}/api/admin/receipt/update`,
+    send: `${API_BASE}/api/admin/receipt/send-link`,
+    list: (status, missingOnly) =>
+      `${API_BASE}/api/admin/receipt/list?status=${encodeURIComponent(status||"")}&missingOnly=${encodeURIComponent(missingOnly||"1")}`
+  };
+
+  const el = {
+    email: document.getElementById("email"),
+    statusFilter: document.getElementById("statusFilter"),
+    btnSearch: document.getElementById("btnSearch"),
+    btnClear: document.getElementById("btnClear"),
+    msg: document.getElementById("msg"),
+
+    resultCard: document.getElementById("resultCard"),
+    summary: document.getElementById("summary"),
+    eligible: document.getElementById("eligible"),
+    memberId: document.getElementById("memberId"),
+    years: document.getElementById("years"),
+    status: document.getElementById("status"),
+    btnSave: document.getElementById("btnSave"),
+    btnSend: document.getElementById("btnSend"),
+    msg2: document.getElementById("msg2"),
+
+    listStatus: document.getElementById("listStatus"),
+    missingOnly: document.getElementById("missingOnly"),
+    btnList: document.getElementById("btnList"),
+    msg3: document.getElementById("msg3"),
+    tableWrap: document.getElementById("tableWrap"),
+  };
+
+  let current = null;
+
+  function setMsg(node, text, cls="") {
+    node.className = "msg " + cls;
+    node.textContent = text || "";
+  }
+
+  function readiness(p) {
+    const eligible = p.receipt_portal_eligible === "true" || p.receipt_portal_eligible === true;
+    const memberId = (p.member_id || "").trim();
+    const years = (p.receipt_years_available || "").trim();
+    const ok = eligible && memberId && years;
+    return { eligible, memberId: !!memberId, years: !!years, ok };
+  }
+
+  function pill(label, good) {
+    return `<span class="pill ${good ? "good" : "warn"}">${label}</span>`;
+  }
+
+  async function search() {
+    const email = el.email.value.trim().toLowerCase();
+    setMsg(el.msg, "Searching...");
+    setMsg(el.msg2, "");
+    el.resultCard.style.display = "none";
+    current = null;
+
+    if (!email) return setMsg(el.msg, "Email is required.", "err");
+
+    const r = await fetch(API.byEmail(email), { credentials: "include" });
+    const data = await r.json().catch(()=> ({}));
+
+    if (!r.ok) {
+      setMsg(el.msg, data?.error || "Search failed.", "err");
+      return;
+    }
+
+    const p = data.properties || {};
+
+    // status filter: exclude "Non Kamikumite" by only allowing selected statuses
+    const filter = el.statusFilter.value;
+    if (filter) {
+      const st = (p[HS_STATUS_PROP] || "").toString();
+      if (st && st !== filter) {
+        setMsg(el.msg, `Found, but status (${st}) does not match filter (${filter}).`, "err");
+        return;
+      }
+    }
+
+    current = data;
+    const rdy = readiness(p);
+
+    el.resultCard.style.display = "block";
+    el.eligible.value = (p.receipt_portal_eligible === "true" || p.receipt_portal_eligible === true) ? "true" : "false";
+    el.memberId.value = p.member_id || "";
+    el.years.value = p.receipt_years_available || "";
+    el.status.value = p[HS_STATUS_PROP] || "";
+
+    el.summary.innerHTML = `
+      <div><b>${(p.firstname||"")} ${(p.lastname||"")}</b> &nbsp; <span class="muted">${p.email||""}</span></div>
+      <div style="margin-top:6px">
+        ${pill("eligible", rdy.eligible)}
+        ${pill("member_id", rdy.memberId)}
+        ${pill("years", rdy.years)}
+        ${pill("ready", rdy.ok)}
+      </div>
+      <div class="muted" style="margin-top:6px">HubSpot Contact ID: <code>${data.id}</code></div>
+    `;
+
+    setMsg(el.msg, "Found.", "ok");
+  }
+
+  async function save() {
+    if (!current) return;
+    setMsg(el.msg2, "Saving...");
+
+    const payload = {
+      contactId: current.id,
+      properties: {
+        receipt_portal_eligible: el.eligible.value === "true",
+        member_id: el.memberId.value.trim(),
+        receipt_years_available: el.years.value.trim(),
+        [HS_STATUS_PROP]: el.status.value.trim(),
+      }
+    };
+
+    const r = await fetch(API.update, {
+      method: "POST",
+      headers: { "Content-Type":"application/json" },
+      credentials: "include",
+      body: JSON.stringify(payload),
+    });
+    const data = await r.json().catch(()=> ({}));
+    if (!r.ok) return setMsg(el.msg2, data?.error || "Save failed.", "err");
+
+    setMsg(el.msg2, "Saved.", "ok");
+    await search();
+  }
+
+  async function sendLink() {
+    if (!current) return;
+    setMsg(el.msg2, "Sending login link...");
+
+    const email = (current.properties?.email || "").toString();
+    const r = await fetch(API.send, {
+      method: "POST",
+      headers: { "Content-Type":"application/json" },
+      credentials: "include",
+      body: JSON.stringify({ email }),
+    });
+    const data = await r.json().catch(()=> ({}));
+    if (!r.ok) return setMsg(el.msg2, data?.error || "Send failed.", "err");
+
+    setMsg(el.msg2, "If eligible, a login link has been sent.", "ok");
+  }
+
+  async function loadList() {
+    const status = el.listStatus.value;
+    const missingOnly = el.missingOnly.value;
+    setMsg(el.msg3, "Loading...");
+    el.tableWrap.innerHTML = "";
+
+    const r = await fetch(API.list(status, missingOnly), { credentials:"include" });
+    const data = await r.json().catch(()=> ({}));
+    if (!r.ok) return setMsg(el.msg3, data?.error || "List failed.", "err");
+
+    const rows = data.results || [];
+    setMsg(el.msg3, `Loaded ${rows.length} contacts.`, "ok");
+
+    const html = `
+      <table>
+        <thead>
+          <tr>
+            <th>Name</th><th>Email</th><th>Status</th><th>Eligible</th><th>Member ID</th><th>Years</th><th>Ready</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${rows.map(x => {
+            const p = x.properties || {};
+            const rdy = readiness(p);
+            const name = `${p.firstname||""} ${p.lastname||""}`.trim();
+            const st = p[HS_STATUS_PROP] || "";
+            return `
+              <tr>
+                <td>${escapeHtml(name)}</td>
+                <td>${escapeHtml(p.email||"")}</td>
+                <td>${escapeHtml(st)}</td>
+                <td>${rdy.eligible ? "true" : "false"}</td>
+                <td>${escapeHtml(p.member_id||"")}</td>
+                <td>${escapeHtml(p.receipt_years_available||"")}</td>
+                <td>${rdy.ok ? "YES" : "NO"}</td>
+              </tr>
+            `;
+          }).join("")}
+        </tbody>
+      </table>
+    `;
+    el.tableWrap.innerHTML = html;
+  }
+
+  function escapeHtml(s){
+    return String(s||"")
+      .replaceAll("&","&amp;")
+      .replaceAll("<","&lt;")
+      .replaceAll(">","&gt;")
+      .replaceAll('"',"&quot;")
+      .replaceAll("'","&#39;");
+  }
+
+  el.btnSearch.onclick = search;
+  el.btnSave.onclick = save;
+  el.btnSend.onclick = sendLink;
+  el.btnList.onclick = loadList;
+
+  el.btnClear.onclick = () => {
+    el.email.value = "";
+    el.resultCard.style.display = "none";
+    el.tableWrap.innerHTML = "";
+    setMsg(el.msg,""); setMsg(el.msg2,""); setMsg(el.msg3,"");
+    current = null;
+  };
+</script>
+</body>
+</html>
