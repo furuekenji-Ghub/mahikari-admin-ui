@@ -6,19 +6,26 @@
   <title>Edit | World Divine Light Admin</title>
   <link rel="stylesheet" href="/css/style.css" />
   <style>
+    html, body { width:100%; overflow-x:hidden; }
+    *, *::before, *::after { box-sizing:border-box; }
+
     .muted { color:#666; font-size:0.9em; }
     .pill { display:inline-block; padding:2px 8px; border:1px solid #ddd; border-radius:999px; font-size:12px; background:#f7fafc; color:#344; white-space:nowrap; }
 
-    /* One form only; responsive via CSS */
     .formGrid{
       display:grid;
       grid-template-columns:220px 1fr;
       gap:10px 14px;
       margin-top:12px;
+      width:100%;
+      max-width:100%;
     }
     .k{ font-weight:800; }
+    .req { color:#b00020; font-weight:800; margin-left:6px; }
+
     input[type="text"], select, textarea{
       width:100%;
+      max-width:100%;
       padding:10px;
       border:1px solid #ccc;
       border-radius:10px;
@@ -30,10 +37,23 @@
     }
     textarea{ min-height:110px; }
 
-    .row{ display:flex; gap:10px; flex-wrap:wrap; align-items:center; margin-top:12px; }
+    .row{ display:flex; gap:10px; flex-wrap:wrap; align-items:center; margin-top:12px; width:100%; max-width:100%; }
     button{ padding:10px 12px; border:1px solid #999; background:#fff; border-radius:10px; cursor:pointer; }
     button.primary{ border-color:#0b5; }
     button.ghost{ border-color:#ddd; }
+    button:disabled{ opacity:0.6; cursor:not-allowed; }
+
+    .errorBox{
+      display:none;
+      margin-top:16px;
+      border:1px solid #b00020;
+      border-radius:12px;
+      padding:10px 12px;
+      background:#fff5f5;
+      color:#b00020;
+      font-size:0.95em;
+      white-space:pre-wrap;
+    }
 
     @media (max-width:768px){
       .formGrid{ grid-template-columns: 1fr; }
@@ -51,6 +71,8 @@
 
 <div class="card">
   <div id="meta" class="muted">Loading...</div>
+
+  <div id="errorBox" class="errorBox"></div>
 
   <div class="formGrid" id="formGrid"></div>
 
@@ -78,6 +100,10 @@
   const GENDER_OPTIONS = [["","(blank)"],["Male","Male"],["Female","Female"],["Other","Other"]];
   const YESNO_OPTIONS = [["","(blank)"],["Yes","Yes"],["No","No"]];
 
+  // Emailは後から追加・変更が必須とのことなので、Emailも必須扱いにできます
+  // （必要なら下のREQUIRED_KEYSから email を外してください）
+  const REQUIRED_KEYS = new Set(["firstname","lastname","email","active_status","branch"]);
+
   const EDIT_FIELDS = [
     ["firstname","First Name","text"],
     ["middle_name","Middle Name","text"],
@@ -101,21 +127,42 @@
 
   function qs(id){ return document.getElementById(id); }
   function setStatus(msg){ qs("status").textContent = msg || ""; }
+  function showError(lines){
+    const box = qs("errorBox");
+    if (!lines || !lines.length){
+      box.style.display = "none";
+      box.textContent = "";
+      return;
+    }
+    box.style.display = "block";
+    box.textContent = lines.join("\n");
+  }
   function esc(s){
     return String(s ?? "")
       .replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;")
       .replaceAll('"',"&quot;").replaceAll("'","&#39;");
   }
+
   function getId(){
     const u = new URL(location.href);
     return u.searchParams.get("id") || "";
   }
+
+  // Safe API wrapper (avoid loud timeout)
   async function api(path, opts={}){
-    const res = await fetch(path, { ...opts, headers: { ...(opts.headers||{}) }});
-    const text = await res.text();
-    let data;
-    try { data = text ? JSON.parse(text) : null; } catch { data = { raw:text }; }
-    return { ok: res.ok, status: res.status, data, raw:text };
+    const controller = new AbortController();
+    const t = setTimeout(() => controller.abort(), 15000);
+    try {
+      const res = await fetch(path, { ...opts, signal: controller.signal, headers: { ...(opts.headers||{}) }});
+      const text = await res.text();
+      let data;
+      try { data = text ? JSON.parse(text) : null; } catch { data = { raw:text }; }
+      return { ok: res.ok, status: res.status, data, raw:text };
+    } catch (e) {
+      return { ok:false, status:0, data:null, raw:String(e?.message||e), aborted:true };
+    } finally {
+      clearTimeout(t);
+    }
   }
 
   function makeSelect(options, value){
@@ -131,7 +178,7 @@
   }
 
   let CONTACT_ID = "";
-  let CURRENT = {};
+  let ORIGINAL = {}; // original properties
 
   function makeField(key, type, v){
     let input;
@@ -165,6 +212,12 @@
       const kDiv = document.createElement("div");
       kDiv.className = "k";
       kDiv.textContent = label;
+      if (REQUIRED_KEYS.has(key)){
+        const req = document.createElement("span");
+        req.className = "req";
+        req.textContent = " *";
+        kDiv.appendChild(req);
+      }
 
       const vDiv = document.createElement("div");
       vDiv.appendChild(makeField(key, type, v));
@@ -178,9 +231,22 @@
     const props = {};
     for (const [key] of EDIT_FIELDS){
       const el = document.getElementById("f_" + key);
-      props[key] = String(el?.value ?? "");
+      props[key] = String(el?.value ?? "").trim();
     }
     return props;
+  }
+
+  function validate(props){
+    const errors = [];
+    if (REQUIRED_KEYS.has("firstname") && !props.firstname) errors.push("First Name is required. / First Name は必須です");
+    if (REQUIRED_KEYS.has("lastname") && !props.lastname) errors.push("Last Name is required. / Last Name は必須です");
+    if (REQUIRED_KEYS.has("email") && !props.email) errors.push("Email is required. / Email は必須です");
+    if (props.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(props.email)){
+      errors.push("Email format looks invalid. / Email形式が正しくない可能性があります");
+    }
+    if (REQUIRED_KEYS.has("active_status") && !props.active_status) errors.push("Active Status is required. / Active Status は必須です");
+    if (REQUIRED_KEYS.has("branch") && !props.branch) errors.push("Branch is required. / Branch は必須です");
+    return errors;
   }
 
   async function load(){
@@ -198,18 +264,106 @@
       return;
     }
 
-    CURRENT = r.data.properties || {};
-    const name = [CURRENT.firstname, CURRENT.middle_name, CURRENT.lastname].filter(Boolean).join(" ");
+    ORIGINAL = r.data.properties || {};
+    const name = [ORIGINAL.firstname, ORIGINAL.middle_name, ORIGINAL.lastname].filter(Boolean).join(" ");
     qs("meta").innerHTML = `<span class="pill">Contact ID: ${esc(CONTACT_ID)}</span> <b>${esc(name||"(no name)")}</b>`;
 
-    renderForm(CURRENT);
+    renderForm(ORIGINAL);
     setStatus("");
   }
 
-  async function save(){
-    setStatus("Saving...");
-    const props = collectPayload();
+  function normEmail(s){
+    return String(s||"").trim().toLowerCase();
+  }
 
+  async function save(){
+    showError([]);
+    const saveBtn = qs("saveBtn");
+    const cancelBtn = qs("cancelBtn");
+    saveBtn.disabled = true;
+    cancelBtn.disabled = true;
+
+    const props = collectPayload();
+    const errors = validate(props);
+    if (errors.length){
+      showError(errors);
+      setStatus("");
+      saveBtn.disabled = false;
+      cancelBtn.disabled = false;
+      return;
+    }
+
+    const oldEmail = normEmail(ORIGINAL.email || "");
+    const newEmail = normEmail(props.email || "");
+    const emailChanged = (oldEmail !== newEmail) && !!newEmail;
+
+    // Email changed → use email-set (auto delete dup + update)
+    if (emailChanged) {
+      setStatus("Saving (dedupe email)... / 保存中（Email重複処理）...");
+
+      let phase = "start";
+      let dupId = null;
+      let dupCursor = null;
+      let dupNotesDeletedTotal = 0;
+
+      while (true) {
+        const r = await api("/api/contacts/email-set", {
+          method:"POST",
+          headers:{ "content-type":"application/json" },
+          body: JSON.stringify({
+            id: CONTACT_ID,
+            properties: props,
+            phase,
+            dupId,
+            dupCursor,
+            dupNotesDeletedTotal
+          })
+        });
+
+        if (r.aborted) {
+          // retry quietly
+          await new Promise(res => setTimeout(res, 600));
+          continue;
+        }
+
+        if (!r.ok || !r.data?.ok) {
+          const lines = [
+            "Save failed. / 保存に失敗しました",
+            `HTTP ${r.status}`,
+          ];
+          if (r.data && r.data.detail) lines.push(JSON.stringify(r.data.detail, null, 2));
+          else lines.push(r.raw || "");
+          showError(lines);
+          setStatus("");
+          saveBtn.disabled = false;
+          cancelBtn.disabled = false;
+          return;
+        }
+
+        if (r.data.done) {
+          location.href = "/view.html?id=" + encodeURIComponent(CONTACT_ID);
+          return;
+        }
+
+        // continue phases
+        phase = r.data.phase || "delete_dup_notes";
+        dupId = r.data.dupId || dupId;
+        dupCursor = r.data.dupCursor ?? r.data.cursor ?? dupCursor;
+        dupNotesDeletedTotal = r.data.dupNotesDeletedTotal ?? dupNotesDeletedTotal;
+
+        // progress
+        if (phase === "delete_dup_notes") {
+          setStatus(`Deleting duplicate contact... / 重複連絡先削除中... (${dupNotesDeletedTotal})`);
+        } else {
+          setStatus("Processing... / 処理中...");
+        }
+
+        await new Promise(res => setTimeout(res, 250));
+      }
+    }
+
+    // Email not changed → normal update
+    setStatus("Saving... / 保存中...");
     const r = await api("/api/contacts/update", {
       method:"POST",
       headers:{ "content-type":"application/json" },
@@ -217,8 +371,10 @@
     });
 
     if (!r.ok || !r.data?.ok){
+      showError(["Save failed. / 保存に失敗しました", `HTTP ${r.status}`, r.raw]);
       setStatus("");
-      alert("Save failed: " + r.status + "\n" + r.raw);
+      saveBtn.disabled = false;
+      cancelBtn.disabled = false;
       return;
     }
 
