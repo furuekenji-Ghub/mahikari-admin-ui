@@ -3,316 +3,178 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Annual Donation Receipt Download</title>
-
-  <!-- 検索エンジンに表示させない -->
+  <title>Annual Donation Receipt Download / 年間御奉納総額レシート</title>
   <meta name="robots" content="noindex,nofollow" />
-
   <style>
-    body {
-      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
-                   Roboto, Helvetica, Arial, sans-serif;
-      background: #fafafa;
-      margin: 0;
-      padding: 24px;
-      color: #111827;
-    }
-    .wrap {
-      max-width: 720px;
-      margin: 0 auto;
-    }
-    h1 {
-      font-size: 22px;
-      margin-bottom: 8px;
-    }
-    .desc {
-      font-size: 14px;
-      color: #6b7280;
-      margin-bottom: 20px;
-    }
-    .card {
-      background: #fff;
-      border: 1px solid #e5e7eb;
-      border-radius: 12px;
-      padding: 18px;
-      margin-bottom: 20px;
-    }
-    h2 {
-      font-size: 16px;
-      margin: 0 0 8px;
-    }
-    label {
-      display: block;
-      font-size: 14px;
-      margin: 12px 0 6px;
-    }
-    input[type="email"] {
-      width: 100%;
-      padding: 12px;
-      font-size: 16px;
-      border-radius: 8px;
-      border: 1px solid #d1d5db;
-    }
-    .row {
-      display: flex;
-      gap: 10px;
-      flex-wrap: wrap;
-      margin-top: 12px;
-    }
-    button {
-      padding: 12px 16px;
-      border-radius: 8px;
-      border: none;
-      font-size: 15px;
-      cursor: pointer;
-    }
-    button.primary {
-      background: #111827;
-      color: #fff;
-    }
-    button.secondary {
-      background: #e5e7eb;
-      color: #111827;
-    }
-    button:disabled {
-      opacity: 0.5;
-      cursor: not-allowed;
-    }
-    .msg {
-      font-size: 14px;
-      margin-top: 10px;
-      color: #374151;
-    }
-    .msg.ok { color: #065f46; }
-    .msg.err { color: #b91c1c; }
-
-    .years {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 10px;
-      margin-top: 12px;
-    }
-    .year-btn {
-      padding: 10px 14px;
-      border-radius: 999px;
-      border: 1px solid #d1d5db;
-      background: #fff;
-      cursor: pointer;
-      font-size: 14px;
-    }
-    .year-btn.active {
-      background: #111827;
-      color: #fff;
-      border-color: #111827;
-    }
-
-    footer {
-      margin-top: 40px;
-      font-size: 12px;
-      color: #9ca3af;
-      text-align: center;
-    }
-
-    /* --- Fix overflow on inputs/buttons (mobile & desktop) --- */
-* { box-sizing: border-box; }
-
-input[type="email"] {
-  width: 100%;
-  max-width: 100%;
-  box-sizing: border-box;
-}
-
-.row {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-}
-
-.row > * {
-  min-width: 0; /* flex内でのはみ出し防止 */
-}
-
-    .card { overflow-x: hidden; }
-
-    @media (max-width: 520px) {
-  .row button { width: 100%; }
-}
-    
+    *{box-sizing:border-box}
+    body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,"Noto Sans JP",sans-serif;background:#fafafa;margin:0;padding:24px;color:#111827}
+    .wrap{max-width:720px;margin:0 auto}
+    h1{font-size:22px;margin:0 0 8px}
+    .desc{font-size:14px;color:#6b7280;margin:0 0 18px;line-height:1.6}
+    .card{background:#fff;border:1px solid #e5e7eb;border-radius:12px;padding:18px;margin:12px 0}
+    h2{font-size:16px;margin:0 0 8px}
+    label{display:block;font-size:14px;margin:10px 0 6px}
+    input[type="email"]{width:100%;max-width:100%;padding:12px;font-size:16px;border-radius:10px;border:1px solid #d1d5db}
+    .row{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px}
+    .row > *{min-width:0}
+    button{padding:12px 14px;border-radius:10px;border:0;cursor:pointer;font-size:15px}
+    button.primary{background:#111827;color:#fff}
+    button.secondary{background:#e5e7eb;color:#111827}
+    button:disabled{opacity:.5;cursor:not-allowed}
+    .msg{font-size:14px;margin-top:10px;color:#374151;line-height:1.5}
+    .ok{color:#065f46}
+    .err{color:#b91c1c}
+    .years{display:flex;flex-wrap:wrap;gap:10px;margin-top:12px}
+    .year-btn{padding:10px 14px;border-radius:999px;border:1px solid #d1d5db;background:#fff;cursor:pointer;font-size:14px}
+    .year-btn.active{background:#111827;color:#fff;border-color:#111827}
+    .tiny{font-size:12px;color:#9ca3af;margin-top:10px;line-height:1.5}
+    footer{margin-top:28px;font-size:12px;color:#9ca3af;text-align:center}
   </style>
 </head>
-
 <body>
-  <div class="wrap">
-    <h1>Annual Donation Receipt Download</h1>
-    <div class="desc">
-      Log in with your registered email address to download your annual donation receipt (PDF).
+<div class="wrap">
+  <h1>Annual Donation Receipt Download<br/>年間御奉納総額レシート ダウンロード</h1>
+
+  <p class="desc">
+    <b>EN:</b> Log in with your registered email address to download your annual donation receipt (PDF).<br/>
+    <b>JP:</b> 登録済みのメールアドレスでログインし、年間御奉納総額レシート（PDF）をダウンロードできます
+  </p>
+
+  <div class="card">
+    <h2>1) Receive a login link / ログインリンク受け取り</h2>
+
+    <label for="email">Email address / メールアドレス</label>
+    <input id="email" type="email" placeholder="example@email.com" autocomplete="email" />
+
+    <div class="row">
+      <button class="primary" id="sendBtn">Send login link / 送信</button>
+      <button class="secondary" id="checkBtn">Check login status / ログイン確認</button>
     </div>
 
-    <!-- ログイン -->
-    <div class="card" id="loginCard">
-      <h2>1) Receive a login link</h2>
-      <label for="email">Email address</label>
-      <input id="email" type="email" placeholder="example@email.com" autocomplete="email" />
+    <div id="msg" class="msg"></div>
 
-      <div class="row">
-        <button class="primary" id="sendLinkBtn">Send login link</button>
-        <button class="secondary" id="checkLoginBtn">Check login status</button>
-      </div>
-
-      <div class="msg" id="loginMsg"></div>
+    <div class="tiny">
+      <b>EN:</b> For security, we may show the same confirmation message regardless of eligibility.<br/>
+      <b>JP:</b> セキュリティのため、登録状況に関わらず同じ確認メッセージが表示される場合があります
     </div>
-
-    <!-- 年度選択 -->
-    <div class="card" id="receiptCard" style="display:none;">
-      <h2>2) Select a year to download</h2>
-      <div class="years" id="years"></div>
-
-      <div class="row">
-        <button class="primary" id="downloadBtn" disabled>Download PDF</button>
-      </div>
-
-      <div class="msg" id="receiptMsg"></div>
-    </div>
-
-    <footer>
-      © World Divine Light
-    </footer>
   </div>
 
-  <script>
-// ===== APIエンドポイント定義 =====
-const API_BASE = "https://api.kamikumite.worlddivinelight.org";
+  <div class="card" id="yearsCard" style="display:none;">
+    <h2>2) Select a year / 年度を選択</h2>
+    <div class="years" id="years"></div>
 
-const API = {
-  requestLink: `${API_BASE}/api/receipt/request-link`,
-  years: `${API_BASE}/api/receipt/years`,
-  download: (year) =>
-    `${API_BASE}/api/receipt/download?year=${encodeURIComponent(year)}`
-};
+    <div class="row">
+      <button class="primary" id="downloadBtn" disabled>Download PDF / PDFダウンロード</button>
+    </div>
 
-    // ===== DOM参照 =====
-    const el = {
-      email: document.getElementById("email"),
-      sendBtn: document.getElementById("sendLinkBtn"),
-      checkBtn: document.getElementById("checkLoginBtn"),
-      loginMsg: document.getElementById("loginMsg"),
+    <div id="msg2" class="msg"></div>
+  </div>
 
-      receiptCard: document.getElementById("receiptCard"),
-      years: document.getElementById("years"),
-      downloadBtn: document.getElementById("downloadBtn"),
-      receiptMsg: document.getElementById("receiptMsg")
-    };
+  <footer>© World Divine Light</footer>
+</div>
 
-    let selectedYear = null;
+<script>
+  // Public API subdomain
+  const API_BASE = "https://api.kamikumite.worlddivinelight.org";
+  const API = {
+    requestLink: `${API_BASE}/api/receipt/request-link`,
+    years: `${API_BASE}/api/receipt/years`,
+    download: (year) => `${API_BASE}/api/receipt/download?year=${encodeURIComponent(year)}`
+  };
 
-    // メッセージ表示用
-    function setMsg(node, text, cls = "") {
-      node.className = "msg " + cls;
-      node.textContent = text;
-    }
+  const el = {
+    email: document.getElementById("email"),
+    sendBtn: document.getElementById("sendBtn"),
+    checkBtn: document.getElementById("checkBtn"),
+    msg: document.getElementById("msg"),
 
-    // ===== ログインリンク送信 =====
-    async function sendLink() {
-      const email = el.email.value.trim().toLowerCase();
-      setMsg(el.loginMsg, "Sending login link...");
+    yearsCard: document.getElementById("yearsCard"),
+    years: document.getElementById("years"),
+    downloadBtn: document.getElementById("downloadBtn"),
+    msg2: document.getElementById("msg2"),
+  };
 
-      try {
-        const res = await fetch(API.requestLink, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          credentials: "include",
-          body: JSON.stringify({ email })
-        });
+  let selectedYear = null;
 
-        if (res.ok) {
-          setMsg(
-            el.loginMsg,
-            "If you are eligible, a login link has been sent to your email.",
-            "ok"
-          );
-        } else {
-          setMsg(el.loginMsg, "Failed to send login link.", "err");
-        }
-      } catch (e) {
-        setMsg(el.loginMsg, "Network error occurred.", "err");
+  function setMsg(node, text, cls="") {
+    node.className = "msg " + cls;
+    node.textContent = text || "";
+  }
+
+  async function sendLink() {
+    const email = (el.email.value || "").trim().toLowerCase();
+    setMsg(el.msg, "Sending... / 送信中...");
+    try {
+      const r = await fetch(API.requestLink, {
+        method: "POST",
+        headers: {"Content-Type":"application/json"},
+        credentials: "include",
+        body: JSON.stringify({ email }),
+      });
+      // 仕様：常に同じ確認文
+      if (r.ok) {
+        setMsg(el.msg, "If you are eligible, a login link has been sent to your email.\n該当する場合、ログインリンクをメールで送信しました", "ok");
+      } else {
+        setMsg(el.msg, "Failed to send login link.\n送信に失敗しました", "err");
       }
+    } catch (e) {
+      setMsg(el.msg, "Network error occurred.\n通信エラーが発生しました", "err");
     }
+  }
 
-    // ===== ログイン状態確認＆年度取得 =====
-    async function loadYears() {
-      setMsg(el.loginMsg, "Checking login status...");
-
-      try {
-        const res = await fetch(API.years, {
-          method: "GET",
-          credentials: "include"
-        });
-
-        if (!res.ok) {
-          setMsg(
-            el.loginMsg,
-            "You are not logged in yet. Please enter your email address.",
-            ""
-          );
-          return;
-        }
-
-        const data = await res.json();
-        const years = data.years || [];
-
-        if (years.length === 0) {
-          setMsg(
-            el.loginMsg,
-            "No receipt is available for your account. Please contact support.",
-            "err"
-          );
-          return;
-        }
-
-        el.receiptCard.style.display = "block";
-        el.years.innerHTML = "";
-        selectedYear = null;
-        el.downloadBtn.disabled = true;
-
-        years.sort().reverse().forEach(y => {
-          const b = document.createElement("button");
-          b.className = "year-btn";
-          b.textContent = y;
-          b.onclick = () => {
-            document.querySelectorAll(".year-btn")
-              .forEach(x => x.classList.remove("active"));
-            b.classList.add("active");
-            selectedYear = y;
-            el.downloadBtn.disabled = false;
-            setMsg(
-              el.receiptMsg,
-              `You can download the receipt for ${y}.`,
-              "ok"
-            );
-          };
-          el.years.appendChild(b);
-        });
-
-        setMsg(
-          el.loginMsg,
-          "You are logged in. Please select a year.",
-          "ok"
-        );
-      } catch (e) {
-        setMsg(el.loginMsg, "Network error occurred.", "err");
+  async function loadYears() {
+    setMsg(el.msg, "Checking login status... / ログイン確認中...");
+    try {
+      const r = await fetch(API.years, { method:"GET", credentials:"include" });
+      if (!r.ok) {
+        el.yearsCard.style.display = "none";
+        setMsg(el.msg, "Not logged in.\nログインしていません", "err");
+        return;
       }
+
+      const data = await r.json().catch(()=>({}));
+      const years = data.years || [];
+      if (!Array.isArray(years) || years.length === 0) {
+        el.yearsCard.style.display = "none";
+        setMsg(el.msg, "No receipt available.\n対象年度がありません", "err");
+        return;
+      }
+
+      el.yearsCard.style.display = "block";
+      el.years.innerHTML = "";
+      selectedYear = null;
+      el.downloadBtn.disabled = true;
+
+      years.sort().reverse().forEach(y => {
+        const b = document.createElement("button");
+        b.className = "year-btn";
+        b.textContent = y;
+        b.onclick = () => {
+          [...el.years.querySelectorAll(".year-btn")].forEach(x=>x.classList.remove("active"));
+          b.classList.add("active");
+          selectedYear = y;
+          el.downloadBtn.disabled = false;
+          setMsg(el.msg2, `Ready: ${y}\n選択中：${y}`, "ok");
+        };
+        el.years.appendChild(b);
+      });
+
+      setMsg(el.msg, "Logged in.\nログイン済み", "ok");
+      setMsg(el.msg2, "Select a year.\n年度を選択してください", "");
+    } catch (e) {
+      setMsg(el.msg, "Network error occurred.\n通信エラーが発生しました", "err");
     }
+  }
 
-    // ===== イベント =====
-    el.sendBtn.onclick = sendLink;
-    el.checkBtn.onclick = loadYears;
-    el.downloadBtn.onclick = () => {
-      if (!selectedYear) return;
-      window.location.href = API.download(selectedYear);
-    };
+  el.sendBtn.onclick = sendLink;
+  el.checkBtn.onclick = loadYears;
+  el.downloadBtn.onclick = () => {
+    if (!selectedYear) return;
+    window.location.href = API.download(selectedYear);
+  };
 
-    // 初回ロード時にログイン状態を確認
-    loadYears();
-  </script>
+  // 初回もログイン確認
+  loadYears();
+</script>
 </body>
 </html>
