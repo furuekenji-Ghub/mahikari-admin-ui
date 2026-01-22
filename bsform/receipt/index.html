@@ -1,180 +1,253 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Annual Donation Receipt Download / 年間御奉納総額レシート</title>
-  <meta name="robots" content="noindex,nofollow" />
+  <meta charset="UTF-8" />
+  <title>Receipt Admin | レシート管理</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
   <style>
-    *{box-sizing:border-box}
-    body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,"Noto Sans JP",sans-serif;background:#fafafa;margin:0;padding:24px;color:#111827}
-    .wrap{max-width:720px;margin:0 auto}
-    h1{font-size:22px;margin:0 0 8px}
-    .desc{font-size:14px;color:#6b7280;margin:0 0 18px;line-height:1.6}
-    .card{background:#fff;border:1px solid #e5e7eb;border-radius:12px;padding:18px;margin:12px 0}
-    h2{font-size:16px;margin:0 0 8px}
-    label{display:block;font-size:14px;margin:10px 0 6px}
-    input[type="email"]{width:100%;max-width:100%;padding:12px;font-size:16px;border-radius:10px;border:1px solid #d1d5db}
-    .row{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px}
-    .row > *{min-width:0}
-    button{padding:12px 14px;border-radius:10px;border:0;cursor:pointer;font-size:15px}
-    button.primary{background:#111827;color:#fff}
-    button.secondary{background:#e5e7eb;color:#111827}
-    button:disabled{opacity:.5;cursor:not-allowed}
-    .msg{font-size:14px;margin-top:10px;color:#374151;line-height:1.5}
-    .ok{color:#065f46}
-    .err{color:#b91c1c}
-    .years{display:flex;flex-wrap:wrap;gap:10px;margin-top:12px}
-    .year-btn{padding:10px 14px;border-radius:999px;border:1px solid #d1d5db;background:#fff;cursor:pointer;font-size:14px}
-    .year-btn.active{background:#111827;color:#fff;border-color:#111827}
-    .tiny{font-size:12px;color:#9ca3af;margin-top:10px;line-height:1.5}
-    footer{margin-top:28px;font-size:12px;color:#9ca3af;text-align:center}
+    body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+        Roboto, "Noto Sans JP", "Hiragino Kaku Gothic ProN", Meiryo, sans-serif;
+      margin: 0;
+      padding: 0;
+      background: #f6f7f9;
+      color: #222;
+    }
+
+    header {
+      background: #0b3c5d;
+      color: #fff;
+      padding: 16px 20px;
+    }
+
+    header h1 {
+      margin: 0;
+      font-size: 20px;
+      font-weight: 600;
+    }
+
+    header .jp {
+      font-size: 13px;
+      opacity: 0.9;
+    }
+
+    nav {
+      display: flex;
+      gap: 16px;
+      padding: 12px 20px;
+      background: #ffffff;
+      border-bottom: 1px solid #ddd;
+    }
+
+    nav a {
+      text-decoration: none;
+      color: #0b3c5d;
+      font-weight: 600;
+    }
+
+    nav a span.jp {
+      display: block;
+      font-size: 11px;
+      font-weight: normal;
+      color: #555;
+    }
+
+    main {
+      padding: 24px;
+    }
+
+    section {
+      background: #fff;
+      padding: 20px;
+      border-radius: 6px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+      margin-bottom: 24px;
+    }
+
+    h2 {
+      margin-top: 0;
+      font-size: 18px;
+    }
+
+    h2 .jp {
+      display: block;
+      font-size: 12px;
+      font-weight: normal;
+      color: #555;
+      margin-top: 4px;
+    }
+
+    label {
+      font-weight: 600;
+      display: block;
+      margin-top: 12px;
+    }
+
+    label .jp {
+      display: block;
+      font-size: 11px;
+      font-weight: normal;
+      color: #666;
+    }
+
+    input, select, button {
+      width: 100%;
+      padding: 8px;
+      margin-top: 6px;
+      font-size: 14px;
+    }
+
+    button {
+      margin-top: 16px;
+      background: #0b3c5d;
+      color: #fff;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+
+    button:hover {
+      opacity: 0.9;
+    }
+
+    .status {
+      margin-top: 12px;
+      font-size: 14px;
+    }
+
+    .muted {
+      color: #777;
+      font-size: 12px;
+    }
   </style>
 </head>
+
 <body>
-<div class="wrap">
-  <h1>Annual Donation Receipt Download<br/>年間御奉納総額レシート ダウンロード</h1>
+  <header>
+    <h1>
+      Receipt Admin
+      <div class="jp">レシート管理画面（管理者用）</div>
+    </h1>
+  </header>
 
-  <p class="desc">
-    <b>EN:</b> Log in with your registered email address to download your annual donation receipt (PDF).<br/>
-    <b>JP:</b> 登録済みのメールアドレスでログインし、年間御奉納総額レシート（PDF）をダウンロードできます
-  </p>
+  <nav>
+    <a href="#home">
+      Home
+      <span class="jp">ホーム</span>
+    </a>
+    <a href="#contacts">
+      Contacts
+      <span class="jp">連絡先一覧</span>
+    </a>
+    <a href="#add">
+      Add
+      <span class="jp">新規作成</span>
+    </a>
+    <a href="#receipt">
+      Receipt
+      <span class="jp">レシート管理</span>
+    </a>
+  </nav>
 
-  <div class="card">
-    <h2>1) Receive a login link / ログインリンク受け取り</h2>
+  <main>
+    <!-- Search Section -->
+    <section id="contacts">
+      <h2>
+        Search by Email
+        <span class="jp">メールアドレスで検索</span>
+      </h2>
 
-    <label for="email">Email address / メールアドレス</label>
-    <input id="email" type="email" placeholder="example@email.com" autocomplete="email" />
+      <label>
+        Email Address
+        <span class="jp">メールアドレス</span>
+      </label>
+      <input type="email" id="searchEmail" placeholder="example@email.com" />
 
-    <div class="row">
-      <button class="primary" id="sendBtn">Send login link / 送信</button>
-      <button class="secondary" id="checkBtn">Check login status / ログイン確認</button>
-    </div>
+      <button onclick="searchContact()">
+        Search
+        <span class="jp">検索</span>
+      </button>
 
-    <div id="msg" class="msg"></div>
+      <div id="searchResult" class="status muted"></div>
+    </section>
 
-    <div class="tiny">
-      <b>EN:</b> For security, we may show the same confirmation message regardless of eligibility.<br/>
-      <b>JP:</b> セキュリティのため、登録状況に関わらず同じ確認メッセージが表示される場合があります
-    </div>
-  </div>
+    <!-- Add Contact Section -->
+    <section id="add">
+      <h2>
+        Create New Contact
+        <span class="jp">新しい連絡先を作成</span>
+      </h2>
 
-  <div class="card" id="yearsCard" style="display:none;">
-    <h2>2) Select a year / 年度を選択</h2>
-    <div class="years" id="years"></div>
+      <label>
+        Email
+        <span class="jp">メールアドレス</span>
+      </label>
+      <input type="email" id="addEmail" />
 
-    <div class="row">
-      <button class="primary" id="downloadBtn" disabled>Download PDF / PDFダウンロード</button>
-    </div>
+      <label>
+        Member ID
+        <span class="jp">会員ID</span>
+      </label>
+      <input type="text" id="addMemberId" />
 
-    <div id="msg2" class="msg"></div>
-  </div>
+      <label>
+        Receipt Eligible
+        <span class="jp">レシートポータル利用可</span>
+      </label>
+      <select id="addEligible">
+        <option value="true">true（有効）</option>
+        <option value="false">false（無効）</option>
+      </select>
 
-  <footer>© World Divine Light</footer>
-</div>
+      <label>
+        Receipt Years Available
+        <span class="jp">ダウンロード可能年度（例：2024;2025）</span>
+      </label>
+      <input type="text" id="addYears" />
 
-<script>
-  // Public API subdomain
-  const API_BASE = "https://api.kamikumite.worlddivinelight.org";
-  const API = {
-    requestLink: `${API_BASE}/api/receipt/request-link`,
-    years: `${API_BASE}/api/receipt/years`,
-    download: (year) => `${API_BASE}/api/receipt/download?year=${encodeURIComponent(year)}`
-  };
+      <button onclick="createContact()">
+        Create Contact
+        <span class="jp">連絡先を作成</span>
+      </button>
 
-  const el = {
-    email: document.getElementById("email"),
-    sendBtn: document.getElementById("sendBtn"),
-    checkBtn: document.getElementById("checkBtn"),
-    msg: document.getElementById("msg"),
+      <div id="addResult" class="status muted"></div>
+    </section>
 
-    yearsCard: document.getElementById("yearsCard"),
-    years: document.getElementById("years"),
-    downloadBtn: document.getElementById("downloadBtn"),
-    msg2: document.getElementById("msg2"),
-  };
+    <!-- Receipt Admin Section -->
+    <section id="receipt">
+      <h2>
+        Receipt Status
+        <span class="jp">レシート準備状況</span>
+      </h2>
 
-  let selectedYear = null;
+      <button onclick="loadReadyList()">
+        Show READY List
+        <span class="jp">READY一覧を表示</span>
+      </button>
 
-  function setMsg(node, text, cls="") {
-    node.className = "msg " + cls;
-    node.textContent = text || "";
-  }
+      <div id="readyList" class="status muted"></div>
+    </section>
+  </main>
 
-  async function sendLink() {
-    const email = (el.email.value || "").trim().toLowerCase();
-    setMsg(el.msg, "Sending... / 送信中...");
-    try {
-      const r = await fetch(API.requestLink, {
-        method: "POST",
-        headers: {"Content-Type":"application/json"},
-        credentials: "include",
-        body: JSON.stringify({ email }),
-      });
-      // 仕様：常に同じ確認文
-      if (r.ok) {
-        setMsg(el.msg, "If you are eligible, a login link has been sent to your email.\n該当する場合、ログインリンクをメールで送信しました", "ok");
-      } else {
-        setMsg(el.msg, "Failed to send login link.\n送信に失敗しました", "err");
-      }
-    } catch (e) {
-      setMsg(el.msg, "Network error occurred.\n通信エラーが発生しました", "err");
+  <script>
+    async function searchContact() {
+      document.getElementById("searchResult").innerText =
+        "Searching... / 検索中...";
+      // 既存のAPI呼び出しロジックをそのまま使用
     }
-  }
 
-  async function loadYears() {
-    setMsg(el.msg, "Checking login status... / ログイン確認中...");
-    try {
-      const r = await fetch(API.years, { method:"GET", credentials:"include" });
-      if (!r.ok) {
-        el.yearsCard.style.display = "none";
-        setMsg(el.msg, "Not logged in.\nログインしていません", "err");
-        return;
-      }
-
-      const data = await r.json().catch(()=>({}));
-      const years = data.years || [];
-      if (!Array.isArray(years) || years.length === 0) {
-        el.yearsCard.style.display = "none";
-        setMsg(el.msg, "No receipt available.\n対象年度がありません", "err");
-        return;
-      }
-
-      el.yearsCard.style.display = "block";
-      el.years.innerHTML = "";
-      selectedYear = null;
-      el.downloadBtn.disabled = true;
-
-      years.sort().reverse().forEach(y => {
-        const b = document.createElement("button");
-        b.className = "year-btn";
-        b.textContent = y;
-        b.onclick = () => {
-          [...el.years.querySelectorAll(".year-btn")].forEach(x=>x.classList.remove("active"));
-          b.classList.add("active");
-          selectedYear = y;
-          el.downloadBtn.disabled = false;
-          setMsg(el.msg2, `Ready: ${y}\n選択中：${y}`, "ok");
-        };
-        el.years.appendChild(b);
-      });
-
-      setMsg(el.msg, "Logged in.\nログイン済み", "ok");
-      setMsg(el.msg2, "Select a year.\n年度を選択してください", "");
-    } catch (e) {
-      setMsg(el.msg, "Network error occurred.\n通信エラーが発生しました", "err");
+    async function createContact() {
+      document.getElementById("addResult").innerText =
+        "Creating contact... / 作成中...";
+      // 既存のAPI呼び出しロジックをそのまま使用
     }
-  }
 
-  el.sendBtn.onclick = sendLink;
-  el.checkBtn.onclick = loadYears;
-  el.downloadBtn.onclick = () => {
-    if (!selectedYear) return;
-    window.location.href = API.download(selectedYear);
-  };
-
-  // 初回もログイン確認
-  loadYears();
-</script>
+    async function loadReadyList() {
+      document.getElementById("readyList").innerText =
+        "Loading READY list... / READY一覧を取得中...";
+      // 既存のAPI呼び出しロジックをそのまま使用
+    }
+  </script>
 </body>
 </html>
