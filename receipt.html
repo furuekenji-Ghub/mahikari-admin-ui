@@ -6,248 +6,451 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
   <style>
-    body {
-      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
-        Roboto, "Noto Sans JP", "Hiragino Kaku Gothic ProN", Meiryo, sans-serif;
-      margin: 0;
-      padding: 0;
-      background: #f6f7f9;
-      color: #222;
+    body{
+      font-family: system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Noto Sans JP","Hiragino Kaku Gothic ProN",Meiryo,sans-serif;
+      margin:0; background:#f6f7f9; color:#222;
+    }
+    header{ background:#0b3c5d; color:#fff; padding:16px 20px; }
+    header h1{ margin:0; font-size:20px; font-weight:700; }
+    header .jp{ font-size:13px; opacity:.9; margin-top:2px; }
+
+    nav{
+      display:flex; gap:16px; padding:12px 20px;
+      background:#fff; border-bottom:1px solid #ddd; flex-wrap:wrap;
+    }
+    nav a{ text-decoration:none; color:#0b3c5d; font-weight:700; }
+    nav a .jp{ display:block; font-size:11px; font-weight:500; color:#555; }
+
+    main{ padding:24px; max-width:980px; margin:0 auto; }
+    section{
+      background:#fff; padding:20px; border-radius:10px;
+      box-shadow:0 1px 3px rgba(0,0,0,.08);
+      margin-bottom:18px;
     }
 
-    header {
-      background: #0b3c5d;
-      color: #fff;
-      padding: 16px 20px;
+    h2{ margin:0 0 12px; font-size:18px; }
+    h2 .jp{ display:block; font-size:12px; font-weight:500; color:#555; margin-top:4px; }
+
+    label{ font-weight:700; display:block; margin-top:12px; }
+    label .jp{ display:block; font-size:11px; font-weight:500; color:#666; margin-top:2px; }
+
+    input, select, button, textarea{
+      width:100%; box-sizing:border-box;
+      padding:10px; margin-top:6px; font-size:14px;
+      border:1px solid #d7dbe0; border-radius:8px;
+      background:#fff;
+    }
+    textarea{ min-height:140px; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; }
+
+    button{
+      margin-top:14px; background:#0b3c5d; color:#fff; border:none; cursor:pointer;
+      font-weight:700;
+    }
+    button:disabled{ opacity:.55; cursor:not-allowed; }
+
+    .row{ display:grid; grid-template-columns: 1fr 1fr; gap:14px; }
+    @media (max-width: 720px){ .row{ grid-template-columns:1fr; } }
+
+    .status{ margin-top:12px; font-size:13px; }
+    .ok{ color:#0a6; font-weight:700; }
+    .ng{ color:#c33; font-weight:700; }
+    .muted{ color:#666; }
+
+    .pill{
+      display:inline-block; padding:2px 8px; border-radius:999px;
+      background:#eef2f6; color:#334; font-size:12px; font-weight:700;
+      margin-left:8px;
     }
 
-    header h1 {
-      margin: 0;
-      font-size: 20px;
-      font-weight: 600;
-    }
-
-    header .jp {
-      font-size: 13px;
-      opacity: 0.9;
-    }
-
-    nav {
-      display: flex;
-      gap: 16px;
-      padding: 12px 20px;
-      background: #ffffff;
-      border-bottom: 1px solid #ddd;
-    }
-
-    nav a {
-      text-decoration: none;
-      color: #0b3c5d;
-      font-weight: 600;
-    }
-
-    nav a span.jp {
-      display: block;
-      font-size: 11px;
-      font-weight: normal;
-      color: #555;
-    }
-
-    main {
-      padding: 24px;
-    }
-
-    section {
-      background: #fff;
-      padding: 20px;
-      border-radius: 6px;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.08);
-      margin-bottom: 24px;
-    }
-
-    h2 {
-      margin-top: 0;
-      font-size: 18px;
-    }
-
-    h2 .jp {
-      display: block;
-      font-size: 12px;
-      font-weight: normal;
-      color: #555;
-      margin-top: 4px;
-    }
-
-    label {
-      font-weight: 600;
-      display: block;
-      margin-top: 12px;
-    }
-
-    label .jp {
-      display: block;
-      font-size: 11px;
-      font-weight: normal;
-      color: #666;
-    }
-
-    input, select, button {
-      width: 100%;
-      padding: 8px;
-      margin-top: 6px;
-      font-size: 14px;
-    }
-
-    button {
-      margin-top: 16px;
-      background: #0b3c5d;
-      color: #fff;
-      border: none;
-      border-radius: 4px;
-      cursor: pointer;
-    }
-
-    button:hover {
-      opacity: 0.9;
-    }
-
-    .status {
-      margin-top: 12px;
-      font-size: 14px;
-    }
-
-    .muted {
-      color: #777;
-      font-size: 12px;
-    }
+    .small{ font-size:12px; color:#666; margin-top:8px; }
+    .divider{ height:1px; background:#eef2f6; margin:16px 0; }
   </style>
 </head>
 
 <body>
   <header>
     <h1>
-      Receipt Admin
+      Receipt Admin <span class="pill" id="buildTag">loading...</span>
       <div class="jp">レシート管理画面（管理者用）</div>
     </h1>
   </header>
 
   <nav>
-    <a href="#home">
-      Home
-      <span class="jp">ホーム</span>
-    </a>
-    <a href="#contacts">
-      Contacts
-      <span class="jp">連絡先一覧</span>
-    </a>
-    <a href="#add">
-      Add
-      <span class="jp">新規作成</span>
-    </a>
-    <a href="#receipt">
-      Receipt
-      <span class="jp">レシート管理</span>
-    </a>
+    <a href="#home">Home<span class="jp">ホーム</span></a>
+    <a href="#contacts">Contacts<span class="jp">連絡先検索</span></a>
+    <a href="#add">Add<span class="jp">新規作成</span></a>
+    <a href="#receipt">Receipt<span class="jp">レシート管理</span></a>
   </nav>
 
-  <main>
-    <!-- Search Section -->
-    <section id="contacts">
+  <main id="home">
+    <section>
       <h2>
-        Search by Email
-        <span class="jp">メールアドレスで検索</span>
+        System Check
+        <span class="jp">システム確認</span>
       </h2>
 
-      <label>
-        Email Address
-        <span class="jp">メールアドレス</span>
-      </label>
-      <input type="email" id="searchEmail" placeholder="example@email.com" />
+      <div class="row">
+        <div>
+          <button id="btnVersion" onclick="checkVersion()">Check Worker Version<span class="jp">Workerバージョン確認</span></button>
+          <div id="versionOut" class="status muted"></div>
+        </div>
 
-      <button onclick="searchContact()">
-        Search
-        <span class="jp">検索</span>
-      </button>
+        <div>
+          <button id="btnReadyQuick" onclick="loadReadyList()">Load READY List<span class="jp">READY一覧を取得</span></button>
+          <div id="readyOut" class="status muted"></div>
+        </div>
+      </div>
 
-      <div id="searchResult" class="status muted"></div>
+      <div class="small">
+        If any button stays “Loading…”: you will see the HTTP status + error text below.<br/>
+        どれかが「Loading…」のままの場合でも、HTTPステータスとエラー本文を必ず下に表示します。
+      </div>
     </section>
 
-    <!-- Add Contact Section -->
+    <section id="contacts">
+      <h2>
+        Search Contact by Email
+        <span class="jp">メールアドレスで連絡先を検索</span>
+      </h2>
+
+      <div class="row">
+        <div>
+          <label>Email<span class="jp">メールアドレス</span></label>
+          <input type="email" id="searchEmail" placeholder="example@email.com" />
+
+          <button id="btnSearch" onclick="searchContact()">Search<span class="jp">検索</span></button>
+          <div id="searchStatus" class="status muted"></div>
+        </div>
+
+        <div>
+          <label>Result (raw JSON)<span class="jp">検索結果（生JSON）</span></label>
+          <textarea id="searchJson" readonly></textarea>
+
+          <div class="divider"></div>
+
+          <button id="btnMagic" onclick="sendMagicLink()" disabled>
+            Send Magic Link<span class="jp">マジックリンク送信</span>
+          </button>
+          <div id="magicStatus" class="status muted"></div>
+        </div>
+      </div>
+    </section>
+
     <section id="add">
       <h2>
         Create New Contact
         <span class="jp">新しい連絡先を作成</span>
       </h2>
 
-      <label>
-        Email
-        <span class="jp">メールアドレス</span>
-      </label>
-      <input type="email" id="addEmail" />
+      <div class="row">
+        <div>
+          <label>Email<span class="jp">メールアドレス</span></label>
+          <input type="email" id="addEmail" />
 
-      <label>
-        Member ID
-        <span class="jp">会員ID</span>
-      </label>
-      <input type="text" id="addMemberId" />
+          <label>Member ID<span class="jp">会員ID</span></label>
+          <input type="text" id="addMemberId" placeholder="TEST-0001" />
 
-      <label>
-        Receipt Eligible
-        <span class="jp">レシートポータル利用可</span>
-      </label>
-      <select id="addEligible">
-        <option value="true">true（有効）</option>
-        <option value="false">false（無効）</option>
-      </select>
+          <label>Receipt Eligible<span class="jp">レシートポータル利用可</span></label>
+          <select id="addEligible">
+            <option value="true">true（有効）</option>
+            <option value="false">false（無効）</option>
+          </select>
 
-      <label>
-        Receipt Years Available
-        <span class="jp">ダウンロード可能年度（例：2024;2025）</span>
-      </label>
-      <input type="text" id="addYears" />
+          <label>Receipt Years Available<span class="jp">ダウンロード可能年度（例：2024;2025）</span></label>
+          <input type="text" id="addYears" placeholder="2024;2025" />
 
-      <button onclick="createContact()">
-        Create Contact
-        <span class="jp">連絡先を作成</span>
-      </button>
+          <button id="btnCreate" onclick="createContact()">Create Contact<span class="jp">連絡先を作成</span></button>
+          <div id="createStatus" class="status muted"></div>
+        </div>
 
-      <div id="addResult" class="status muted"></div>
+        <div>
+          <label>Response (raw)<span class="jp">応答（生）</span></label>
+          <textarea id="createJson" readonly></textarea>
+
+          <div class="small">
+            NOTE: READY uses semicolon delimiter: <b>2024;2025</b><br/>
+            注意：READY判定は区切り文字「;」前提です（例：2024;2025）
+          </div>
+        </div>
+      </div>
     </section>
 
-    <!-- Receipt Admin Section -->
     <section id="receipt">
       <h2>
-        Receipt Status
-        <span class="jp">レシート準備状況</span>
+        READY / Missing
+        <span class="jp">READY / Missing 一覧</span>
       </h2>
 
-      <button onclick="loadReadyList()">
-        Show READY List
-        <span class="jp">READY一覧を表示</span>
-      </button>
-
-      <div id="readyList" class="status muted"></div>
+      <button id="btnReady" onclick="loadReadyList()">Show READY List<span class="jp">READY一覧を表示</span></button>
+      <label class="small">Result (raw JSON)<span class="jp">結果（生JSON）</span></label>
+      <textarea id="readyJson" readonly></textarea>
     </section>
   </main>
 
   <script>
-    async function searchContact() {
-      document.getElementById("searchResult").innerText =
-        "Searching... / 検索中...";
-      // 既存のAPI呼び出しロジックをそのまま使用
+    /**
+     * ============
+     * Admin API base
+     * ============
+     * These are Worker endpoints (same-origin), protected by Cloudflare Access.
+     */
+    const API_BASE = "/api/admin/receipt";
+
+    /**
+     * Endpoints (adjust here if your Worker uses different paths)
+     */
+    const EP = {
+      version: `${API_BASE}/_version`,
+      ready:   `${API_BASE}/ready`,
+      // Below two are the typical admin endpoints. If your Worker uses different names,
+      // this UI will show 404 + body so we can rename correctly.
+      getByEmail: (email) => `${API_BASE}/contact?email=${encodeURIComponent(email)}`,
+      create: `${API_BASE}/contact`,
+      magicLink: `${API_BASE}/magic-link`
+    };
+
+    // Simple fetch with timeout + always return readable debug
+    async function fetchJson(url, opts = {}) {
+      const timeoutMs = 15000;
+      const controller = new AbortController();
+      const t = setTimeout(() => controller.abort(), timeoutMs);
+
+      try {
+        const res = await fetch(url, {
+          ...opts,
+          headers: {
+            "Content-Type": "application/json",
+            ...(opts.headers || {})
+          },
+          signal: controller.signal
+        });
+
+        const text = await res.text(); // read as text first (could be HTML error)
+        let json = null;
+        try { json = text ? JSON.parse(text) : null; } catch (_) {}
+
+        return {
+          ok: res.ok,
+          status: res.status,
+          statusText: res.statusText,
+          text,
+          json
+        };
+      } catch (err) {
+        return {
+          ok: false,
+          status: 0,
+          statusText: "FETCH_ERROR",
+          text: String(err),
+          json: null
+        };
+      } finally {
+        clearTimeout(t);
+      }
     }
 
-    async function createContact() {
-      document.getElementById("addResult").innerText =
-        "Creating contact... / 作成中...";
-      // 既存のAPI呼び出しロジックをそのまま使用
+    function setBusy(btnId, busy, labelEn, labelJa) {
+      const btn = document.getElementById(btnId);
+      if (!btn) return;
+      btn.disabled = !!busy;
+      if (busy) {
+        btn.innerHTML = `Loading...<span class="jp">読み込み中...</span>`;
+      } else {
+        btn.innerHTML = `${labelEn}<span class="jp">${labelJa}</span>`;
+      }
+    }
+
+    function pretty(objOrText) {
+      if (typeof objOrText === "string") return objOrText;
+      try { return JSON.stringify(objOrText, null, 2); } catch { return String(objOrText); }
+    }
+
+    function statusLine(r) {
+      return `HTTP ${r.status} ${r.statusText} | ok=${r.ok}`;
+    }
+
+    async function checkVersion() {
+      setBusy("btnVersion", true, "Check Worker Version", "Workerバージョン確認");
+      const out = document.getElementById("versionOut");
+      out.className = "status muted";
+      out.textContent = "Checking... / 確認中...";
+
+      const r = await fetchJson(EP.version, { method: "GET" });
+
+      if (r.ok && r.json) {
+        const build = r.json.build || "unknown";
+        document.getElementById("buildTag").textContent = build;
+        out.className = "status ok";
+        out.textContent = `OK: ${statusLine(r)} | build=${build}`;
+      } else {
+        out.className = "status ng";
+        out.textContent = `NG: ${statusLine(r)} | ${r.text}`;
+      }
+
+      setBusy("btnVersion", false, "Check Worker Version", "Workerバージョン確認");
     }
 
     async function loadReadyList() {
-      document.getElementById("readyList").innerText =
-        "Loading READY list... / READY一覧を取得中...";
-      // 既存のAPI呼び出しロジックをそのまま使用
+      setBusy("btnReady", true, "Show READY List", "READY一覧を表示");
+      setBusy("btnReadyQuick", true, "Load READY List", "READY一覧を取得");
+
+      const out = document.getElementById("readyOut");
+      const box = document.getElementById("readyJson");
+
+      out.className = "status muted";
+      out.textContent = "Loading READY... / READY取得中...";
+      box.value = "";
+
+      const r = await fetchJson(EP.ready, { method: "GET" });
+
+      if (r.ok && r.json) {
+        const n = Array.isArray(r.json.results) ? r.json.results.length : 0;
+        out.className = "status ok";
+        out.textContent = `OK: ${statusLine(r)} | results=${n}`;
+        box.value = pretty(r.json);
+      } else {
+        out.className = "status ng";
+        out.textContent = `NG: ${statusLine(r)} | ${r.text}`;
+        box.value = r.text || "";
+      }
+
+      setBusy("btnReady", false, "Show READY List", "READY一覧を表示");
+      setBusy("btnReadyQuick", false, "Load READY List", "READY一覧を取得");
     }
+
+    async function searchContact() {
+      const email = (document.getElementById("searchEmail").value || "").trim();
+      const st = document.getElementById("searchStatus");
+      const box = document.getElementById("searchJson");
+      const btnMagic = document.getElementById("btnMagic");
+
+      btnMagic.disabled = true;
+      box.value = "";
+
+      if (!email) {
+        st.className = "status ng";
+        st.textContent = "Please enter an email. / メールアドレスを入力してください。";
+        return;
+      }
+
+      setBusy("btnSearch", true, "Search", "検索");
+      st.className = "status muted";
+      st.textContent = "Searching... / 検索中...";
+
+      const r = await fetchJson(EP.getByEmail(email), { method: "GET" });
+
+      if (r.ok) {
+        st.className = "status ok";
+        st.textContent = `OK: ${statusLine(r)}`;
+        box.value = pretty(r.json ?? r.text);
+        btnMagic.disabled = false;
+      } else {
+        st.className = "status ng";
+        st.textContent = `NG: ${statusLine(r)} | ${r.text}`;
+        box.value = r.text || "";
+      }
+
+      setBusy("btnSearch", false, "Search", "検索");
+    }
+
+    async function createContact() {
+      const email = (document.getElementById("addEmail").value || "").trim();
+      const memberId = (document.getElementById("addMemberId").value || "").trim();
+      const eligibleStr = document.getElementById("addEligible").value;
+      const years = (document.getElementById("addYears").value || "").trim();
+
+      const st = document.getElementById("createStatus");
+      const box = document.getElementById("createJson");
+      box.value = "";
+
+      if (!email) {
+        st.className = "status ng";
+        st.textContent = "Email is required. / メールアドレスは必須です。";
+        return;
+      }
+      if (!memberId) {
+        st.className = "status ng";
+        st.textContent = "Member ID is required. / 会員IDは必須です。";
+        return;
+      }
+      if (!years) {
+        st.className = "status ng";
+        st.textContent = "Receipt Years Available is required. / ダウンロード可能年度は必須です。";
+        return;
+      }
+
+      // Normalize years: remove spaces around delimiters, allow both ; and , then convert to ;
+      const normalizedYears = years
+        .replace(/\s+/g, "")
+        .replace(/,/g, ";")
+        .replace(/;;+/g, ";")
+        .replace(/;$/g, "");
+
+      const payload = {
+        email,
+        member_id: memberId,
+        receipt_portal_eligible: (eligibleStr === "true"),
+        receipt_years_available: normalizedYears
+      };
+
+      setBusy("btnCreate", true, "Create Contact", "連絡先を作成");
+      st.className = "status muted";
+      st.textContent = "Creating contact... / 作成中...";
+
+      const r = await fetchJson(EP.create, {
+        method: "POST",
+        body: JSON.stringify(payload)
+      });
+
+      if (r.ok) {
+        st.className = "status ok";
+        st.textContent = `OK: ${statusLine(r)} | Created/Updated`;
+        box.value = pretty(r.json ?? r.text);
+
+        // convenience: copy to search box so you can immediately Search/MagicLink
+        document.getElementById("searchEmail").value = email;
+      } else {
+        st.className = "status ng";
+        st.textContent = `NG: ${statusLine(r)} | ${r.text}`;
+        box.value = r.text || "";
+      }
+
+      setBusy("btnCreate", false, "Create Contact", "連絡先を作成");
+    }
+
+    async function sendMagicLink() {
+      const email = (document.getElementById("searchEmail").value || "").trim();
+      const st = document.getElementById("magicStatus");
+      if (!email) {
+        st.className = "status ng";
+        st.textContent = "Please search an email first. / 先にメール検索してください。";
+        return;
+      }
+
+      setBusy("btnMagic", true, "Send Magic Link", "マジックリンク送信");
+      st.className = "status muted";
+      st.textContent = "Sending... / 送信中...";
+
+      const r = await fetchJson(EP.magicLink, {
+        method: "POST",
+        body: JSON.stringify({ email })
+      });
+
+      if (r.ok) {
+        st.className = "status ok";
+        st.textContent = `OK: ${statusLine(r)} | Sent`;
+      } else {
+        st.className = "status ng";
+        st.textContent = `NG: ${statusLine(r)} | ${r.text}`;
+      }
+
+      setBusy("btnMagic", false, "Send Magic Link", "マジックリンク送信");
+    }
+
+    // Auto-check version on load (nice UX)
+    window.addEventListener("load", () => {
+      checkVersion();
+    });
   </script>
 </body>
 </html>
