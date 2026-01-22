@@ -6,6 +6,9 @@
   <title>Create | World Divine Light Admin</title>
   <link rel="stylesheet" href="/css/style.css" />
   <style>
+    html, body { width:100%; overflow-x:hidden; }
+    *, *::before, *::after { box-sizing:border-box; }
+
     .muted { color:#666; font-size:0.9em; }
     .formGrid{ display:grid; grid-template-columns:220px 1fr; gap:10px 14px; margin-top:12px; }
     .k{ font-weight:800; }
@@ -13,6 +16,7 @@
 
     input[type="text"], select, textarea{
       width:100%;
+      max-width:100%;
       padding:10px;
       border:1px solid #ccc;
       border-radius:10px;
@@ -28,23 +32,24 @@
     button{ padding:10px 12px; border:1px solid #999; background:#fff; border-radius:10px; cursor:pointer; }
     button.primary{ border-color:#0b5; }
     button.ghost{ border-color:#ddd; }
+    button:disabled{ opacity:0.6; cursor:not-allowed; }
 
-    /* ✅ エラーメッセージ（ボタン直前に出す） */
-    .errorBox{
+    /* メッセージ表示（ボタン直前） */
+    .noticeBox{
       display:none;
       margin-top:16px;
-      margin-bottom:8px;
-      border:1px solid #b00020;
+      border:1px solid #d39e00;
       border-radius:12px;
-      padding:10px 12px;
-      background:#fff5f5;
-      color:#b00020;
+      padding:12px;
+      background:#fff9e6;
+      color:#6b4f00;
       font-size:0.95em;
+      line-height:1.5;
       white-space:pre-wrap;
     }
 
     @media (max-width:768px){
-      .formGrid{ grid-template-columns: 1fr; }
+      .formGrid{ grid-template-columns:1fr; }
       .k{ margin-top:10px; }
       button{ width:100%; }
     }
@@ -60,16 +65,14 @@
 <div class="card">
   <div class="muted">
     必須項目（Required）：First Name / Last Name / Email / Active Status / Branch<br/>
-    保存すると、すぐに View 画面へ移動して結果を確認できます。
+    保存後、View画面で内容を確認できます。
   </div>
 
-  <!-- 入力フォーム -->
   <div class="formGrid" id="formGrid"></div>
 
-  <!-- ✅ エラーメッセージは「ボタンの直前」 -->
-  <div id="errorBox" class="errorBox"></div>
+  <!-- 重複Emailなどの案内はここに表示 -->
+  <div id="noticeBox" class="noticeBox"></div>
 
-  <!-- ボタン行 -->
   <div class="row">
     <button class="primary" id="createBtn">Create / 作成</button>
     <button class="ghost" id="cancelBtn">Cancel / キャンセル</button>
@@ -119,16 +122,15 @@
 
   function qs(id){ return document.getElementById(id); }
   function setStatus(msg){ qs("status").textContent = msg || ""; }
-
-  function showError(lines){
-    const box = qs("errorBox");
-    if (!lines || !lines.length){
+  function showNotice(text){
+    const box = qs("noticeBox");
+    if (!text){
       box.style.display = "none";
       box.textContent = "";
       return;
     }
     box.style.display = "block";
-    box.textContent = lines.join("\n");
+    box.textContent = text;
   }
 
   async function api(path, opts={}){
@@ -183,7 +185,6 @@
         req.textContent = " *";
         kDiv.appendChild(req);
       }
-
       const vDiv = document.createElement("div");
       vDiv.appendChild(makeField(key, type));
       grid.appendChild(kDiv);
@@ -202,27 +203,36 @@
 
   function validate(props){
     const errors = [];
-    if (!props.firstname) errors.push("First Name is required. / First Name は必須です");
-    if (!props.lastname) errors.push("Last Name is required. / Last Name は必須です");
-    if (!props.email) errors.push("Email is required. / Email は必須です");
+    if (!props.firstname) errors.push("First Name is required.");
+    if (!props.lastname) errors.push("Last Name is required.");
+    if (!props.email) errors.push("Email is required.");
     if (props.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(props.email)){
-      errors.push("Email format looks invalid. / Email形式が正しくない可能性があります");
+      errors.push("Email format looks invalid.");
     }
-    if (!props.active_status) errors.push("Active Status is required. / Active Status は必須です");
-    if (!props.branch) errors.push("Branch is required. / Branch は必須です");
+    if (!props.active_status) errors.push("Active Status is required.");
+    if (!props.branch) errors.push("Branch is required.");
     return errors;
   }
 
   async function create(){
-    showError([]);
-    setStatus("Creating...");
+    showNotice("");
+    setStatus("");
+
+    const btn = qs("createBtn");
+    btn.disabled = true;
+
     const properties = collect();
     const errors = validate(properties);
     if (errors.length){
-      setStatus("");
-      showError(errors);
+      showNotice(
+        errors.join("\n") +
+        "\n\n必須項目が入力されていません。入力内容をご確認ください。"
+      );
+      btn.disabled = false;
       return;
     }
+
+    setStatus("Creating... / 作成中...");
 
     const r = await api("/api/contacts/create", {
       method:"POST",
@@ -230,12 +240,20 @@
       body: JSON.stringify({ properties })
     });
 
-    if (!r.ok || !r.data?.ok || !r.data?.id){
+    // 重複Emailなどで作成不可
+    if (!r.ok || !r.data?.ok){
+      showNotice(
+        "This email address is already registered.\n" +
+        "Please use a different email address, or contact an administrator.\n\n" +
+        "このメールアドレスはすでに登録されています。\n" +
+        "他のメールアドレスで登録するか、もしくは管理者にお問い合わせください。"
+      );
       setStatus("");
-      showError(["Create failed. / 作成に失敗しました", `HTTP ${r.status}`, r.raw]);
+      btn.disabled = false;
       return;
     }
 
+    // 成功 → Viewへ
     location.href = "/view.html?id=" + encodeURIComponent(r.data.id);
   }
 
