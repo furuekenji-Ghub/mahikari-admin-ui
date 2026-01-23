@@ -1,76 +1,42 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
   <title>Receipt Admin | レシート管理</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-
+  <meta name="robots" content="noindex,nofollow" />
   <style>
-    body{
-      font-family: system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Noto Sans JP","Hiragino Kaku Gothic ProN",Meiryo,sans-serif;
-      margin:0; background:#f6f7f9; color:#222;
-    }
-    header{ background:#0b3c5d; color:#fff; padding:16px 20px; }
-    header h1{ margin:0; font-size:20px; font-weight:700; }
-    header .jp{ font-size:13px; opacity:.9; margin-top:2px; }
-
-    nav{
-      display:flex; gap:16px; padding:12px 20px;
-      background:#fff; border-bottom:1px solid #ddd; flex-wrap:wrap;
-    }
-    nav a{ text-decoration:none; color:#0b3c5d; font-weight:700; }
-    nav a .jp{ display:block; font-size:11px; font-weight:500; color:#555; }
-
-    main{ padding:24px; max-width:980px; margin:0 auto; }
-    section{
-      background:#fff; padding:20px; border-radius:10px;
-      box-shadow:0 1px 3px rgba(0,0,0,.08);
-      margin-bottom:18px;
-    }
-
-    h2{ margin:0 0 12px; font-size:18px; }
-    h2 .jp{ display:block; font-size:12px; font-weight:500; color:#555; margin-top:4px; }
-
-    label{ font-weight:700; display:block; margin-top:12px; }
-    label .jp{ display:block; font-size:11px; font-weight:500; color:#666; margin-top:2px; }
-
-    input, select, button, textarea{
-      width:100%; box-sizing:border-box;
-      padding:10px; margin-top:6px; font-size:14px;
-      border:1px solid #d7dbe0; border-radius:8px;
-      background:#fff;
-    }
-    textarea{ min-height:140px; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; }
-
-    button{
-      margin-top:14px; background:#0b3c5d; color:#fff; border:none; cursor:pointer;
-      font-weight:700;
-    }
-    button:disabled{ opacity:.55; cursor:not-allowed; }
-
-    .row{ display:grid; grid-template-columns: 1fr 1fr; gap:14px; }
-    @media (max-width: 720px){ .row{ grid-template-columns:1fr; } }
-
-    .status{ margin-top:12px; font-size:13px; }
-    .ok{ color:#0a6; font-weight:700; }
-    .ng{ color:#c33; font-weight:700; }
-    .muted{ color:#666; }
-
-    .pill{
-      display:inline-block; padding:2px 8px; border-radius:999px;
-      background:#eef2f6; color:#334; font-size:12px; font-weight:700;
-      margin-left:8px;
-    }
-
-    .small{ font-size:12px; color:#666; margin-top:8px; }
-    .divider{ height:1px; background:#eef2f6; margin:16px 0; }
+    body{font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Noto Sans JP","Hiragino Kaku Gothic ProN",Meiryo,sans-serif;margin:0;background:#f6f7f9;color:#111}
+    header{background:#0b3c5d;color:#fff;padding:16px 20px}
+    header h1{margin:0;font-size:20px;font-weight:900}
+    header .jp{font-size:12px;opacity:.9;margin-top:4px}
+    nav{display:flex;gap:16px;flex-wrap:wrap;background:#fff;border-bottom:1px solid #e5e7eb;padding:10px 20px}
+    nav a{color:#0b3c5d;text-decoration:none;font-weight:900}
+    nav a .jp{display:block;font-weight:500;font-size:11px;color:#475569;margin-top:2px}
+    main{max-width:980px;margin:0 auto;padding:24px}
+    .card{background:#fff;border:1px solid #e6e8ee;border-radius:12px;padding:18px;margin-bottom:16px}
+    .row{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+    @media(max-width:860px){.row{grid-template-columns:1fr}}
+    label{display:block;font-weight:900;margin-top:10px}
+    label .jp{display:block;font-weight:500;font-size:11px;color:#64748b;margin-top:2px}
+    input,select,button,textarea{width:100%;box-sizing:border-box;border:1px solid #d1d5db;border-radius:10px;padding:10px;font-size:14px;margin-top:6px;background:#fff}
+    textarea{min-height:180px;font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,"Liberation Mono","Courier New",monospace}
+    button{background:#0b3c5d;color:#fff;border:0;font-weight:900;cursor:pointer}
+    button.secondary{background:#334155}
+    button.danger{background:#7f1d1d}
+    button:disabled{opacity:.55;cursor:not-allowed}
+    .status{margin-top:10px;font-size:13px}
+    .ok{color:#065f46}
+    .ng{color:#991b1b}
+    .muted{color:#64748b}
+    .pill{display:inline-block;padding:2px 10px;border-radius:999px;background:#eef2f6;color:#0f172a;font-size:12px;font-weight:900}
+    .small{font-size:12px;color:#64748b;margin-top:8px}
+    .hr{height:1px;background:#eef2f6;margin:14px 0}
   </style>
 </head>
-
 <body>
   <header>
-    <h1>
-      Receipt Admin <span class="pill" id="buildTag">loading...</span>
+    <h1>Receipt Admin <span class="pill" id="buildTag">—</span>
       <div class="jp">レシート管理画面（管理者用）</div>
     </h1>
   </header>
@@ -79,378 +45,362 @@
     <a href="#home">Home<span class="jp">ホーム</span></a>
     <a href="#contacts">Contacts<span class="jp">連絡先検索</span></a>
     <a href="#add">Add<span class="jp">新規作成</span></a>
-    <a href="#receipt">Receipt<span class="jp">レシート管理</span></a>
+    <a href="#ready">READY<span class="jp">対象一覧</span></a>
+    <a href="#bulk">Bulk<span class="jp">一斉送信</span></a>
   </nav>
 
-  <main id="home">
-    <section>
-      <h2>
-        System Check
-        <span class="jp">システム確認</span>
-      </h2>
-
+  <main>
+    <div class="card" id="home">
+      <h2 style="margin:0 0 8px 0">System Check<span class="jp" style="display:block;font-size:12px;color:#64748b">システム確認</span></h2>
       <div class="row">
         <div>
-          <button id="btnVersion" onclick="checkVersion()">Check Worker Version<span class="jp">Workerバージョン確認</span></button>
-          <div id="versionOut" class="status muted"></div>
+          <button class="secondary" id="btnVer" onclick="checkVersion()">Check Worker Version<span class="jp">Workerバージョン確認</span></button>
+          <div class="status muted" id="verStatus">—</div>
         </div>
-
         <div>
-          <button id="btnReadyQuick" onclick="loadReadyList()">Load READY List<span class="jp">READY一覧を取得</span></button>
-          <div id="readyOut" class="status muted"></div>
+          <button class="secondary" id="btnReadyQuick" onclick="loadReady()">Load READY List<span class="jp">READY一覧を取得</span></button>
+          <div class="status muted" id="readyStatusTop">—</div>
         </div>
       </div>
+      <div class="small">If something spins forever, this UI will show HTTP status/errors below.<br/>回り続ける場合でもHTTPステータスと本文を表示します</div>
+    </div>
 
-      <div class="small">
-        If any button stays “Loading…”: you will see the HTTP status + error text below.<br/>
-        どれかが「Loading…」のままの場合でも、HTTPステータスとエラー本文を必ず下に表示します。
-      </div>
-    </section>
-
-    <section id="contacts">
-      <h2>
-        Search Contact by Email
-        <span class="jp">メールアドレスで連絡先を検索</span>
-      </h2>
+    <div class="card" id="contacts">
+      <h2 style="margin:0 0 8px 0">Search Contact by Email<span class="jp" style="display:block;font-size:12px;color:#64748b">メールアドレスで検索</span></h2>
 
       <div class="row">
         <div>
           <label>Email<span class="jp">メールアドレス</span></label>
-          <input type="email" id="searchEmail" placeholder="example@email.com" />
-
+          <input id="searchEmail" type="email" placeholder="example@email.com" />
           <button id="btnSearch" onclick="searchContact()">Search<span class="jp">検索</span></button>
-          <div id="searchStatus" class="status muted"></div>
+          <div class="status muted" id="searchStatus">—</div>
+
+          <div class="hr"></div>
+
+          <label>Send Portal Link (recommended)<span class="jp">入口リンク送信（推奨）</span></label>
+          <button id="btnSendPortal" onclick="sendPortalLink()" disabled>Send Portal Link<span class="jp">入口リンク送信</span></button>
+
+          <div class="small">
+            This sends the portal entrance URL only. Member logs in with email + OTP.<br/>
+            入口URLのみ送ります（会員はメール＋OTPでログイン）
+          </div>
+
+          <div class="hr"></div>
+
+          <label>Legacy (optional)<span class="jp">旧方式（任意）</span></label>
+          <button id="btnSendMagic" class="secondary" onclick="sendMagicLink()" disabled>Send Magic Link (legacy)<span class="jp">マジックリンク（旧）</span></button>
+
+          <div class="status muted" id="sendStatus">—</div>
         </div>
 
         <div>
-          <label>Result (raw JSON)<span class="jp">検索結果（生JSON）</span></label>
+          <label>Result (raw JSON)<span class="jp">結果（生JSON）</span></label>
           <textarea id="searchJson" readonly></textarea>
-
-          <div class="divider"></div>
-
-          <button id="btnMagic" onclick="sendMagicLink()" disabled>
-            Send Magic Link<span class="jp">マジックリンク送信</span>
-          </button>
-          <div id="magicStatus" class="status muted"></div>
         </div>
       </div>
-    </section>
+    </div>
 
-    <section id="add">
-      <h2>
-        Create New Contact
-        <span class="jp">新しい連絡先を作成</span>
-      </h2>
-
+    <div class="card" id="add">
+      <h2 style="margin:0 0 8px 0">Create / Update Contact<span class="jp" style="display:block;font-size:12px;color:#64748b">連絡先の作成／更新</span></h2>
       <div class="row">
         <div>
           <label>Email<span class="jp">メールアドレス</span></label>
-          <input type="email" id="addEmail" />
-
+          <input id="addEmail" type="email" />
           <label>Member ID<span class="jp">会員ID</span></label>
-          <input type="text" id="addMemberId" placeholder="TEST-0001" />
-
+          <input id="addMemberId" type="text" placeholder="TEST-0001" />
           <label>Receipt Eligible<span class="jp">レシートポータル利用可</span></label>
           <select id="addEligible">
             <option value="true">true（有効）</option>
             <option value="false">false（無効）</option>
           </select>
-
-          <label>Receipt Years Available<span class="jp">ダウンロード可能年度（例：2024;2025）</span></label>
-          <input type="text" id="addYears" placeholder="2024;2025" />
-
-          <button id="btnCreate" onclick="createContact()">Create Contact<span class="jp">連絡先を作成</span></button>
-          <div id="createStatus" class="status muted"></div>
+          <label>Receipt Years Available<span class="jp">可能年度（例：2024;2025）</span></label>
+          <input id="addYears" type="text" placeholder="2024;2025" />
+          <button id="btnUpsert" onclick="upsertContact()">Create/Update<span class="jp">作成/更新</span></button>
+          <div class="status muted" id="upsertStatus">—</div>
         </div>
-
         <div>
-          <label>Response (raw)<span class="jp">応答（生）</span></label>
-          <textarea id="createJson" readonly></textarea>
-
-          <div class="small">
-            NOTE: READY uses semicolon delimiter: <b>2024;2025</b><br/>
-            注意：READY判定は区切り文字「;」前提です（例：2024;2025）
-          </div>
+          <label>Response (raw JSON)<span class="jp">応答（生JSON）</span></label>
+          <textarea id="upsertJson" readonly></textarea>
         </div>
       </div>
-    </section>
+    </div>
 
-    <section id="receipt">
-      <h2>
-        READY / Missing
-        <span class="jp">READY / Missing 一覧</span>
-      </h2>
+    <div class="card" id="ready">
+      <h2 style="margin:0 0 8px 0">READY List<span class="jp" style="display:block;font-size:12px;color:#64748b">READY一覧</span></h2>
+      <div class="row">
+        <div>
+          <label>Filter Year (optional)<span class="jp">年で絞り込み（任意）</span></label>
+          <input id="readyYear" type="text" placeholder="2024" />
+          <button id="btnReady" onclick="loadReady()">Show READY List<span class="jp">READY一覧表示</span></button>
+          <div class="status muted" id="readyStatus">—</div>
+        </div>
+        <div>
+          <label>Result (raw JSON)<span class="jp">結果（生JSON）</span></label>
+          <textarea id="readyJson" readonly></textarea>
+        </div>
+      </div>
+    </div>
 
-      <button id="btnReady" onclick="loadReadyList()">Show READY List<span class="jp">READY一覧を表示</span></button>
-      <label class="small">Result (raw JSON)<span class="jp">結果（生JSON）</span></label>
-      <textarea id="readyJson" readonly></textarea>
-    </section>
+    <div class="card" id="bulk">
+      <h2 style="margin:0 0 8px 0">Bulk Send Portal Links<span class="jp" style="display:block;font-size:12px;color:#64748b">入口リンク一斉送信（推奨）</span></h2>
+      <div class="row">
+        <div>
+          <label>Limit<span class="jp">上限（まず10でテスト）</span></label>
+          <input id="bulkLimit" type="number" value="10" />
+          <label>Year (optional)<span class="jp">年指定（任意）</span></label>
+          <input id="bulkYear" type="text" placeholder="2024" />
+          <label>Language<span class="jp">言語</span></label>
+          <select id="bulkLang">
+            <option value="both">both（英日）</option>
+            <option value="en">en（英語）</option>
+            <option value="ja">ja（日本語）</option>
+          </select>
+          <button id="btnBulkPortal" onclick="bulkSendPortal()">Bulk Send Portal Links<span class="jp">入口リンク一斉送信</span></button>
+          <div class="status muted" id="bulkStatus">—</div>
+
+          <div class="hr"></div>
+
+          <button id="btnBulkMagic" class="secondary" onclick="bulkSendMagic()">Bulk Send Magic Links (legacy)<span class="jp">旧：マジックリンク一斉送信</span></button>
+          <div class="small">Legacy is optional. Recommended is Portal link + OTP.<br/>旧方式は任意。推奨は入口リンク＋OTPです</div>
+        </div>
+        <div>
+          <label>Response (raw JSON)<span class="jp">応答（生JSON）</span></label>
+          <textarea id="bulkJson" readonly></textarea>
+        </div>
+      </div>
+    </div>
+
   </main>
 
-  <script>
-    /**
-     * ============
-     * Admin API base
-     * ============
-     * These are Worker endpoints (same-origin), protected by Cloudflare Access.
-     */
-    const API_BASE = "/api/admin/receipt";
+<script>
+  const API = "/api/admin/receipt";
 
-    /**
-     * Endpoints (adjust here if your Worker uses different paths)
-     */
-    const EP = {
-      version: `${API_BASE}/_version`,
-      ready:   `${API_BASE}/ready`,
-      // Below two are the typical admin endpoints. If your Worker uses different names,
-      // this UI will show 404 + body so we can rename correctly.
-      getByEmail: (email) => `${API_BASE}/contact?email=${encodeURIComponent(email)}`,
-      create: `${API_BASE}/contact`,
-      magicLink: `${API_BASE}/magic-link`
-    };
+  function setBusy(id, busy){
+    const el = document.getElementById(id);
+    if(el) el.disabled = !!busy;
+  }
+  function show(id, text, cls="muted"){
+    const el = document.getElementById(id);
+    if(!el) return;
+    el.className = "status " + cls;
+    el.textContent = text;
+  }
+  function writeTA(id, data){
+    const el = document.getElementById(id);
+    if(!el) return;
+    el.value = (typeof data === "string") ? data : JSON.stringify(data, null, 2);
+  }
+  function v(id){ return (document.getElementById(id).value || "").trim(); }
 
-    // Simple fetch with timeout + always return readable debug
-    async function fetchJson(url, opts = {}) {
-      const timeoutMs = 15000;
-      const controller = new AbortController();
-      const t = setTimeout(() => controller.abort(), timeoutMs);
+  async function fetchJson(url, opts={}, timeoutMs=15000){
+    const ctrl = new AbortController();
+    const t = setTimeout(()=>ctrl.abort(), timeoutMs);
+    try{
+      const res = await fetch(url, { ...opts, signal: ctrl.signal });
+      const text = await res.text();
+      let json=null; try{ json = JSON.parse(text); }catch{}
+      return { ok: res.ok, status: res.status, text, json };
+    } finally { clearTimeout(t); }
+  }
 
-      try {
-        const res = await fetch(url, {
-          ...opts,
-          headers: {
-            "Content-Type": "application/json",
-            ...(opts.headers || {})
-          },
-          signal: controller.signal
-        });
+  async function checkVersion(){
+    setBusy("btnVer", true);
+    show("verStatus", "Loading... / 読み込み中...");
+    const r = await fetchJson(API + "/_version");
+    if(r.ok && r.json?.ok){
+      document.getElementById("buildTag").textContent = r.json.build || "ok";
+      show("verStatus", `OK: HTTP ${r.status} | ${r.json.build}`, "ok");
+    } else {
+      show("verStatus", `NG: HTTP ${r.status} | ${r.text}`, "ng");
+    }
+    setBusy("btnVer", false);
+  }
 
-        const text = await res.text(); // read as text first (could be HTML error)
-        let json = null;
-        try { json = text ? JSON.parse(text) : null; } catch (_) {}
+  async function searchContact(){
+    const email = v("searchEmail").toLowerCase();
+    if(!email){ show("searchStatus","Email required / メール必須","ng"); return; }
 
-        return {
-          ok: res.ok,
-          status: res.status,
-          statusText: res.statusText,
-          text,
-          json
-        };
-      } catch (err) {
-        return {
-          ok: false,
-          status: 0,
-          statusText: "FETCH_ERROR",
-          text: String(err),
-          json: null
-        };
-      } finally {
-        clearTimeout(t);
+    setBusy("btnSearch", true);
+    setBusy("btnSendPortal", true);
+    setBusy("btnSendMagic", true);
+    show("searchStatus","Searching... / 検索中...");
+    writeTA("searchJson","");
+
+    const r = await fetchJson(API + "/contact?email=" + encodeURIComponent(email));
+    writeTA("searchJson", r.json || r.text);
+
+    if(r.ok && r.json?.ok){
+      show("searchStatus", `OK: HTTP ${r.status} | found=${r.json.found}`, "ok");
+      if(r.json.found){
+        document.getElementById("btnSendPortal").disabled = false;
+        document.getElementById("btnSendMagic").disabled = false;
       }
+    } else {
+      show("searchStatus", `NG: HTTP ${r.status} | ${r.text}`, "ng");
     }
 
-    function setBusy(btnId, busy, labelEn, labelJa) {
-      const btn = document.getElementById(btnId);
-      if (!btn) return;
-      btn.disabled = !!busy;
-      if (busy) {
-        btn.innerHTML = `Loading...<span class="jp">読み込み中...</span>`;
-      } else {
-        btn.innerHTML = `${labelEn}<span class="jp">${labelJa}</span>`;
-      }
-    }
+    setBusy("btnSearch", false);
+  }
 
-    function pretty(objOrText) {
-      if (typeof objOrText === "string") return objOrText;
-      try { return JSON.stringify(objOrText, null, 2); } catch { return String(objOrText); }
-    }
+  async function sendPortalLink(){
+    const email = v("searchEmail").toLowerCase();
+    if(!email) return;
 
-    function statusLine(r) {
-      return `HTTP ${r.status} ${r.statusText} | ok=${r.ok}`;
-    }
-
-    async function checkVersion() {
-      setBusy("btnVersion", true, "Check Worker Version", "Workerバージョン確認");
-      const out = document.getElementById("versionOut");
-      out.className = "status muted";
-      out.textContent = "Checking... / 確認中...";
-
-      const r = await fetchJson(EP.version, { method: "GET" });
-
-      if (r.ok && r.json) {
-        const build = r.json.build || "unknown";
-        document.getElementById("buildTag").textContent = build;
-        out.className = "status ok";
-        out.textContent = `OK: ${statusLine(r)} | build=${build}`;
-      } else {
-        out.className = "status ng";
-        out.textContent = `NG: ${statusLine(r)} | ${r.text}`;
-      }
-
-      setBusy("btnVersion", false, "Check Worker Version", "Workerバージョン確認");
-    }
-
-    async function loadReadyList() {
-      setBusy("btnReady", true, "Show READY List", "READY一覧を表示");
-      setBusy("btnReadyQuick", true, "Load READY List", "READY一覧を取得");
-
-      const out = document.getElementById("readyOut");
-      const box = document.getElementById("readyJson");
-
-      out.className = "status muted";
-      out.textContent = "Loading READY... / READY取得中...";
-      box.value = "";
-
-      const r = await fetchJson(EP.ready, { method: "GET" });
-
-      if (r.ok && r.json) {
-        const n = Array.isArray(r.json.results) ? r.json.results.length : 0;
-        out.className = "status ok";
-        out.textContent = `OK: ${statusLine(r)} | results=${n}`;
-        box.value = pretty(r.json);
-      } else {
-        out.className = "status ng";
-        out.textContent = `NG: ${statusLine(r)} | ${r.text}`;
-        box.value = r.text || "";
-      }
-
-      setBusy("btnReady", false, "Show READY List", "READY一覧を表示");
-      setBusy("btnReadyQuick", false, "Load READY List", "READY一覧を取得");
-    }
-
-    async function searchContact() {
-      const email = (document.getElementById("searchEmail").value || "").trim();
-      const st = document.getElementById("searchStatus");
-      const box = document.getElementById("searchJson");
-      const btnMagic = document.getElementById("btnMagic");
-
-      btnMagic.disabled = true;
-      box.value = "";
-
-      if (!email) {
-        st.className = "status ng";
-        st.textContent = "Please enter an email. / メールアドレスを入力してください。";
-        return;
-      }
-
-      setBusy("btnSearch", true, "Search", "検索");
-      st.className = "status muted";
-      st.textContent = "Searching... / 検索中...";
-
-      const r = await fetchJson(EP.getByEmail(email), { method: "GET" });
-
-      if (r.ok) {
-        st.className = "status ok";
-        st.textContent = `OK: ${statusLine(r)}`;
-        box.value = pretty(r.json ?? r.text);
-        btnMagic.disabled = false;
-      } else {
-        st.className = "status ng";
-        st.textContent = `NG: ${statusLine(r)} | ${r.text}`;
-        box.value = r.text || "";
-      }
-
-      setBusy("btnSearch", false, "Search", "検索");
-    }
-
-    async function createContact() {
-      const email = (document.getElementById("addEmail").value || "").trim();
-      const memberId = (document.getElementById("addMemberId").value || "").trim();
-      const eligibleStr = document.getElementById("addEligible").value;
-      const years = (document.getElementById("addYears").value || "").trim();
-
-      const st = document.getElementById("createStatus");
-      const box = document.getElementById("createJson");
-      box.value = "";
-
-      if (!email) {
-        st.className = "status ng";
-        st.textContent = "Email is required. / メールアドレスは必須です。";
-        return;
-      }
-      if (!memberId) {
-        st.className = "status ng";
-        st.textContent = "Member ID is required. / 会員IDは必須です。";
-        return;
-      }
-      if (!years) {
-        st.className = "status ng";
-        st.textContent = "Receipt Years Available is required. / ダウンロード可能年度は必須です。";
-        return;
-      }
-
-      // Normalize years: remove spaces around delimiters, allow both ; and , then convert to ;
-      const normalizedYears = years
-        .replace(/\s+/g, "")
-        .replace(/,/g, ";")
-        .replace(/;;+/g, ";")
-        .replace(/;$/g, "");
-
-      const payload = {
-        email,
-        member_id: memberId,
-        receipt_portal_eligible: (eligibleStr === "true"),
-        receipt_years_available: normalizedYears
-      };
-
-      setBusy("btnCreate", true, "Create Contact", "連絡先を作成");
-      st.className = "status muted";
-      st.textContent = "Creating contact... / 作成中...";
-
-      const r = await fetchJson(EP.create, {
-        method: "POST",
-        body: JSON.stringify(payload)
-      });
-
-      if (r.ok) {
-        st.className = "status ok";
-        st.textContent = `OK: ${statusLine(r)} | Created/Updated`;
-        box.value = pretty(r.json ?? r.text);
-
-        // convenience: copy to search box so you can immediately Search/MagicLink
-        document.getElementById("searchEmail").value = email;
-      } else {
-        st.className = "status ng";
-        st.textContent = `NG: ${statusLine(r)} | ${r.text}`;
-        box.value = r.text || "";
-      }
-
-      setBusy("btnCreate", false, "Create Contact", "連絡先を作成");
-    }
-
-    async function sendMagicLink() {
-      const email = (document.getElementById("searchEmail").value || "").trim();
-      const st = document.getElementById("magicStatus");
-      if (!email) {
-        st.className = "status ng";
-        st.textContent = "Please search an email first. / 先にメール検索してください。";
-        return;
-      }
-
-      setBusy("btnMagic", true, "Send Magic Link", "マジックリンク送信");
-      st.className = "status muted";
-      st.textContent = "Sending... / 送信中...";
-
-      const r = await fetchJson(EP.magicLink, {
-        method: "POST",
-        body: JSON.stringify({ email })
-      });
-
-      if (r.ok) {
-        st.className = "status ok";
-        st.textContent = `OK: ${statusLine(r)} | Sent`;
-      } else {
-        st.className = "status ng";
-        st.textContent = `NG: ${statusLine(r)} | ${r.text}`;
-      }
-
-      setBusy("btnMagic", false, "Send Magic Link", "マジックリンク送信");
-    }
-
-    // Auto-check version on load (nice UX)
-    window.addEventListener("load", () => {
-      checkVersion();
+    show("sendStatus","Sending portal link... / 入口リンク送信中...");
+    const r = await fetchJson(API + "/send-portal-link", {
+      method:"POST",
+      headers:{ "Content-Type":"application/json" },
+      body: JSON.stringify({ email, language: "both" })
     });
-  </script>
+
+    if(r.ok){
+      show("sendStatus", `OK: HTTP ${r.status} | portal link sent`, "ok");
+      const prev = document.getElementById("searchJson").value || "";
+      document.getElementById("searchJson").value = prev + "\n\n" + JSON.stringify(r.json, null, 2);
+    } else {
+      show("sendStatus", `NG: HTTP ${r.status} | ${r.text}`, "ng");
+    }
+  }
+
+  async function sendMagicLink(){
+    const email = v("searchEmail").toLowerCase();
+    if(!email) return;
+
+    show("sendStatus","Sending magic link... / 旧リンク送信中...");
+    const r = await fetchJson(API + "/send-magic-link", {
+      method:"POST",
+      headers:{ "Content-Type":"application/json" },
+      body: JSON.stringify({ email, language: "both" })
+    });
+
+    if(r.ok){
+      show("sendStatus", `OK: HTTP ${r.status} | magic link sent`, "ok");
+      const prev = document.getElementById("searchJson").value || "";
+      document.getElementById("searchJson").value = prev + "\n\n" + JSON.stringify(r.json, null, 2);
+    } else {
+      show("sendStatus", `NG: HTTP ${r.status} | ${r.text}`, "ng");
+    }
+  }
+
+  async function upsertContact(){
+    const email = v("addEmail").toLowerCase();
+    const member_id = v("addMemberId");
+    const eligible = (document.getElementById("addEligible").value === "true");
+    const years = v("addYears").replace(/\s+/g,"").replace(/,/g,";");
+
+    if(!email){ show("upsertStatus","Email required / メール必須","ng"); return; }
+    if(!member_id){ show("upsertStatus","Member ID required / 会員ID必須","ng"); return; }
+    if(!years){ show("upsertStatus","Years required / 年度必須","ng"); return; }
+
+    setBusy("btnUpsert", true);
+    show("upsertStatus","Saving... / 保存中...");
+    writeTA("upsertJson","");
+
+    const r = await fetchJson(API + "/contact", {
+      method:"POST",
+      headers:{ "Content-Type":"application/json" },
+      body: JSON.stringify({
+        email,
+        member_id,
+        receipt_portal_eligible: eligible,
+        receipt_years_available: years
+      })
+    });
+
+    writeTA("upsertJson", r.json || r.text);
+    if(r.ok){
+      show("upsertStatus", `OK: HTTP ${r.status} | ${r.json?.action || "ok"}`, "ok");
+      document.getElementById("searchEmail").value = email;
+    } else {
+      show("upsertStatus", `NG: HTTP ${r.status} | ${r.text}`, "ng");
+    }
+    setBusy("btnUpsert", false);
+  }
+
+  async function loadReady(){
+    const year = v("readyYear");
+    const qs = year ? ("?year=" + encodeURIComponent(year)) : "";
+
+    setBusy("btnReady", true);
+    setBusy("btnReadyQuick", true);
+
+    show("readyStatusTop","Loading... / 取得中...");
+    show("readyStatus","Loading... / 取得中...");
+    writeTA("readyJson","");
+
+    const r = await fetchJson(API + "/ready" + qs);
+    writeTA("readyJson", r.json || r.text);
+
+    if(r.ok){
+      const n = Array.isArray(r.json?.results) ? r.json.results.length : 0;
+      show("readyStatusTop", `OK: HTTP ${r.status} | results=${n}`, "ok");
+      show("readyStatus", `OK: HTTP ${r.status} | results=${n}`, "ok");
+    } else {
+      show("readyStatusTop", `NG: HTTP ${r.status} | ${r.text}`, "ng");
+      show("readyStatus", `NG: HTTP ${r.status} | ${r.text}`, "ng");
+    }
+
+    setBusy("btnReady", false);
+    setBusy("btnReadyQuick", false);
+  }
+
+  async function bulkSendPortal(){
+    const limit = parseInt(document.getElementById("bulkLimit").value || "10", 10);
+    const year = v("bulkYear");
+    const language = document.getElementById("bulkLang").value;
+
+    setBusy("btnBulkPortal", true);
+    show("bulkStatus","Sending portal links... / 入口リンク送信中...");
+    writeTA("bulkJson","");
+
+    const payload = { limit: isNaN(limit) ? 10 : limit, language };
+    if(year) payload.year = year;
+
+    const r = await fetchJson(API + "/bulk-send-portal-links", {
+      method:"POST",
+      headers:{ "Content-Type":"application/json" },
+      body: JSON.stringify(payload)
+    });
+
+    writeTA("bulkJson", r.json || r.text);
+    if(r.ok){
+      show("bulkStatus", `OK: HTTP ${r.status} | sent_ok=${r.json?.sent_ok ?? "?"} sent_ng=${r.json?.sent_ng ?? "?"}`, "ok");
+    } else {
+      show("bulkStatus", `NG: HTTP ${r.status} | ${r.text}`, "ng");
+    }
+
+    setBusy("btnBulkPortal", false);
+  }
+
+  async function bulkSendMagic(){
+    const limit = parseInt(document.getElementById("bulkLimit").value || "10", 10);
+    const year = v("bulkYear");
+    const language = document.getElementById("bulkLang").value;
+
+    setBusy("btnBulkMagic", true);
+    show("bulkStatus","Sending magic links... / 旧リンク送信中...");
+    writeTA("bulkJson","");
+
+    const payload = { limit: isNaN(limit) ? 10 : limit, language };
+    if(year) payload.year = year;
+
+    const r = await fetchJson(API + "/bulk-send-magic-links", {
+      method:"POST",
+      headers:{ "Content-Type":"application/json" },
+      body: JSON.stringify(payload)
+    });
+
+    writeTA("bulkJson", r.json || r.text);
+    if(r.ok){
+      show("bulkStatus", `OK: HTTP ${r.status} | sent_ok=${r.json?.sent_ok ?? "?"} sent_ng=${r.json?.sent_ng ?? "?"}`, "ok");
+    } else {
+      show("bulkStatus", `NG: HTTP ${r.status} | ${r.text}`, "ng");
+    }
+
+    setBusy("btnBulkMagic", false);
+  }
+
+  checkVersion();
+</script>
 </body>
 </html>
