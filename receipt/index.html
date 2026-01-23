@@ -1,289 +1,406 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Annual Donation Receipt Download</title>
-
-  <!-- 検索エンジンに表示させない -->
+  <meta charset="UTF-8" />
+  <title>Receipt Admin | レシート管理</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="robots" content="noindex,nofollow" />
-
   <style>
-    body {
-      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
-                   Roboto, Helvetica, Arial, sans-serif;
-      background: #fafafa;
-      margin: 0;
-      padding: 24px;
-      color: #111827;
-    }
-    .wrap {
-      max-width: 720px;
-      margin: 0 auto;
-    }
-    h1 {
-      font-size: 22px;
-      margin-bottom: 8px;
-    }
-    .desc {
-      font-size: 14px;
-      color: #6b7280;
-      margin-bottom: 20px;
-    }
-    .card {
-      background: #fff;
-      border: 1px solid #e5e7eb;
-      border-radius: 12px;
-      padding: 18px;
-      margin-bottom: 20px;
-    }
-    h2 {
-      font-size: 16px;
-      margin: 0 0 8px;
-    }
-    label {
-      display: block;
-      font-size: 14px;
-      margin: 12px 0 6px;
-    }
-    input[type="email"] {
-      width: 100%;
-      padding: 12px;
-      font-size: 16px;
-      border-radius: 8px;
-      border: 1px solid #d1d5db;
-    }
-    .row {
-      display: flex;
-      gap: 10px;
-      flex-wrap: wrap;
-      margin-top: 12px;
-    }
-    button {
-      padding: 12px 16px;
-      border-radius: 8px;
-      border: none;
-      font-size: 15px;
-      cursor: pointer;
-    }
-    button.primary {
-      background: #111827;
-      color: #fff;
-    }
-    button.secondary {
-      background: #e5e7eb;
-      color: #111827;
-    }
-    button:disabled {
-      opacity: 0.5;
-      cursor: not-allowed;
-    }
-    .msg {
-      font-size: 14px;
-      margin-top: 10px;
-      color: #374151;
-    }
-    .msg.ok { color: #065f46; }
-    .msg.err { color: #b91c1c; }
-
-    .years {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 10px;
-      margin-top: 12px;
-    }
-    .year-btn {
-      padding: 10px 14px;
-      border-radius: 999px;
-      border: 1px solid #d1d5db;
-      background: #fff;
-      cursor: pointer;
-      font-size: 14px;
-    }
-    .year-btn.active {
-      background: #111827;
-      color: #fff;
-      border-color: #111827;
-    }
-
-    footer {
-      margin-top: 40px;
-      font-size: 12px;
-      color: #9ca3af;
-      text-align: center;
-    }
+    body{font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Noto Sans JP","Hiragino Kaku Gothic ProN",Meiryo,sans-serif;margin:0;background:#f6f7f9;color:#111}
+    header{background:#0b3c5d;color:#fff;padding:16px 20px}
+    header h1{margin:0;font-size:20px;font-weight:900}
+    header .jp{font-size:12px;opacity:.9;margin-top:4px}
+    nav{display:flex;gap:16px;flex-wrap:wrap;background:#fff;border-bottom:1px solid #e5e7eb;padding:10px 20px}
+    nav a{color:#0b3c5d;text-decoration:none;font-weight:900}
+    nav a .jp{display:block;font-weight:500;font-size:11px;color:#475569;margin-top:2px}
+    main{max-width:980px;margin:0 auto;padding:24px}
+    .card{background:#fff;border:1px solid #e6e8ee;border-radius:12px;padding:18px;margin-bottom:16px}
+    .row{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+    @media(max-width:860px){.row{grid-template-columns:1fr}}
+    label{display:block;font-weight:900;margin-top:10px}
+    label .jp{display:block;font-weight:500;font-size:11px;color:#64748b;margin-top:2px}
+    input,select,button,textarea{width:100%;box-sizing:border-box;border:1px solid #d1d5db;border-radius:10px;padding:10px;font-size:14px;margin-top:6px;background:#fff}
+    textarea{min-height:180px;font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,"Liberation Mono","Courier New",monospace}
+    button{background:#0b3c5d;color:#fff;border:0;font-weight:900;cursor:pointer}
+    button.secondary{background:#334155}
+    button.danger{background:#7f1d1d}
+    button:disabled{opacity:.55;cursor:not-allowed}
+    .status{margin-top:10px;font-size:13px}
+    .ok{color:#065f46}
+    .ng{color:#991b1b}
+    .muted{color:#64748b}
+    .pill{display:inline-block;padding:2px 10px;border-radius:999px;background:#eef2f6;color:#0f172a;font-size:12px;font-weight:900}
+    .small{font-size:12px;color:#64748b;margin-top:8px}
+    .hr{height:1px;background:#eef2f6;margin:14px 0}
   </style>
 </head>
-
 <body>
-  <div class="wrap">
-    <h1>Annual Donation Receipt Download</h1>
-    <div class="desc">
-      Log in with your registered email address to download your annual donation receipt (PDF).
+  <header>
+    <h1>Receipt Admin <span class="pill" id="buildTag">—</span>
+      <div class="jp">レシート管理画面（管理者用）</div>
+    </h1>
+  </header>
+
+  <nav>
+    <a href="#home">Home<span class="jp">ホーム</span></a>
+    <a href="#contacts">Contacts<span class="jp">連絡先検索</span></a>
+    <a href="#add">Add<span class="jp">新規作成</span></a>
+    <a href="#ready">READY<span class="jp">対象一覧</span></a>
+    <a href="#bulk">Bulk<span class="jp">一斉送信</span></a>
+  </nav>
+
+  <main>
+    <div class="card" id="home">
+      <h2 style="margin:0 0 8px 0">System Check<span class="jp" style="display:block;font-size:12px;color:#64748b">システム確認</span></h2>
+      <div class="row">
+        <div>
+          <button class="secondary" id="btnVer" onclick="checkVersion()">Check Worker Version<span class="jp">Workerバージョン確認</span></button>
+          <div class="status muted" id="verStatus">—</div>
+        </div>
+        <div>
+          <button class="secondary" id="btnReadyQuick" onclick="loadReady()">Load READY List<span class="jp">READY一覧を取得</span></button>
+          <div class="status muted" id="readyStatusTop">—</div>
+        </div>
+      </div>
+      <div class="small">If something spins forever, this UI will show HTTP status/errors below.<br/>回り続ける場合でもHTTPステータスと本文を表示します</div>
     </div>
 
-    <!-- ログイン -->
-    <div class="card" id="loginCard">
-      <h2>1) Receive a login link</h2>
-      <label for="email">Email address</label>
-      <input id="email" type="email" placeholder="example@email.com" autocomplete="email" />
+    <div class="card" id="contacts">
+      <h2 style="margin:0 0 8px 0">Search Contact by Email<span class="jp" style="display:block;font-size:12px;color:#64748b">メールアドレスで検索</span></h2>
 
       <div class="row">
-        <button class="primary" id="sendLinkBtn">Send login link</button>
-        <button class="secondary" id="checkLoginBtn">Check login status</button>
-      </div>
+        <div>
+          <label>Email<span class="jp">メールアドレス</span></label>
+          <input id="searchEmail" type="email" placeholder="example@email.com" />
+          <button id="btnSearch" onclick="searchContact()">Search<span class="jp">検索</span></button>
+          <div class="status muted" id="searchStatus">—</div>
 
-      <div class="msg" id="loginMsg"></div>
+          <div class="hr"></div>
+
+          <label>Send Portal Link (recommended)<span class="jp">入口リンク送信（推奨）</span></label>
+          <button id="btnSendPortal" onclick="sendPortalLink()" disabled>Send Portal Link<span class="jp">入口リンク送信</span></button>
+
+          <div class="small">
+            This sends the portal entrance URL only. Member logs in with email + OTP.<br/>
+            入口URLのみ送ります（会員はメール＋OTPでログイン）
+          </div>
+
+          <div class="hr"></div>
+
+          <label>Legacy (optional)<span class="jp">旧方式（任意）</span></label>
+          <button id="btnSendMagic" class="secondary" onclick="sendMagicLink()" disabled>Send Magic Link (legacy)<span class="jp">マジックリンク（旧）</span></button>
+
+          <div class="status muted" id="sendStatus">—</div>
+        </div>
+
+        <div>
+          <label>Result (raw JSON)<span class="jp">結果（生JSON）</span></label>
+          <textarea id="searchJson" readonly></textarea>
+        </div>
+      </div>
     </div>
 
-    <!-- 年度選択 -->
-    <div class="card" id="receiptCard" style="display:none;">
-      <h2>2) Select a year to download</h2>
-      <div class="years" id="years"></div>
-
+    <div class="card" id="add">
+      <h2 style="margin:0 0 8px 0">Create / Update Contact<span class="jp" style="display:block;font-size:12px;color:#64748b">連絡先の作成／更新</span></h2>
       <div class="row">
-        <button class="primary" id="downloadBtn" disabled>Download PDF</button>
+        <div>
+          <label>Email<span class="jp">メールアドレス</span></label>
+          <input id="addEmail" type="email" />
+          <label>Member ID<span class="jp">会員ID</span></label>
+          <input id="addMemberId" type="text" placeholder="TEST-0001" />
+          <label>Receipt Eligible<span class="jp">レシートポータル利用可</span></label>
+          <select id="addEligible">
+            <option value="true">true（有効）</option>
+            <option value="false">false（無効）</option>
+          </select>
+          <label>Receipt Years Available<span class="jp">可能年度（例：2024;2025）</span></label>
+          <input id="addYears" type="text" placeholder="2024;2025" />
+          <button id="btnUpsert" onclick="upsertContact()">Create/Update<span class="jp">作成/更新</span></button>
+          <div class="status muted" id="upsertStatus">—</div>
+        </div>
+        <div>
+          <label>Response (raw JSON)<span class="jp">応答（生JSON）</span></label>
+          <textarea id="upsertJson" readonly></textarea>
+        </div>
       </div>
-
-      <div class="msg" id="receiptMsg"></div>
     </div>
 
-    <footer>
-      © World Divine Light
-    </footer>
-  </div>
+    <div class="card" id="ready">
+      <h2 style="margin:0 0 8px 0">READY List<span class="jp" style="display:block;font-size:12px;color:#64748b">READY一覧</span></h2>
+      <div class="row">
+        <div>
+          <label>Filter Year (optional)<span class="jp">年で絞り込み（任意）</span></label>
+          <input id="readyYear" type="text" placeholder="2024" />
+          <button id="btnReady" onclick="loadReady()">Show READY List<span class="jp">READY一覧表示</span></button>
+          <div class="status muted" id="readyStatus">—</div>
+        </div>
+        <div>
+          <label>Result (raw JSON)<span class="jp">結果（生JSON）</span></label>
+          <textarea id="readyJson" readonly></textarea>
+        </div>
+      </div>
+    </div>
 
-  <script>
-    // ===== APIエンドポイント定義 =====
-    const API = {
-      requestLink: "/api/receipt/request-link",
-      years: "/api/receipt/years",
-      download: (year) => `/api/receipt/download?year=${encodeURIComponent(year)}`
-    };
+    <div class="card" id="bulk">
+      <h2 style="margin:0 0 8px 0">Bulk Send Portal Links<span class="jp" style="display:block;font-size:12px;color:#64748b">入口リンク一斉送信（推奨）</span></h2>
+      <div class="row">
+        <div>
+          <label>Limit<span class="jp">上限（まず10でテスト）</span></label>
+          <input id="bulkLimit" type="number" value="10" />
+          <label>Year (optional)<span class="jp">年指定（任意）</span></label>
+          <input id="bulkYear" type="text" placeholder="2024" />
+          <label>Language<span class="jp">言語</span></label>
+          <select id="bulkLang">
+            <option value="both">both（英日）</option>
+            <option value="en">en（英語）</option>
+            <option value="ja">ja（日本語）</option>
+          </select>
+          <button id="btnBulkPortal" onclick="bulkSendPortal()">Bulk Send Portal Links<span class="jp">入口リンク一斉送信</span></button>
+          <div class="status muted" id="bulkStatus">—</div>
 
-    // ===== DOM参照 =====
-    const el = {
-      email: document.getElementById("email"),
-      sendBtn: document.getElementById("sendLinkBtn"),
-      checkBtn: document.getElementById("checkLoginBtn"),
-      loginMsg: document.getElementById("loginMsg"),
+          <div class="hr"></div>
 
-      receiptCard: document.getElementById("receiptCard"),
-      years: document.getElementById("years"),
-      downloadBtn: document.getElementById("downloadBtn"),
-      receiptMsg: document.getElementById("receiptMsg")
-    };
+          <button id="btnBulkMagic" class="secondary" onclick="bulkSendMagic()">Bulk Send Magic Links (legacy)<span class="jp">旧：マジックリンク一斉送信</span></button>
+          <div class="small">Legacy is optional. Recommended is Portal link + OTP.<br/>旧方式は任意。推奨は入口リンク＋OTPです</div>
+        </div>
+        <div>
+          <label>Response (raw JSON)<span class="jp">応答（生JSON）</span></label>
+          <textarea id="bulkJson" readonly></textarea>
+        </div>
+      </div>
+    </div>
 
-    let selectedYear = null;
+  </main>
 
-    // メッセージ表示用
-    function setMsg(node, text, cls = "") {
-      node.className = "msg " + cls;
-      node.textContent = text;
+<script>
+  const API = "/api/admin/receipt";
+
+  function setBusy(id, busy){
+    const el = document.getElementById(id);
+    if(el) el.disabled = !!busy;
+  }
+  function show(id, text, cls="muted"){
+    const el = document.getElementById(id);
+    if(!el) return;
+    el.className = "status " + cls;
+    el.textContent = text;
+  }
+  function writeTA(id, data){
+    const el = document.getElementById(id);
+    if(!el) return;
+    el.value = (typeof data === "string") ? data : JSON.stringify(data, null, 2);
+  }
+  function v(id){ return (document.getElementById(id).value || "").trim(); }
+
+  async function fetchJson(url, opts={}, timeoutMs=15000){
+    const ctrl = new AbortController();
+    const t = setTimeout(()=>ctrl.abort(), timeoutMs);
+    try{
+      const res = await fetch(url, { ...opts, signal: ctrl.signal });
+      const text = await res.text();
+      let json=null; try{ json = JSON.parse(text); }catch{}
+      return { ok: res.ok, status: res.status, text, json };
+    } finally { clearTimeout(t); }
+  }
+
+  async function checkVersion(){
+    setBusy("btnVer", true);
+    show("verStatus", "Loading... / 読み込み中...");
+    const r = await fetchJson(API + "/_version");
+    if(r.ok && r.json?.ok){
+      document.getElementById("buildTag").textContent = r.json.build || "ok";
+      show("verStatus", `OK: HTTP ${r.status} | ${r.json.build}`, "ok");
+    } else {
+      show("verStatus", `NG: HTTP ${r.status} | ${r.text}`, "ng");
     }
+    setBusy("btnVer", false);
+  }
 
-    // ===== ログインリンク送信 =====
-    async function sendLink() {
-      const email = el.email.value.trim().toLowerCase();
-      setMsg(el.loginMsg, "Sending login link...");
+  async function searchContact(){
+    const email = v("searchEmail").toLowerCase();
+    if(!email){ show("searchStatus","Email required / メール必須","ng"); return; }
 
-      try {
-        const res = await fetch(API.requestLink, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          credentials: "include",
-          body: JSON.stringify({ email })
-        });
+    setBusy("btnSearch", true);
+    setBusy("btnSendPortal", true);
+    setBusy("btnSendMagic", true);
+    show("searchStatus","Searching... / 検索中...");
+    writeTA("searchJson","");
 
-        if (res.ok) {
-          setMsg(
-            el.loginMsg,
-            "If you are eligible, a login link has been sent to your email.",
-            "ok"
-          );
-        } else {
-          setMsg(el.loginMsg, "Failed to send login link.", "err");
-        }
-      } catch (e) {
-        setMsg(el.loginMsg, "Network error occurred.", "err");
+    const r = await fetchJson(API + "/contact?email=" + encodeURIComponent(email));
+    writeTA("searchJson", r.json || r.text);
+
+    if(r.ok && r.json?.ok){
+      show("searchStatus", `OK: HTTP ${r.status} | found=${r.json.found}`, "ok");
+      if(r.json.found){
+        document.getElementById("btnSendPortal").disabled = false;
+        document.getElementById("btnSendMagic").disabled = false;
       }
+    } else {
+      show("searchStatus", `NG: HTTP ${r.status} | ${r.text}`, "ng");
     }
 
-    // ===== ログイン状態確認＆年度取得 =====
-    async function loadYears() {
-      setMsg(el.loginMsg, "Checking login status...");
+    setBusy("btnSearch", false);
+  }
 
-      try {
-        const res = await fetch(API.years, {
-          method: "GET",
-          credentials: "include"
-        });
+  async function sendPortalLink(){
+    const email = v("searchEmail").toLowerCase();
+    if(!email) return;
 
-        if (!res.ok) {
-          setMsg(
-            el.loginMsg,
-            "You are not logged in yet. Please enter your email address.",
-            ""
-          );
-          return;
-        }
+    show("sendStatus","Sending portal link... / 入口リンク送信中...");
+    const r = await fetchJson(API + "/send-portal-link", {
+      method:"POST",
+      headers:{ "Content-Type":"application/json" },
+      body: JSON.stringify({ email, language: "both" })
+    });
 
-        const data = await res.json();
-        const years = data.years || [];
+    if(r.ok){
+      show("sendStatus", `OK: HTTP ${r.status} | portal link sent`, "ok");
+      const prev = document.getElementById("searchJson").value || "";
+      document.getElementById("searchJson").value = prev + "\n\n" + JSON.stringify(r.json, null, 2);
+    } else {
+      show("sendStatus", `NG: HTTP ${r.status} | ${r.text}`, "ng");
+    }
+  }
 
-        if (years.length === 0) {
-          setMsg(
-            el.loginMsg,
-            "No receipt is available for your account. Please contact support.",
-            "err"
-          );
-          return;
-        }
+  async function sendMagicLink(){
+    const email = v("searchEmail").toLowerCase();
+    if(!email) return;
 
-        el.receiptCard.style.display = "block";
-        el.years.innerHTML = "";
-        selectedYear = null;
-        el.downloadBtn.disabled = true;
+    show("sendStatus","Sending magic link... / 旧リンク送信中...");
+    const r = await fetchJson(API + "/send-magic-link", {
+      method:"POST",
+      headers:{ "Content-Type":"application/json" },
+      body: JSON.stringify({ email, language: "both" })
+    });
 
-        years.sort().reverse().forEach(y => {
-          const b = document.createElement("button");
-          b.className = "year-btn";
-          b.textContent = y;
-          b.onclick = () => {
-            document.querySelectorAll(".year-btn")
-              .forEach(x => x.classList.remove("active"));
-            b.classList.add("active");
-            selectedYear = y;
-            el.downloadBtn.disabled = false;
-            setMsg(
-              el.receiptMsg,
-              `You can download the receipt for ${y}.`,
-              "ok"
-            );
-          };
-          el.years.appendChild(b);
-        });
+    if(r.ok){
+      show("sendStatus", `OK: HTTP ${r.status} | magic link sent`, "ok");
+      const prev = document.getElementById("searchJson").value || "";
+      document.getElementById("searchJson").value = prev + "\n\n" + JSON.stringify(r.json, null, 2);
+    } else {
+      show("sendStatus", `NG: HTTP ${r.status} | ${r.text}`, "ng");
+    }
+  }
 
-        setMsg(
-          el.loginMsg,
-          "You are logged in. Please select a year.",
-          "ok"
-        );
-      } catch (e) {
-        setMsg(el.loginMsg, "Network error occurred.", "err");
-      }
+  async function upsertContact(){
+    const email = v("addEmail").toLowerCase();
+    const member_id = v("addMemberId");
+    const eligible = (document.getElementById("addEligible").value === "true");
+    const years = v("addYears").replace(/\s+/g,"").replace(/,/g,";");
+
+    if(!email){ show("upsertStatus","Email required / メール必須","ng"); return; }
+    if(!member_id){ show("upsertStatus","Member ID required / 会員ID必須","ng"); return; }
+    if(!years){ show("upsertStatus","Years required / 年度必須","ng"); return; }
+
+    setBusy("btnUpsert", true);
+    show("upsertStatus","Saving... / 保存中...");
+    writeTA("upsertJson","");
+
+    const r = await fetchJson(API + "/contact", {
+      method:"POST",
+      headers:{ "Content-Type":"application/json" },
+      body: JSON.stringify({
+        email,
+        member_id,
+        receipt_portal_eligible: eligible,
+        receipt_years_available: years
+      })
+    });
+
+    writeTA("upsertJson", r.json || r.text);
+    if(r.ok){
+      show("upsertStatus", `OK: HTTP ${r.status} | ${r.json?.action || "ok"}`, "ok");
+      document.getElementById("searchEmail").value = email;
+    } else {
+      show("upsertStatus", `NG: HTTP ${r.status} | ${r.text}`, "ng");
+    }
+    setBusy("btnUpsert", false);
+  }
+
+  async function loadReady(){
+    const year = v("readyYear");
+    const qs = year ? ("?year=" + encodeURIComponent(year)) : "";
+
+    setBusy("btnReady", true);
+    setBusy("btnReadyQuick", true);
+
+    show("readyStatusTop","Loading... / 取得中...");
+    show("readyStatus","Loading... / 取得中...");
+    writeTA("readyJson","");
+
+    const r = await fetchJson(API + "/ready" + qs);
+    writeTA("readyJson", r.json || r.text);
+
+    if(r.ok){
+      const n = Array.isArray(r.json?.results) ? r.json.results.length : 0;
+      show("readyStatusTop", `OK: HTTP ${r.status} | results=${n}`, "ok");
+      show("readyStatus", `OK: HTTP ${r.status} | results=${n}`, "ok");
+    } else {
+      show("readyStatusTop", `NG: HTTP ${r.status} | ${r.text}`, "ng");
+      show("readyStatus", `NG: HTTP ${r.status} | ${r.text}`, "ng");
     }
 
-    // ===== イベント =====
-    el.sendBtn.onclick = sendLink;
-    el.checkBtn.onclick = loadYears;
-    el.downloadBtn.onclick = () => {
-      if (!selectedYear) return;
-      window.location.href = API.download(selectedYear);
-    };
+    setBusy("btnReady", false);
+    setBusy("btnReadyQuick", false);
+  }
 
-    // 初回ロード時にログイン状態を確認
-    loadYears();
-  </script>
+  async function bulkSendPortal(){
+    const limit = parseInt(document.getElementById("bulkLimit").value || "10", 10);
+    const year = v("bulkYear");
+    const language = document.getElementById("bulkLang").value;
+
+    setBusy("btnBulkPortal", true);
+    show("bulkStatus","Sending portal links... / 入口リンク送信中...");
+    writeTA("bulkJson","");
+
+    const payload = { limit: isNaN(limit) ? 10 : limit, language };
+    if(year) payload.year = year;
+
+    const r = await fetchJson(API + "/bulk-send-portal-links", {
+      method:"POST",
+      headers:{ "Content-Type":"application/json" },
+      body: JSON.stringify(payload)
+    });
+
+    writeTA("bulkJson", r.json || r.text);
+    if(r.ok){
+      show("bulkStatus", `OK: HTTP ${r.status} | sent_ok=${r.json?.sent_ok ?? "?"} sent_ng=${r.json?.sent_ng ?? "?"}`, "ok");
+    } else {
+      show("bulkStatus", `NG: HTTP ${r.status} | ${r.text}`, "ng");
+    }
+
+    setBusy("btnBulkPortal", false);
+  }
+
+  async function bulkSendMagic(){
+    const limit = parseInt(document.getElementById("bulkLimit").value || "10", 10);
+    const year = v("bulkYear");
+    const language = document.getElementById("bulkLang").value;
+
+    setBusy("btnBulkMagic", true);
+    show("bulkStatus","Sending magic links... / 旧リンク送信中...");
+    writeTA("bulkJson","");
+
+    const payload = { limit: isNaN(limit) ? 10 : limit, language };
+    if(year) payload.year = year;
+
+    const r = await fetchJson(API + "/bulk-send-magic-links", {
+      method:"POST",
+      headers:{ "Content-Type":"application/json" },
+      body: JSON.stringify(payload)
+    });
+
+    writeTA("bulkJson", r.json || r.text);
+    if(r.ok){
+      show("bulkStatus", `OK: HTTP ${r.status} | sent_ok=${r.json?.sent_ok ?? "?"} sent_ng=${r.json?.sent_ng ?? "?"}`, "ok");
+    } else {
+      show("bulkStatus", `NG: HTTP ${r.status} | ${r.text}`, "ng");
+    }
+
+    setBusy("btnBulkMagic", false);
+  }
+
+  checkVersion();
+</script>
 </body>
 </html>
