@@ -38,19 +38,9 @@
       display:flex; gap:14px; align-items:flex-start; justify-content:space-between; flex-wrap:wrap;
       margin-bottom:16px;
     }
-    .brand{
-      display:flex; flex-direction:column; gap:6px;
-    }
-    .brand h1{
-      margin:0;
-      font-size:18px;
-      letter-spacing:.2px;
-    }
-    .sub{
-      color:var(--muted);
-      font-size:12px;
-      display:flex; gap:10px; align-items:center; flex-wrap:wrap;
-    }
+    .brand{display:flex; flex-direction:column; gap:6px;}
+    .brand h1{margin:0; font-size:18px; letter-spacing:.2px;}
+    .sub{color:var(--muted); font-size:12px; display:flex; gap:10px; align-items:center; flex-wrap:wrap;}
     .pill{
       display:inline-flex; align-items:center; gap:8px;
       padding:6px 10px;
@@ -69,10 +59,7 @@
       padding:10px;
       box-shadow: var(--shadow);
     }
-    .controls label{
-      font-size:12px; color:var(--muted);
-      display:flex; flex-direction:column; gap:6px;
-    }
+    .controls label{font-size:12px; color:var(--muted); display:flex; flex-direction:column; gap:6px;}
     input[type="number"], input[type="text"], select{
       background: rgba(0,0,0,.25);
       border:1px solid rgba(255,255,255,.10);
@@ -103,18 +90,16 @@
     .btn.secondary{background: rgba(255,255,255,.04);}
     .btn.danger{border-color: rgba(255,77,79,.35);}
     .btn.danger:hover{border-color: rgba(255,77,79,.55);}
-    .btn:disabled{
-      opacity:.55; cursor:not-allowed; transform:none;
-    }
+    .btn:disabled{opacity:.55; cursor:not-allowed; transform:none;}
+
     .grid{
       display:grid;
       grid-template-columns: 1.2fr .8fr;
       gap:14px;
       margin-top:14px;
     }
-    @media (max-width: 980px){
-      .grid{grid-template-columns:1fr;}
-    }
+    @media (max-width: 980px){ .grid{grid-template-columns:1fr;} }
+
     .card{
       background: linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.03));
       border:1px solid rgba(255,255,255,.08);
@@ -127,13 +112,12 @@
       padding:14px 14px 10px;
       border-bottom:1px solid rgba(255,255,255,.06);
     }
-    .cardHeader h2{
-      margin:0;
-      font-size:14px;
-      letter-spacing:.2px;
-    }
+    .cardHeader h2{margin:0; font-size:14px; letter-spacing:.2px;}
     .cardBody{padding:14px;}
     .muted{color:var(--muted);}
+    .hint{font-size:12px; color:var(--muted); line-height:1.35;}
+    .divider{height:1px; background: rgba(255,255,255,.08); margin:10px 0;}
+
     .drop{
       border:1.5px dashed rgba(255,255,255,.18);
       border-radius:14px;
@@ -141,39 +125,15 @@
       background: rgba(0,0,0,.18);
       display:flex; flex-direction:column; gap:10px;
     }
-    .drop.drag{
-      border-color: rgba(168,199,255,.55);
-      background: rgba(168,199,255,.10);
-    }
-    .dropRow{
-      display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap;
-    }
+    .drop.drag{border-color: rgba(168,199,255,.55); background: rgba(168,199,255,.10);}
+    .dropRow{display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap;}
     .small{font-size:12px;}
-    .progressWrap{
-      display:flex; flex-direction:column; gap:8px;
-      margin-top:10px;
-    }
-    .bar{
-      height:10px;
-      border-radius:999px;
-      background: rgba(255,255,255,.08);
-      overflow:hidden;
-      border:1px solid rgba(255,255,255,.08);
-    }
-    .bar > div{
-      height:100%;
-      width:0%;
-      background: linear-gradient(90deg, rgba(168,199,255,.95), rgba(120,255,215,.85));
-      transition: width .2s ease;
-    }
-    .kpi{
-      display:grid;
-      grid-template-columns: repeat(4, minmax(0, 1fr));
-      gap:10px;
-    }
-    @media (max-width: 620px){
-      .kpi{grid-template-columns: repeat(2, minmax(0, 1fr));}
-    }
+    .progressWrap{display:flex; flex-direction:column; gap:8px; margin-top:10px;}
+    .bar{height:10px; border-radius:999px; background: rgba(255,255,255,.08); overflow:hidden; border:1px solid rgba(255,255,255,.08);}
+    .bar > div{height:100%; width:0%; background: linear-gradient(90deg, rgba(168,199,255,.95), rgba(120,255,215,.85)); transition: width .2s ease;}
+
+    .kpi{display:grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap:10px;}
+    @media (max-width: 620px){ .kpi{grid-template-columns: repeat(2, minmax(0, 1fr));} }
     .kpiBox{
       background: rgba(0,0,0,.18);
       border:1px solid rgba(255,255,255,.08);
@@ -187,11 +147,7 @@
     .kpiValue.warn{color:var(--warn);}
     .kpiValue.bad{color:var(--bad);}
 
-    .branches{
-      display:flex;
-      flex-direction:column;
-      gap:12px;
-    }
+    .branches{display:flex; flex-direction:column; gap:12px;}
     .branchCard{
       border-radius:16px;
       border:1px solid rgba(255,255,255,.08);
@@ -203,44 +159,16 @@
       padding:12px 12px 10px;
       border-bottom:1px solid rgba(255,255,255,.06);
     }
-    .branchName{
-      display:flex; align-items:baseline; gap:10px; flex-wrap:wrap;
-    }
-    .branchName .code{
-      font-weight:900;
-      letter-spacing:.6px;
-      font-size:14px;
-    }
-    .branchMeta{
-      color:var(--muted);
-      font-size:12px;
-      display:flex; gap:10px; align-items:center; flex-wrap:wrap;
-    }
-    .table{
-      width:100%;
-      border-collapse: collapse;
-      font-size:13px;
-    }
-    .table th, .table td{
-      padding:10px 12px;
-      border-bottom:1px solid rgba(255,255,255,.06);
-      vertical-align:top;
-    }
-    .table th{
-      color:var(--muted);
-      font-size:11px;
-      letter-spacing:.3px;
-      text-transform:uppercase;
-      background: rgba(255,255,255,.02);
-    }
-    .rowActions{
-      display:flex; gap:8px; align-items:center; flex-wrap:wrap;
-    }
+    .branchName{display:flex; align-items:baseline; gap:10px; flex-wrap:wrap;}
+    .branchName .code{font-weight:900; letter-spacing:.6px; font-size:14px;}
+    .branchMeta{color:var(--muted); font-size:12px; display:flex; gap:10px; align-items:center; flex-wrap:wrap;}
+    .table{width:100%; border-collapse: collapse; font-size:13px;}
+    .table th,.table td{padding:10px 12px; border-bottom:1px solid rgba(255,255,255,.06); vertical-align:top;}
+    .table th{color:var(--muted); font-size:11px; letter-spacing:.3px; text-transform:uppercase; background: rgba(255,255,255,.02);}
+    .rowActions{display:flex; gap:8px; align-items:center; flex-wrap:wrap;}
     .tag{
       display:inline-flex; align-items:center; gap:6px;
-      padding:4px 8px;
-      border-radius:999px;
-      font-size:11px;
+      padding:4px 8px; border-radius:999px; font-size:11px;
       border:1px solid rgba(255,255,255,.12);
       background: rgba(255,255,255,.04);
       color:var(--muted);
@@ -249,12 +177,7 @@
     .tag.good{border-color: rgba(40,199,111,.35); color: rgba(40,199,111,.95); background: rgba(40,199,111,.08);}
     .tag.warn{border-color: rgba(255,176,32,.35); color: rgba(255,176,32,.95); background: rgba(255,176,32,.08);}
     .tag.bad{border-color: rgba(255,77,79,.35); color: rgba(255,77,79,.95); background: rgba(255,77,79,.08);}
-    .err{
-      color: rgba(255,77,79,.95);
-      font-size:12px;
-      margin-top:6px;
-      line-height:1.3;
-    }
+    .err{color: rgba(255,77,79,.95); font-size:12px; margin-top:6px; line-height:1.3;}
 
     .toast{
       position:fixed;
@@ -276,28 +199,21 @@
       display:flex; gap:10px; align-items:flex-start; justify-content:space-between;
     }
     .toastItem .msg{font-size:13px; line-height:1.25;}
-    .toastItem .x{
-      background: transparent;
-      border:0;
-      color:var(--muted);
-      cursor:pointer;
-      font-size:16px;
-      padding:0 6px;
-    }
-    .footerNote{
-      margin-top:14px;
-      color:var(--muted);
+    .toastItem .x{background: transparent; border:0; color:var(--muted); cursor:pointer; font-size:16px; padding:0 6px;}
+
+    .footerNote{margin-top:14px; color:var(--muted); font-size:12px;}
+
+    /* new: empty-year banner */
+    .banner{
+      border:1px solid rgba(255,176,32,.35);
+      background: rgba(255,176,32,.08);
+      color: rgba(255,176,32,.95);
+      border-radius:14px;
+      padding:10px 12px;
       font-size:12px;
-    }
-    .hint{
-      font-size:12px;
-      color:var(--muted);
       line-height:1.35;
-    }
-    .divider{
-      height:1px;
-      background: rgba(255,255,255,.08);
-      margin:10px 0;
+      margin-bottom:12px;
+      display:none;
     }
   </style>
 </head>
@@ -339,6 +255,8 @@
           </div>
         </div>
         <div class="cardBody">
+          <div class="banner" id="emptyYearBanner"></div>
+
           <div class="kpi" style="margin-bottom:12px;">
             <div class="kpiBox">
               <div class="kpiLabel">DONE</div>
@@ -421,13 +339,9 @@
 
 <script>
 (() => {
-  // ---------------------------
-  // Config
-  // ---------------------------
   const API = "/api/admin/receipt";
   const els = id => document.getElementById(id);
 
-  // UI elements
   const yearEl = els("year");
   const qEl = els("q");
   const branchesEl = els("branches");
@@ -444,8 +358,8 @@
   const kpiPendingEl = els("kpiPending");
   const kpiErrorEl = els("kpiError");
   const kpiAmountEl = els("kpiAmount");
+  const emptyYearBannerEl = els("emptyYearBanner");
 
-  // Import UI
   const dropEl = els("drop");
   const fileEl = els("file");
   const pickBtn = els("pickBtn");
@@ -460,17 +374,13 @@
   const autoBtn = els("autoBtn");
   const stopBtn = els("stopBtn");
 
-  // State
   let rows = [];
-  let collapsed = new Set(); // branch codes collapsed
+  let collapsed = new Set();
   let selectedFile = null;
   let job = null;
   let autoTimer = null;
   let autoRunning = false;
 
-  // ---------------------------
-  // Helpers
-  // ---------------------------
   function toast(msg, type = "info", ttl = 5200) {
     const t = els("toast");
     const item = document.createElement("div");
@@ -515,12 +425,9 @@
     const res = await fetch(url, {
       credentials: "include",
       ...opts,
-      headers: {
-        ...(opts.headers || {}),
-      }
+      headers: { ...(opts.headers || {}) }
     });
 
-    // Try parse JSON; if not, return text.
     const ct = res.headers.get("content-type") || "";
     const isJson = ct.includes("application/json");
     const body = isJson ? await res.json().catch(() => null) : await res.text().catch(() => "");
@@ -534,15 +441,12 @@
     return body;
   }
 
-  // Dashboard response can vary; normalize to rows[]
   function normalizeDashboard(data) {
-    // expected: { rows:[...] } or {results:[...]} or [...]
     let r = [];
     if (Array.isArray(data)) r = data;
     else if (data && Array.isArray(data.rows)) r = data.rows;
     else if (data && Array.isArray(data.results)) r = data.results;
     else if (data && data.branches && typeof data.branches === "object") {
-      // {branches:{LA:[...], HI:[...]}}
       const out = [];
       for (const [b, arr] of Object.entries(data.branches)) {
         if (!Array.isArray(arr)) continue;
@@ -550,7 +454,6 @@
       }
       r = out;
     }
-    // Ensure fields
     return r.map(x => ({
       year: x.year ?? x.receipt_year ?? x.receiptYear,
       member_id: x.member_id ?? x.memberId ?? x.memberID,
@@ -571,7 +474,6 @@
       if (!map.has(b)) map.set(b, []);
       map.get(b).push(row);
     }
-    // sort branches by code
     return Array.from(map.entries()).sort((a,b) => a[0].localeCompare(b[0]));
   }
 
@@ -618,9 +520,32 @@
     if (!busy && btn.dataset._label) btn.textContent = btn.dataset._label, delete btn.dataset._label;
   }
 
-  // ---------------------------
-  // Render
-  // ---------------------------
+  function escapeHtml(str){
+    return String(str)
+      .replaceAll("&","&amp;")
+      .replaceAll("<","&lt;")
+      .replaceAll(">","&gt;")
+      .replaceAll('"',"&quot;")
+      .replaceAll("'","&#039;");
+  }
+
+  function renderEmptyYearBanner(filteredCount) {
+    const y = Number(yearEl.value);
+    if (!y || isNaN(y)) {
+      emptyYearBannerEl.style.display = "none";
+      return;
+    }
+    if (filteredCount === 0) {
+      emptyYearBannerEl.innerHTML =
+        `Year <b>${escapeHtml(String(y))}</b> のデータが見つかりませんでした。<br>` +
+        `・別の年（例：2025）に変更して Refresh するか<br>` +
+        `・CSV Import で <span class="mono">year=${escapeHtml(String(y))}</span> の台帳を投入してください。`;
+      emptyYearBannerEl.style.display = "block";
+    } else {
+      emptyYearBannerEl.style.display = "none";
+    }
+  }
+
   function render() {
     const filtered = applyFilter(rows);
     const grouped = groupByBranch(filtered);
@@ -628,11 +553,11 @@
     rowsCountEl.textContent = fmtInt(filtered.length);
     branchCountEl.textContent = fmtInt(grouped.length);
     computeKpi(filtered);
+    renderEmptyYearBanner(filtered.length);
 
     branchesEl.innerHTML = "";
 
     for (const [branch, list] of grouped) {
-      // sort within branch
       list.sort((a,b) => {
         const an = safeText(a.name).localeCompare(safeText(b.name));
         if (an !== 0) return an;
@@ -651,6 +576,7 @@
 
       const left = document.createElement("div");
       left.className = "branchName";
+
       const code = document.createElement("div");
       code.className = "code";
       code.textContent = branch;
@@ -798,25 +724,12 @@
     }
   }
 
-  function escapeHtml(str){
-    return String(str)
-      .replaceAll("&","&amp;")
-      .replaceAll("<","&lt;")
-      .replaceAll(">","&gt;")
-      .replaceAll('"',"&quot;")
-      .replaceAll("'","&#039;");
-  }
-
-  // ---------------------------
-  // Actions
-  // ---------------------------
   async function loadVersion() {
     try {
       const v = await fetch(API + "/_version", { credentials:"include" }).then(r => r.json());
       if (v && v.build) buildIdEl.textContent = v.build;
       if (v && v.worker) els("workerName").textContent = v.worker;
     } catch (e) {
-      // Not fatal
       buildIdEl.textContent = "unknown";
     }
   }
@@ -828,6 +741,14 @@
     try{
       const data = await apiFetch(`/dashboard?year=${encodeURIComponent(y)}`, { method:"GET" });
       rows = normalizeDashboard(data);
+
+      // new: 初回のみ「BranchをデフォルトCollapse」したいので、初回ロード時に collapsed を作る
+      // ただしユーザーが手で開閉した後は維持
+      if (!window.__collapsedInitialized) {
+        collapsed = new Set(rows.map(r => safeText(r.branch || "UNKNOWN")));
+        window.__collapsedInitialized = true;
+      }
+
       render();
       toast(`Dashboard loaded (year ${y})`, "ok");
     }catch(e){
@@ -845,7 +766,6 @@
       return;
     }
 
-    // Build query
     const qs = new URLSearchParams();
     qs.set("year", String(y));
     if (params.branch) qs.set("branch", params.branch);
@@ -862,16 +782,12 @@
     try{
       await apiFetch(`/rebuild?${qs.toString()}`, { method:"POST" });
       toast(`${label} OK`, "ok");
-      // Refresh dashboard after rebuild
       await loadDashboard();
     }catch(e){
       toast(`${label} failed: ${e.message}`, "bad", 9000);
     }
   }
 
-  // ---------------------------
-  // Import flow
-  // ---------------------------
   function setSelectedFile(file) {
     selectedFile = file;
     fileNameEl.textContent = file ? file.name : "—";
@@ -906,7 +822,6 @@
     progressTextEl.textContent =
       `status=${status} | processed=${processed}/${total} | ok=${ok} | ng=${ng} | next_index=${job.next_index ?? job.nextIndex ?? "—"} | year=${job.year ?? yearEl.value}`;
 
-    // Log (short)
     importLogEl.textContent =
       `Job ${job.job_id || job.jobId} — ${status}. Use Continue / Auto-run to process batches.`;
   }
@@ -937,7 +852,6 @@
         throw new Error(`Import failed: HTTP ${res.status} — ${detail}`);
       }
 
-      // Expected: {job_id: "..."} OR full job object
       const jid = (body && (body.job_id || body.jobId)) ? (body.job_id || body.jobId) : null;
       if (jid) {
         job = { job_id: jid, status: "READY", year: y, total_rows: 0, processed_rows: 0, ok_rows: 0, ng_rows: 0 };
@@ -952,7 +866,6 @@
         importLogEl.textContent = "Import response: " + (typeof body === "string" ? body : JSON.stringify(body));
       }
 
-      // Kick first continue automatically once
       await continueJobOnce();
     }catch(e){
       toast(e.message, "bad", 9000);
@@ -972,18 +885,16 @@
     setBusy(continueBtn, true, "Running…");
     try{
       const data = await apiFetch(`/import/continue?job_id=${encodeURIComponent(jid)}&batch=${batch}`, { method:"POST" });
-      // Response should be job object
-      if (data && (data.status || data.total_rows || data.totalRows)) {
-        showJob(data);
-      } else {
-        // Sometimes API may return {ok:true} etc.
-        importLogEl.textContent = "Continue response: " + (typeof data === "string" ? data : JSON.stringify(data));
-      }
+      if (data && (data.status || data.total_rows || data.totalRows)) showJob(data);
+      else importLogEl.textContent = "Continue response: " + (typeof data === "string" ? data : JSON.stringify(data));
 
       const status = safeText((data && data.status) ? data.status : job.status).toUpperCase();
+      job.status = status;
+
       if (status === "DONE") {
         toast("Import DONE", "ok");
         autoStop();
+        window.__collapsedInitialized = false; // new data => re-collapse default next load
         await loadDashboard();
       } else if (status === "ERROR") {
         toast("Import ERROR (see log / dashboard)", "bad", 9000);
@@ -1007,13 +918,9 @@
     const tick = async () => {
       if (!autoRunning) return;
       await continueJobOnce();
-      // Schedule next tick if still running and not DONE/ERROR
       const s = safeText(job?.status).toUpperCase();
-      if (autoRunning && s !== "DONE" && s !== "ERROR") {
-        autoTimer = setTimeout(tick, 550);
-      } else {
-        autoStop();
-      }
+      if (autoRunning && s !== "DONE" && s !== "ERROR") autoTimer = setTimeout(tick, 550);
+      else autoStop();
     };
     tick();
   }
@@ -1026,31 +933,19 @@
     autoBtn.disabled = false;
   }
 
-  // ---------------------------
-  // Events
-  // ---------------------------
-  refreshBtn.onclick = async () => {
-    try { await loadDashboard(); } catch(_) {}
-  };
-
+  refreshBtn.onclick = async () => { try { await loadDashboard(); } catch(_) {} };
   qEl.oninput = () => render();
-
   expandAllBtn.onclick = () => { collapsed.clear(); render(); };
   collapseAllBtn.onclick = () => {
     for (const r of rows) collapsed.add(safeText(r.branch || "UNKNOWN"));
     render();
   };
 
-  // Drop zone
   ["dragenter","dragover"].forEach(ev => dropEl.addEventListener(ev, (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    dropEl.classList.add("drag");
+    e.preventDefault(); e.stopPropagation(); dropEl.classList.add("drag");
   }));
   ["dragleave","drop"].forEach(ev => dropEl.addEventListener(ev, (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    dropEl.classList.remove("drag");
+    e.preventDefault(); e.stopPropagation(); dropEl.classList.remove("drag");
   }));
   dropEl.addEventListener("drop", (e) => {
     const f = e.dataTransfer.files && e.dataTransfer.files[0];
@@ -1059,40 +954,45 @@
 
   pickBtn.onclick = () => fileEl.click();
   fileEl.onchange = () => setSelectedFile(fileEl.files && fileEl.files[0]);
-
-  importBtn.onclick = async () => {
-    if (!selectedFile) return;
-    await importCsv(selectedFile);
-  };
-
-  continueBtn.onclick = async () => {
-    await continueJobOnce();
-  };
-
+  importBtn.onclick = async () => { if (!selectedFile) return; await importCsv(selectedFile); };
+  continueBtn.onclick = async () => { await continueJobOnce(); };
   autoBtn.onclick = () => autoStart();
-  stopBtn.onclick = () => {
-    autoStop();
-    toast("Auto-run stopped", "warn");
-  };
+  stopBtn.onclick = () => { autoStop(); toast("Auto-run stopped", "warn"); };
 
-  // ---------------------------
-  // Boot
-  // ---------------------------
-  function defaultYear() {
-    const now = new Date();
-    return now.getFullYear();
+  async function pickLatestYearWithData(candidates) {
+    // candidates: [2026,2025,2024...] で順に dashboard を叩いて最初に rows>0 の年を採用
+    for (const y of candidates) {
+      try{
+        const data = await apiFetch(`/dashboard?year=${encodeURIComponent(y)}`, { method:"GET" });
+        const r = normalizeDashboard(data);
+        if (r.length > 0) return y;
+      }catch(e){
+        // Access/一時エラーの場合は無視して次へ
+      }
+    }
+    return null;
   }
 
   (async function init() {
     els("apiBase").textContent = API;
 
-    yearEl.value = String(defaultYear());
+    // 初期は "今年" を入れるが、データがなければ最新のデータ年に自動で切替
+    const now = new Date();
+    const thisYear = now.getFullYear();
+    yearEl.value = String(thisYear);
 
     await loadVersion();
+
+    // new: 最新年自動選択（最大3年分だけ探す）
+    const y = await pickLatestYearWithData([thisYear, thisYear-1, thisYear-2, thisYear-3]);
+    if (y && y !== thisYear) {
+      yearEl.value = String(y);
+      toast(`Auto-selected year ${y} (latest with data)`, "ok");
+    }
+
     try{
       await loadDashboard();
     }catch(e){
-      // show hint
       toast("If you see 401/403, Cloudflare Access protection is working. Login, then refresh.", "warn", 9000);
     }
   })();
