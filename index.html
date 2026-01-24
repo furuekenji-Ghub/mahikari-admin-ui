@@ -21,24 +21,27 @@
       font-weight:700;
     }
 
-    /* 構築中ボタン（無効化） */
-    .btn-disabled{
-      display:inline-block;
-      padding:10px 14px;
-      border:1px dashed #bbb;
-      border-radius:12px;
-      background:#f7f7f7;
-      color:#999;
-      font-weight:700;
-      cursor:not-allowed;
+    .btn:hover{
+      background:#f4fffb;
     }
 
-    .card{
-      margin-bottom:16px;
+    .card{ margin-bottom:16px; }
+
+    .pill{
+      display:inline-block;
+      font-size:12px;
+      padding:3px 8px;
+      border-radius:999px;
+      border:1px solid #ddd;
+      background:#fafafa;
+      color:#666;
+      margin-left:6px;
+      vertical-align:middle;
+      white-space:nowrap;
     }
 
     @media (max-width: 768px){
-      .btn, .btn-disabled{
+      .btn{
         width:100%;
         text-align:center;
       }
@@ -54,7 +57,7 @@
 
 <!-- Contacts -->
 <div class="card">
-  <h2>Contacts</h2>
+  <h2>Contacts <span class="pill">HubSpot</span></h2>
   <p class="muted">
     Search and filter HubSpot contacts by <b>Branch</b> and <b>Active Status</b>.
     You can open each record to <b>view</b>, <b>edit</b>, or <b>delete</b>.
@@ -66,13 +69,13 @@
     新しく登録されたデータほど、上位に表示されます。
   </p>
   <div class="row">
-    <a class="btn" href="/contacts.html">Open</a>
+    <a class="btn" href="/contacts.html">Open / 開く</a>
   </div>
 </div>
 
 <!-- Add New -->
 <div class="card">
-  <h2>Add New Contact <span class="muted">／新規追加</span></h2>
+  <h2>Add New Contact <span class="muted">／新規追加</span> <span class="pill">HubSpot</span></h2>
   <p class="muted">
     Add a new contact record to HubSpot, then review it immediately on the View page.
   </p>
@@ -84,22 +87,20 @@
   </div>
 </div>
 
-<!-- Receipt Admin (Under Construction) -->
+<!-- Receipt Admin (LIVE) -->
 <div class="card">
-  <h2>Receipt Admin <span class="muted">／レシート管理</span></h2>
+  <h2>Receipt Admin <span class="muted">／レシート管理</span> <span class="pill">D1 + R2 + PDF</span></h2>
 
   <p class="muted">
-    This section is currently under construction.<br/>
-    Please check back later.
+    Import annual contribution CSV, generate PDFs, and manage downloads by year/branch.
   </p>
 
   <p class="muted">
-    現在この機能は構築中です。<br/>
-    公開まで今しばらくお待ちください。
+    年間御奉納の CSV を取り込み、PDF を生成し、年度・拠点ごとに管理できます。
   </p>
 
   <div class="row">
-    <span class="btn-disabled">Under Construction / 構築中</span>
+    <a class="btn" href="/receipt/">Open Receipt Admin / レシート管理を開く</a>
   </div>
 </div>
 
