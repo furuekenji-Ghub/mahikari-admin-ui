@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Receipt Admin Dashboard / レシート管理</title>
+  <title>レシート管理</title>
   <style>
     :root{
       --bg:#f7f9fb;
@@ -19,21 +19,18 @@
       --bad:#dc2626;
 
       --accent:#0b5;
-      --accent2:#059669;
 
       --shadow: 0 10px 24px rgba(17,24,39,.08);
       --shadow2: 0 6px 14px rgba(17,24,39,.06);
       --radius:14px;
 
       --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
-      --sans: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+      --sans: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
     }
 
-    html,body{height:100%;}
-    body{margin:0;font-family:var(--sans);background:var(--bg);color:var(--text);}
-    a{color:var(--accent2); text-decoration:none;}
-    a:hover{text-decoration:underline;}
-    .wrap{max-width:1260px;margin:0 auto;padding:18px 16px 40px;}
+    *{ box-sizing:border-box; }
+    body{ margin:0; font-family:var(--sans); background:var(--bg); color:var(--text); }
+    .wrap{ max-width:1260px; margin:0 auto; padding:18px 16px 40px; }
 
     .top{
       display:flex; gap:14px; align-items:flex-start; justify-content:space-between; flex-wrap:wrap;
@@ -44,24 +41,8 @@
       border-radius:18px;
       box-shadow: var(--shadow2);
     }
-    .brand{display:flex; flex-direction:column; gap:6px;}
-    .brand h1{
-      margin:0;font-size:18px;letter-spacing:.2px;
-      display:flex;gap:10px;flex-wrap:wrap;align-items:baseline;
-    }
-    .brand h1 .jp{color:var(--muted);font-weight:800;}
-    .bilingual{font-size:12px;color:var(--muted);margin-top:4px;line-height:1.35;}
-    .sub{color:var(--muted);font-size:12px;display:flex;gap:10px;align-items:center;flex-wrap:wrap;}
-    .pill{
-      display:inline-flex; align-items:center; gap:8px;
-      padding:6px 10px;
-      background: var(--card2);
-      border:1px solid var(--line);
-      border-radius:999px;
-      font-size:12px;
-      color:var(--muted);
-    }
-    .mono{font-family:var(--mono);}
+    h1{ margin:0; font-size:18px; letter-spacing:.2px; }
+    .intro{ margin-top:6px; color:var(--muted); font-size:13px; line-height:1.4; }
 
     .controls{
       display:flex; gap:10px; align-items:flex-end; flex-wrap:wrap;
@@ -70,122 +51,226 @@
       border:1px solid var(--line);
       border-radius:16px;
     }
-    .controls label{font-size:12px;color:var(--muted);display:flex;flex-direction:column;gap:6px;}
-    input[type="number"], input[type="text"], select{
-      background:#fff;border:1px solid var(--line);color:var(--text);
-      border-radius:10px;padding:9px 10px;font-size:14px;outline:none;min-width:120px;
+    .controls label{
+      font-size:12px; color:var(--muted);
+      display:flex; flex-direction:column; gap:6px;
     }
-    input[type="text"]{min-width:220px;}
-    input:focus{border-color: rgba(11,187,85,.55);box-shadow:0 0 0 4px rgba(11,187,85,.10);}
+    input[type="number"], input[type="text"]{
+      background:#fff;
+      border:1px solid var(--line);
+      color:var(--text);
+      border-radius:10px;
+      padding:9px 10px;
+      font-size:14px;
+      outline:none;
+      min-width:120px;
+    }
+    input[type="text"]{ min-width:240px; }
+    input:focus{
+      border-color: rgba(11,187,85,.55);
+      box-shadow: 0 0 0 4px rgba(11,187,85,.10);
+    }
 
     .btn{
-      background:#fff;border:1px solid var(--accent);color:var(--accent);
-      padding:10px 12px;border-radius:12px;cursor:pointer;font-weight:800;font-size:13px;letter-spacing:.2px;
-      user-select:none;display:inline-flex;align-items:center;gap:8px;
-      transition:transform .05s ease, box-shadow .12s ease, background .12s ease, border-color .12s ease;
-      box-shadow:0 1px 0 rgba(0,0,0,.02);
+      background:#fff;
+      border:1px solid var(--accent);
+      color:var(--accent);
+      padding:10px 12px;
+      border-radius:12px;
+      cursor:pointer;
+      font-weight:900;
+      font-size:13px;
+      letter-spacing:.2px;
+      user-select:none;
+      display:inline-flex; align-items:center; gap:8px;
+      transition: transform .05s ease, box-shadow .12s ease, background .12s ease, border-color .12s ease;
+      box-shadow: 0 1px 0 rgba(0,0,0,.02);
     }
-    .btn:hover{background:#f0fff8;border-color:rgba(11,187,85,.75);box-shadow:0 8px 18px rgba(11,187,85,.12);}
-    .btn:active{transform: translateY(1px);}
-    .btn.secondary{border-color:#c7ceda;color:#475569;background:#fff;}
-    .btn.secondary:hover{background:#f8fafc;border-color:#aab4c3;box-shadow:0 8px 18px rgba(2,6,23,.06);}
-    .btn.danger{border-color:rgba(220,38,38,.45);color:rgba(220,38,38,.95);background:#fff;}
-    .btn.danger:hover{border-color:rgba(220,38,38,.65);background:rgba(220,38,38,.04);box-shadow:0 8px 18px rgba(220,38,38,.10);}
-    .btn:disabled{opacity:.55;cursor:not-allowed;transform:none;box-shadow:none;}
+    .btn:hover{
+      background:#f0fff8;
+      border-color: rgba(11,187,85,.75);
+      box-shadow: 0 8px 18px rgba(11,187,85,.12);
+    }
+    .btn:active{ transform: translateY(1px); }
+    .btn.secondary{
+      border-color:#c7ceda;
+      color:#475569;
+      background:#fff;
+    }
+    .btn.secondary:hover{
+      background:#f8fafc;
+      border-color:#aab4c3;
+      box-shadow: 0 8px 18px rgba(2,6,23,.06);
+    }
+    .btn:disabled{ opacity:.55; cursor:not-allowed; transform:none; box-shadow:none; }
 
-    .grid{display:grid;grid-template-columns:1.2fr .8fr;gap:14px;margin-top:14px;}
-    @media (max-width: 980px){ .grid{grid-template-columns:1fr;} }
+    .grid{
+      display:grid;
+      grid-template-columns: 1.2fr .8fr;
+      gap:14px;
+      margin-top:14px;
+    }
+    @media (max-width: 980px){ .grid{ grid-template-columns:1fr; } }
 
-    .card{background:var(--card);border:1px solid var(--line);border-radius:18px;box-shadow:var(--shadow);overflow:hidden;}
+    .card{
+      background: var(--card);
+      border:1px solid var(--line);
+      border-radius: 18px;
+      box-shadow: var(--shadow);
+      overflow:hidden;
+    }
     .cardHeader{
-      display:flex;align-items:flex-start;justify-content:space-between;gap:12px;
-      padding:14px 14px 10px;border-bottom:1px solid var(--line2);
+      display:flex; align-items:flex-start; justify-content:space-between; gap:12px;
+      padding:14px 14px 10px;
+      border-bottom:1px solid var(--line2);
       background: linear-gradient(180deg, #ffffff, #fbfdff);
     }
-    .cardHeader h2{margin:0;font-size:14px;letter-spacing:.2px;}
-    .cardHeader .h2jp{display:block;font-size:12px;font-weight:800;color:var(--muted);margin-top:2px;}
-    .cardBody{padding:14px;}
-    .muted{color:var(--muted);}
-    .hint{font-size:12px;color:var(--muted);line-height:1.35;}
-    .divider{height:1px;background:var(--line2);margin:10px 0;}
+    .cardHeader h2{ margin:0; font-size:14px; letter-spacing:.2px; }
+    .cardHeader .sub{ display:block; font-size:12px; font-weight:800; color:var(--muted); margin-top:2px; }
+    .cardBody{ padding:14px; }
 
-    .drop{
-      border:1.5px dashed #cbd5e1;border-radius:14px;padding:16px;background:#f8fafc;
-      display:flex;flex-direction:column;gap:10px;
+    .pill{
+      display:inline-flex; align-items:center; gap:8px;
+      padding:6px 10px;
+      background: var(--card2);
+      border:1px solid var(--line);
+      border-radius:999px;
+      font-size:12px;
+      color:var(--muted);
+      white-space:nowrap;
     }
-    .drop.drag{border-color: rgba(11,187,85,.55);background: rgba(11,187,85,.08);}
-    .dropRow{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;}
-    .small{font-size:12px;}
+    .mono{ font-family:var(--mono); }
+    .muted{ color:var(--muted); }
+    .hint{ font-size:12px; color:var(--muted); line-height:1.35; }
+    .divider{ height:1px; background: var(--line2); margin:10px 0; }
 
-    .progressWrap{display:flex;flex-direction:column;gap:8px;margin-top:10px;}
-    .bar{height:10px;border-radius:999px;background:#eef2f7;overflow:hidden;border:1px solid var(--line);}
-    .bar > div{height:100%;width:0%;background: linear-gradient(90deg, rgba(11,187,85,.95), rgba(5,150,105,.85));transition: width .2s ease;}
-
-    .kpi{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;}
-    @media (max-width: 620px){ .kpi{grid-template-columns:repeat(2,minmax(0,1fr));} }
-    .kpiBox{background:#fbfdff;border:1px solid var(--line);border-radius:14px;padding:10px 12px;display:flex;flex-direction:column;gap:6px;}
-    .kpiLabel{font-size:11px;color:var(--muted);}
-    .kpiValue{font-size:18px;font-weight:900;letter-spacing:.2px;}
-    .kpiValue.good{color:var(--good);}
-    .kpiValue.warn{color:var(--warn);}
-    .kpiValue.bad{color:var(--bad);}
-
-    .branches{display:flex;flex-direction:column;gap:12px;}
-    .branchCard{border-radius:16px;border:1px solid var(--line);background:#fff;overflow:hidden;}
-    .branchTop{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:12px 12px 10px;border-bottom:1px solid var(--line2);background:#fbfdff;}
-    .branchName{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;}
-    .branchName .code{font-weight:900;letter-spacing:.6px;font-size:14px;}
-    .branchMeta{color:var(--muted);font-size:12px;display:flex;gap:10px;align-items:center;flex-wrap:wrap;}
-
-    .table{width:100%;border-collapse:collapse;font-size:13px;}
-    .table th,.table td{padding:10px 12px;border-bottom:1px solid var(--line2);vertical-align:top;}
-    .table th{color:var(--muted);font-size:11px;letter-spacing:.3px;text-transform:uppercase;background:#fbfdff;}
-    .rowActions{display:flex;gap:8px;align-items:center;flex-wrap:wrap;}
-
-    .tag{
-      display:inline-flex;align-items:center;gap:6px;padding:4px 8px;border-radius:999px;font-size:11px;
-      border:1px solid var(--line);background:#fff;color:var(--muted);white-space:nowrap;font-weight:800;
-    }
-    .tag.good{border-color: rgba(22,163,74,.25);color: rgba(22,163,74,.95);background: rgba(22,163,74,.06);}
-    .tag.warn{border-color: rgba(217,119,6,.25);color: rgba(217,119,6,.95);background: rgba(217,119,6,.07);}
-    .tag.bad{border-color: rgba(220,38,38,.25);color: rgba(220,38,38,.95);background: rgba(220,38,38,.07);}
-    .err{color: rgba(220,38,38,.95);font-size:12px;margin-top:6px;line-height:1.3;}
-
-    .toast{position:fixed;right:16px;bottom:16px;max-width:520px;z-index:9999;display:flex;flex-direction:column;gap:10px;}
-    .toastItem{
-      border-radius:14px;padding:12px 12px;border:1px solid var(--line);
-      background: rgba(255,255,255,.96);box-shadow: var(--shadow);color:var(--text);
-      display:flex;gap:10px;align-items:flex-start;justify-content:space-between;
-    }
-    .toastItem .msg{font-size:13px;line-height:1.25;}
-    .toastItem .x{background:transparent;border:0;color:var(--muted);cursor:pointer;font-size:16px;padding:0 6px;}
-
-    .footerNote{margin-top:14px;color:var(--muted);font-size:12px;}
-
-    .banner{
-      border:1px solid rgba(217,119,6,.25);
-      background: rgba(217,119,6,.08);
-      color: rgba(124,45,18,.95);
+    .kpi{ display:grid; grid-template-columns: repeat(4, minmax(0,1fr)); gap:10px; }
+    @media (max-width: 620px){ .kpi{ grid-template-columns: repeat(2, minmax(0,1fr)); } }
+    .kpiBox{
+      background:#fbfdff;
+      border:1px solid var(--line);
       border-radius:14px;
       padding:10px 12px;
-      font-size:12px;
-      line-height:1.35;
-      margin-bottom:12px;
-      display:none;
+      display:flex; flex-direction:column; gap:6px;
     }
+    .kpiLabel{ font-size:11px; color:var(--muted); }
+    .kpiValue{ font-size:18px; font-weight:900; letter-spacing:.2px; }
+    .kpiValue.good{ color:var(--good); }
+    .kpiValue.warn{ color:var(--warn); }
+    .kpiValue.bad{ color:var(--bad); }
 
-    /* ✅ 新規: 事前チェックのエラーボックス */
+    .branches{ display:flex; flex-direction:column; gap:12px; }
+    .branchCard{
+      border-radius:16px;
+      border:1px solid var(--line);
+      background:#fff;
+      overflow:hidden;
+    }
+    .branchTop{
+      display:flex; align-items:center; justify-content:space-between; gap:10px;
+      padding:12px 12px 10px;
+      border-bottom:1px solid var(--line2);
+      background:#fbfdff;
+    }
+    .branchName{ display:flex; align-items:baseline; gap:10px; flex-wrap:wrap; }
+    .branchName .code{ font-weight:900; letter-spacing:.6px; font-size:14px; }
+    .branchMeta{ color:var(--muted); font-size:12px; display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
+
+    .table{ width:100%; border-collapse:collapse; font-size:13px; }
+    .table th,.table td{ padding:10px 12px; border-bottom:1px solid var(--line2); vertical-align:top; }
+    .table th{
+      color:var(--muted);
+      font-size:11px;
+      letter-spacing:.3px;
+      text-transform:uppercase;
+      background:#fbfdff;
+    }
+    .rowActions{ display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
+
+    .tag{
+      display:inline-flex; align-items:center; gap:6px;
+      padding:4px 8px;
+      border-radius:999px;
+      font-size:11px;
+      border:1px solid var(--line);
+      background:#fff;
+      color:var(--muted);
+      white-space:nowrap;
+      font-weight:900;
+    }
+    .tag.good{ border-color: rgba(22,163,74,.25); color: rgba(22,163,74,.95); background: rgba(22,163,74,.06); }
+    .tag.warn{ border-color: rgba(217,119,6,.25); color: rgba(217,119,6,.95); background: rgba(217,119,6,.07); }
+    .tag.bad{ border-color: rgba(220,38,38,.25); color: rgba(220,38,38,.95); background: rgba(220,38,38,.07); }
+    .err{ color: rgba(220,38,38,.95); font-size:12px; margin-top:6px; line-height:1.3; }
+
+    .drop{
+      border:1.5px dashed #cbd5e1;
+      border-radius:14px;
+      padding:16px;
+      background:#f8fafc;
+      display:flex; flex-direction:column; gap:10px;
+    }
+    .dropRow{ display:flex; align-items:flex-start; justify-content:space-between; gap:12px; flex-wrap:wrap; }
+    .small{ font-size:12px; }
+
+    .progressWrap{ display:flex; flex-direction:column; gap:8px; margin-top:10px; }
+    .bar{ height:10px; border-radius:999px; background:#eef2f7; overflow:hidden; border:1px solid var(--line); }
+    .bar > div{ height:100%; width:0%; background: linear-gradient(90deg, rgba(11,187,85,.95), rgba(5,150,105,.85)); transition: width .2s ease; }
+
     .precheckBox{
       border:1px solid rgba(220,38,38,.22);
       background: rgba(220,38,38,.06);
       color: rgba(127,29,29,.95);
       border-radius:14px;
       padding:10px 12px;
-      font-size:12px;
-      line-height:1.35;
+      font-size:13px;
+      line-height:1.4;
       margin-top:10px;
       display:none;
       white-space:pre-wrap;
+    }
+    .precheckBox .link{
+      color:#b91c1c;
+      font-weight:900;
+      text-decoration:underline;
+    }
+    .precheckBox .notfound{
+      color:#b91c1c;
+      font-weight:900;
+    }
+
+    .toast{
+      position:fixed;
+      right:16px;
+      bottom:16px;
+      max-width: 520px;
+      z-index:9999;
+      display:flex;
+      flex-direction:column;
+      gap:10px;
+    }
+    .toastItem{
+      border-radius:14px;
+      padding:12px 12px;
+      border:1px solid var(--line);
+      background: rgba(255,255,255,.96);
+      box-shadow: var(--shadow);
+      color:var(--text);
+      display:flex; gap:10px; align-items:flex-start; justify-content:space-between;
+    }
+    .toastItem .msg{ font-size:13px; line-height:1.25; }
+    .toastItem .x{
+      background: transparent;
+      border:0;
+      color:var(--muted);
+      cursor:pointer;
+      font-size:16px;
+      padding:0 6px;
+    }
+
+    @media (max-width: 768px){
+      input[type="number"], input[type="text"], .btn { width:100%; }
+      .controls{ width:100%; }
     }
   </style>
 </head>
@@ -193,139 +278,106 @@
 <body>
   <div class="wrap">
     <div class="top">
-      <div class="brand">
-        <h1>
-          <span>Receipt System — Admin Dashboard</span>
-          <span class="jp">／レシート管理</span>
-        </h1>
-        <div class="bilingual">
-          Manage annual contribution receipts (CSV → D1 → PDF → R2).<br>
-          年間御奉納レシートを管理します（CSV → D1 → PDF → R2）。
-        </div>
-        <div class="sub">
-          <span class="pill">Worker / Worker名: <span class="mono" id="workerName">kamikumite-receipt</span></span>
-          <span class="pill">Build / ビルド: <span class="mono" id="buildId">—</span></span>
-          <span class="pill">API / API: <span class="mono" id="apiBase">/api/admin/receipt</span></span>
+      <div>
+        <h1>レシート管理</h1>
+        <div class="intro">
+          CSVをアップロードすると、PDFが自動生成されます。<br>
+          完了後、一覧が自動で更新され、拠点ごとの明細が一斉に表示されます。
         </div>
       </div>
 
       <div class="controls" aria-label="Controls">
         <label>
-          Year / 年度
+          年度
           <input type="number" id="year" min="2000" max="2100" step="1" />
         </label>
         <label>
-          Search (name / member_id) / 検索（氏名・Member ID）
-          <input type="text" id="q" placeholder="e.g. TEST-0001 / Tanaka" />
+          検索（氏名・会員ID）
+          <input type="text" id="q" placeholder="例）TEST-0001 / Tanaka" />
         </label>
-        <button class="btn" id="refreshBtn">↻ Refresh / 再読込</button>
-        <button class="btn secondary" id="expandAllBtn">▾ Expand all / 全て展開</button>
-        <button class="btn secondary" id="collapseAllBtn">▸ Collapse all / 全て折りたたみ</button>
+        <button class="btn" id="refreshBtn">再表示</button>
+        <button class="btn secondary" id="expandAllBtn">全て展開</button>
+        <button class="btn secondary" id="collapseAllBtn">全て折りたたみ</button>
       </div>
     </div>
 
     <div class="grid">
+      <!-- Dashboard -->
       <div class="card">
         <div class="cardHeader">
           <div>
-            <h2>Dashboard</h2>
-            <span class="h2jp">ダッシュボード</span>
+            <h2>一覧</h2>
+            <span class="sub">拠点ごとに明細を表示します</span>
           </div>
           <div class="branchMeta">
-            <span class="pill">Rows / 件数: <span class="mono" id="rowsCount">—</span></span>
-            <span class="pill">Branches / 拠点数: <span class="mono" id="branchCount">—</span></span>
+            <span class="pill">件数 <span class="mono" id="rowsCount">—</span></span>
+            <span class="pill">拠点数 <span class="mono" id="branchCount">—</span></span>
           </div>
         </div>
-        <div class="cardBody">
-          <div class="banner" id="emptyYearBanner"></div>
 
+        <div class="cardBody">
           <div class="kpi" style="margin-bottom:12px;">
             <div class="kpiBox">
-              <div class="kpiLabel">DONE / 完了</div>
+              <div class="kpiLabel">完了</div>
               <div class="kpiValue good" id="kpiDone">—</div>
             </div>
             <div class="kpiBox">
-              <div class="kpiLabel">PENDING / 未完了</div>
+              <div class="kpiLabel">未完了</div>
               <div class="kpiValue warn" id="kpiPending">—</div>
             </div>
             <div class="kpiBox">
-              <div class="kpiLabel">ERROR / エラー</div>
+              <div class="kpiLabel">エラー</div>
               <div class="kpiValue bad" id="kpiError">—</div>
             </div>
             <div class="kpiBox">
-              <div class="kpiLabel">TOTAL AMOUNT / 合計金額</div>
+              <div class="kpiLabel">合計金額</div>
               <div class="kpiValue" id="kpiAmount">—</div>
             </div>
           </div>
 
           <div class="branches" id="branches"></div>
-
-          <div class="footerNote">
-            Note: R2 is cache, D1 is source of truth. You can recover PDFs by Rebuild.<br>
-            ※ R2 はキャッシュ / D1 が正本です。PDF が無くても Rebuild で復旧できます。
-          </div>
         </div>
       </div>
 
+      <!-- CSV Import -->
       <div class="card">
         <div class="cardHeader">
           <div>
-            <h2>CSV Import</h2>
-            <span class="h2jp">CSV取込</span>
+            <h2>CSVアップロード</h2>
+            <span class="sub">事前チェック後に自動生成を開始します</span>
           </div>
-          <div class="pill">POST <span class="mono">/import</span> → <span class="mono">/import/continue</span></div>
+          <div class="pill">
+            CSV形式：<span class="mono">member_id,branch,amount,year</span>
+          </div>
         </div>
+
         <div class="cardBody">
-          <div class="drop" id="drop">
+          <div class="drop">
             <div class="dropRow">
               <div>
-                <div style="font-weight:900;">Drag & Drop CSV / CSVをドラッグ＆ドロップ</div>
-                <div class="hint">
-                  CSV header example / ヘッダ例：
-                  <span class="mono">member_id,branch,amount,year</span>
-                </div>
+                <div style="font-weight:900;">CSVを選択</div>
                 <div class="hint" style="margin-top:6px;">
-                  Pre-check before upload: missing ID / missing HubSpot email will block import.<br>
-                  アップロード前に事前チェックします（ID未入力／HubSpotメール未登録は取込不可）。
+                  ・会員ID（member_id）が空の行がある場合はアップロードできません<br>
+                  ・HubSpotにメールが未登録（または該当会員が存在しない）場合もアップロードできません
                 </div>
               </div>
               <div class="rowActions">
-                <input type="file" id="file" accept=".csv,text/csv" style="display:none;">
-                <button class="btn secondary" id="pickBtn">Choose file / ファイル選択</button>
-                <button class="btn" id="importBtn" disabled>Upload & Start / 取込開始</button>
+                <input type="file" id="file" accept=".csv,text/csv" />
+                <button class="btn" id="importBtn" disabled>アップロードして自動生成</button>
               </div>
             </div>
 
             <div class="divider"></div>
 
-            <div class="small muted">
-              Selected / 選択中: <span class="mono" id="fileName">—</span>
-            </div>
-            <div class="small muted">
-              Job / ジョブ: <span class="mono" id="jobId">—</span>
-            </div>
+            <div class="small muted">選択中：<span class="mono" id="fileName">—</span></div>
+            <div class="small muted">進捗：<span class="mono" id="jobText">—</span></div>
 
-            <!-- ✅ 新規: 事前チェック結果 -->
             <div class="precheckBox" id="precheckErrors"></div>
 
             <div class="progressWrap" id="progressWrap" style="display:none;">
               <div class="bar"><div id="barFill"></div></div>
               <div class="small muted" id="progressText">—</div>
-              <div class="rowActions">
-                <button class="btn secondary" id="continueBtn">Continue batch / 続きを実行</button>
-                <button class="btn secondary" id="autoBtn">Auto-run / 自動実行</button>
-                <button class="btn danger" id="stopBtn">Stop / 停止</button>
-              </div>
             </div>
-
-            <div id="importLog" class="hint" style="margin-top:10px;"></div>
-          </div>
-
-          <div class="divider"></div>
-
-          <div class="hint">
-            Important: HubSpot check runs on Worker (server-side). Do not store HubSpot token in browser.<br>
-            注意：HubSpotチェックは Worker 側で行います（ブラウザにトークンを置きません）。
           </div>
         </div>
       </div>
@@ -337,50 +389,41 @@
 <script>
 (() => {
   const API = "/api/admin/receipt";
-  const els = id => document.getElementById(id);
 
-  const yearEl = els("year");
-  const qEl = els("q");
-  const branchesEl = els("branches");
+  const el = (id) => document.getElementById(id);
 
-  const refreshBtn = els("refreshBtn");
-  const expandAllBtn = els("expandAllBtn");
-  const collapseAllBtn = els("collapseAllBtn");
+  // Controls
+  const yearEl = el("year");
+  const qEl = el("q");
+  const refreshBtn = el("refreshBtn");
+  const expandAllBtn = el("expandAllBtn");
+  const collapseAllBtn = el("collapseAllBtn");
 
-  const buildIdEl = els("buildId");
-  const rowsCountEl = els("rowsCount");
-  const branchCountEl = els("branchCount");
+  // Dashboard
+  const rowsCountEl = el("rowsCount");
+  const branchCountEl = el("branchCount");
+  const kpiDoneEl = el("kpiDone");
+  const kpiPendingEl = el("kpiPending");
+  const kpiErrorEl = el("kpiError");
+  const kpiAmountEl = el("kpiAmount");
+  const branchesEl = el("branches");
 
-  const kpiDoneEl = els("kpiDone");
-  const kpiPendingEl = els("kpiPending");
-  const kpiErrorEl = els("kpiError");
-  const kpiAmountEl = els("kpiAmount");
-  const emptyYearBannerEl = els("emptyYearBanner");
-
-  const dropEl = els("drop");
-  const fileEl = els("file");
-  const pickBtn = els("pickBtn");
-  const importBtn = els("importBtn");
-  const fileNameEl = els("fileName");
-  const jobIdEl = els("jobId");
-  const progressWrapEl = els("progressWrap");
-  const barFillEl = els("barFill");
-  const progressTextEl = els("progressText");
-  const importLogEl = els("importLog");
-  const continueBtn = els("continueBtn");
-  const autoBtn = els("autoBtn");
-  const stopBtn = els("stopBtn");
-  const precheckErrorsEl = els("precheckErrors");
+  // Import
+  const fileEl = el("file");
+  const importBtn = el("importBtn");
+  const fileNameEl = el("fileName");
+  const jobTextEl = el("jobText");
+  const precheckErrorsEl = el("precheckErrors");
+  const progressWrapEl = el("progressWrap");
+  const barFillEl = el("barFill");
+  const progressTextEl = el("progressText");
 
   let rows = [];
-  let collapsed = new Set();
+  let collapsed = new Set(); // branch collapsed
   let selectedFile = null;
-  let job = null;
-  let autoTimer = null;
-  let autoRunning = false;
 
   function toast(msg, type = "info", ttl = 5200) {
-    const t = els("toast");
+    const t = el("toast");
     const item = document.createElement("div");
     item.className = "toastItem";
     const left = document.createElement("div");
@@ -403,29 +446,38 @@
     setTimeout(() => item.remove(), ttl);
   }
 
-  function showPrecheckErrors(message) {
-    if (!message) {
-      precheckErrorsEl.style.display = "none";
-      precheckErrorsEl.textContent = "";
-      return;
-    }
-    precheckErrorsEl.style.display = "block";
-    precheckErrorsEl.textContent = message;
+  function setBusy(btn, busy, busyLabel) {
+    btn.disabled = !!busy;
+    if (busy && busyLabel) { btn.dataset._label = btn.textContent; btn.textContent = busyLabel; }
+    if (!busy && btn.dataset._label) { btn.textContent = btn.dataset._label; delete btn.dataset._label; }
   }
 
-  function fmtMoneyFromCents(cents) {
-    if (cents == null || isNaN(Number(cents))) return "—";
-    const v = Number(cents) / 100;
-    return v.toLocaleString("en-US", { style:"currency", currency:"USD" });
+  function showPrecheck(html) {
+    precheckErrorsEl.style.display = "block";
+    precheckErrorsEl.innerHTML = html;
+  }
+  function clearPrecheck() {
+    precheckErrorsEl.style.display = "none";
+    precheckErrorsEl.innerHTML = "";
   }
 
   function fmtInt(n) {
     if (n == null || isNaN(Number(n))) return "—";
     return Number(n).toLocaleString("en-US");
   }
-
-  function safeText(v) {
-    return (v == null) ? "" : String(v);
+  function fmtMoneyFromCents(cents) {
+    if (cents == null || isNaN(Number(cents))) return "—";
+    const v = Number(cents) / 100;
+    return v.toLocaleString("en-US", { style:"currency", currency:"USD" });
+  }
+  function safeText(v){ return (v == null) ? "" : String(v); }
+  function escapeHtml(str){
+    return String(str)
+      .replaceAll("&","&amp;")
+      .replaceAll("<","&lt;")
+      .replaceAll(">","&gt;")
+      .replaceAll('"',"&quot;")
+      .replaceAll("'","&#039;");
   }
 
   async function apiFetch(path, opts = {}) {
@@ -441,37 +493,26 @@
     const body = isJson ? await res.json().catch(() => null) : await res.text().catch(() => "");
     if (!res.ok) {
       const detail = (body && body.error) ? body.error : (typeof body === "string" ? body : JSON.stringify(body));
-      const err = new Error(`HTTP ${res.status} ${res.statusText} — ${detail}`);
-      err.status = res.status;
-      err.body = body;
-      throw err;
+      throw new Error(`HTTP ${res.status} — ${detail}`);
     }
     return body;
   }
 
   function normalizeDashboard(data) {
     let r = [];
-    if (Array.isArray(data)) r = data;
-    else if (data && Array.isArray(data.rows)) r = data.rows;
+    if (data && Array.isArray(data.rows)) r = data.rows;
+    else if (Array.isArray(data)) r = data;
     else if (data && Array.isArray(data.results)) r = data.results;
-    else if (data && data.branches && typeof data.branches === "object") {
-      const out = [];
-      for (const [b, arr] of Object.entries(data.branches)) {
-        if (!Array.isArray(arr)) continue;
-        for (const row of arr) out.push({ branch: b, ...row });
-      }
-      r = out;
-    }
     return r.map(x => ({
-      year: x.year ?? x.receipt_year ?? x.receiptYear,
-      member_id: x.member_id ?? x.memberId ?? x.memberID,
-      branch: x.branch ?? x.Branch,
-      name: x.name ?? x.full_name ?? x.fullName,
-      amount_cents: x.amount_cents ?? x.amountCents ?? x.amount_cent ?? x.amountCent,
-      issue_date: x.issue_date ?? x.issueDate,
-      pdf_key: x.pdf_key ?? x.pdfKey,
-      status: x.status ?? "—",
-      error: x.error ?? ""
+      year: x.year,
+      member_id: x.member_id,
+      branch: x.branch,
+      name: x.name,
+      amount_cents: x.amount_cents,
+      issue_date: x.issue_date,
+      pdf_key: x.pdf_key,
+      status: x.status,
+      error: x.error
     }));
   }
 
@@ -485,69 +526,36 @@
     return Array.from(map.entries()).sort((a,b) => a[0].localeCompare(b[0]));
   }
 
-  function applyFilter(list) {
-    const q = qEl.value.trim().toLowerCase();
-    if (!q) return list;
-    return list.filter(r => {
-      const a = safeText(r.name).toLowerCase();
-      const m = safeText(r.member_id).toLowerCase();
-      return a.includes(q) || m.includes(q);
-    });
-  }
-
   function statusTag(status) {
     const s = safeText(status).toUpperCase();
     const span = document.createElement("span");
     span.className = "tag";
     span.textContent = s || "—";
     if (s === "DONE") span.classList.add("good");
-    else if (s === "PENDING" || s === "READY" || s === "RUNNING") span.classList.add("warn");
-    else if (s === "ERROR" || s === "NG") span.classList.add("bad");
+    else if (s === "ERROR") span.classList.add("bad");
+    else span.classList.add("warn");
     return span;
   }
 
   function computeKpi(list) {
-    let done=0, pending=0, err=0;
-    let amountCents=0;
+    let done=0, pending=0, err=0, amount=0;
     for (const r of list) {
       const s = safeText(r.status).toUpperCase();
       if (s === "DONE") done++;
       else if (s === "ERROR") err++;
       else pending++;
-      if (!isNaN(Number(r.amount_cents))) amountCents += Number(r.amount_cents);
+      if (!isNaN(Number(r.amount_cents))) amount += Number(r.amount_cents);
     }
     kpiDoneEl.textContent = fmtInt(done);
     kpiPendingEl.textContent = fmtInt(pending);
     kpiErrorEl.textContent = fmtInt(err);
-    kpiAmountEl.textContent = fmtMoneyFromCents(amountCents);
+    kpiAmountEl.textContent = fmtMoneyFromCents(amount);
   }
 
-  function setBusy(btn, busy, labelWhenBusy) {
-    btn.disabled = !!busy;
-    if (busy && labelWhenBusy) btn.dataset._label = btn.textContent, btn.textContent = labelWhenBusy;
-    if (!busy && btn.dataset._label) btn.textContent = btn.dataset._label, delete btn.dataset._label;
-  }
-
-  function escapeHtml(str){
-    return String(str)
-      .replaceAll("&","&amp;")
-      .replaceAll("<","&lt;")
-      .replaceAll(">","&gt;")
-      .replaceAll('"',"&quot;")
-      .replaceAll("'","&#039;");
-  }
-
-  function renderEmptyYearBanner(filteredCount) {
-    const y = Number(yearEl.value);
-    if (!y || isNaN(y)) { emptyYearBannerEl.style.display = "none"; return; }
-    if (filteredCount === 0) {
-      emptyYearBannerEl.innerHTML =
-        `<b>No data for year ${escapeHtml(String(y))}.</b> Please switch the year (e.g., 2025) or run CSV Import.<br>` +
-        `<b>${escapeHtml(String(y))}年のデータが見つかりません。</b> 年度を変更（例：2025）するか、CSV取込を実行してください。`;
-      emptyYearBannerEl.style.display = "block";
-    } else {
-      emptyYearBannerEl.style.display = "none";
-    }
+  function applyFilter(list) {
+    const q = qEl.value.trim().toLowerCase();
+    if (!q) return list;
+    return list.filter(r => safeText(r.name).toLowerCase().includes(q) || safeText(r.member_id).toLowerCase().includes(q));
   }
 
   function render() {
@@ -557,16 +565,11 @@
     rowsCountEl.textContent = fmtInt(filtered.length);
     branchCountEl.textContent = fmtInt(grouped.length);
     computeKpi(filtered);
-    renderEmptyYearBanner(filtered.length);
 
     branchesEl.innerHTML = "";
 
     for (const [branch, list] of grouped) {
-      list.sort((a,b) => {
-        const an = safeText(a.name).localeCompare(safeText(b.name));
-        if (an !== 0) return an;
-        return safeText(a.member_id).localeCompare(safeText(b.member_id));
-      });
+      list.sort((a,b) => safeText(a.name).localeCompare(safeText(b.name)));
 
       const totalCents = list.reduce((sum, r) => sum + (isNaN(Number(r.amount_cents)) ? 0 : Number(r.amount_cents)), 0);
       const done = list.filter(r => safeText(r.status).toUpperCase() === "DONE").length;
@@ -580,46 +583,32 @@
 
       const left = document.createElement("div");
       left.className = "branchName";
-
-      const code = document.createElement("div");
-      code.className = "code";
-      code.textContent = branch;
-
-      const meta = document.createElement("div");
-      meta.className = "branchMeta";
-      meta.innerHTML = `
-        <span class="pill">Rows / 件数 <span class="mono">${fmtInt(list.length)}</span></span>
-        <span class="pill">DONE / 完了 <span class="mono">${fmtInt(done)}</span></span>
-        <span class="pill">ERROR / エラー <span class="mono">${fmtInt(err)}</span></span>
-        <span class="pill">Sum / 合計 <span class="mono">${fmtMoneyFromCents(totalCents)}</span></span>
+      left.innerHTML = `
+        <div class="code">${escapeHtml(branch)}</div>
+        <div class="branchMeta">
+          <span class="pill">件数 <span class="mono">${fmtInt(list.length)}</span></span>
+          <span class="pill">完了 <span class="mono">${fmtInt(done)}</span></span>
+          <span class="pill">エラー <span class="mono">${fmtInt(err)}</span></span>
+          <span class="pill">合計 <span class="mono">${escapeHtml(fmtMoneyFromCents(totalCents))}</span></span>
+        </div>
       `;
-
-      left.appendChild(code);
-      left.appendChild(meta);
 
       const right = document.createElement("div");
       right.className = "rowActions";
 
       const toggleBtn = document.createElement("button");
       toggleBtn.className = "btn secondary";
-      toggleBtn.textContent = collapsed.has(branch) ? "▸ Expand / 展開" : "▾ Collapse / 折りたたみ";
+      toggleBtn.textContent = collapsed.has(branch) ? "展開" : "折りたたみ";
       toggleBtn.onclick = () => {
         if (collapsed.has(branch)) collapsed.delete(branch);
         else collapsed.add(branch);
         render();
       };
 
-      const rebuildBranchBtn = document.createElement("button");
-      rebuildBranchBtn.className = "btn";
-      rebuildBranchBtn.textContent = "Rebuild (Branch) / 拠点再生成";
-      rebuildBranchBtn.onclick = () => rebuild({ year: Number(yearEl.value), branch });
-
       right.appendChild(toggleBtn);
-      right.appendChild(rebuildBranchBtn);
 
       top.appendChild(left);
       top.appendChild(right);
-
       card.appendChild(top);
 
       if (!collapsed.has(branch)) {
@@ -628,12 +617,12 @@
         table.innerHTML = `
           <thead>
             <tr>
-              <th style="width:28%;">Name / 氏名</th>
-              <th style="width:16%;">Member ID</th>
-              <th style="width:10%;">Year / 年度</th>
-              <th style="width:12%;">Amount / 金額</th>
-              <th style="width:14%;">PDF</th>
-              <th style="width:20%;">Actions / 操作</th>
+              <th style="width:28%;">氏名</th>
+              <th style="width:16%;">会員ID</th>
+              <th style="width:10%;">年度</th>
+              <th style="width:12%;">金額</th>
+              <th style="width:14%;">PDFキー</th>
+              <th style="width:20%;">状態</th>
             </tr>
           </thead>
           <tbody></tbody>
@@ -646,7 +635,7 @@
           const tdName = document.createElement("td");
           tdName.innerHTML = `
             <div style="font-weight:900;">${escapeHtml(safeText(r.name) || "—")}</div>
-            <div class="small muted">Issue / 発行日: <span class="mono">${escapeHtml(safeText(r.issue_date) || "—")}</span></div>
+            <div class="small muted">発行日 <span class="mono">${escapeHtml(safeText(r.issue_date) || "—")}</span></div>
             ${r.error ? `<div class="err">${escapeHtml(safeText(r.error))}</div>` : ""}
           `;
 
@@ -654,59 +643,23 @@
           tdMid.innerHTML = `<span class="mono">${escapeHtml(safeText(r.member_id) || "—")}</span>`;
 
           const tdYear = document.createElement("td");
-          tdYear.innerHTML = `<span class="mono">${escapeHtml(safeText(r.year) || yearEl.value || "—")}</span><div style="margin-top:6px;"></div>`;
-          tdYear.appendChild(statusTag(r.status));
+          tdYear.innerHTML = `<span class="mono">${escapeHtml(safeText(r.year) || "—")}</span>`;
 
           const tdAmt = document.createElement("td");
-          tdAmt.innerHTML = `<div style="font-weight:900;">${escapeHtml(fmtMoneyFromCents(r.amount_cents))}</div>
-                             <div class="small muted"><span class="mono">${escapeHtml(fmtInt(r.amount_cents))}</span> cents</div>`;
+          tdAmt.innerHTML = `<div style="font-weight:900;">${escapeHtml(fmtMoneyFromCents(r.amount_cents))}</div>`;
 
           const tdPdf = document.createElement("td");
-          const key = safeText(r.pdf_key);
-          tdPdf.innerHTML = `
-            <div class="small muted">pdf_key</div>
-            <div class="mono" style="font-size:12px; word-break:break-all;">${escapeHtml(key || "—")}</div>
-          `;
+          tdPdf.innerHTML = `<span class="mono" style="font-size:12px; word-break:break-all;">${escapeHtml(safeText(r.pdf_key) || "—")}</span>`;
 
-          const tdAct = document.createElement("td");
-          const act = document.createElement("div");
-          act.className = "rowActions";
-
-          const copyBtn = document.createElement("button");
-          copyBtn.className = "btn secondary";
-          copyBtn.textContent = "Copy key / キーコピー";
-          copyBtn.disabled = !key;
-          copyBtn.onclick = async () => {
-            try{
-              await navigator.clipboard.writeText(key);
-              toast(`Copied pdf_key (${branch})`, "ok");
-            }catch(e){
-              toast("Clipboard copy failed / コピーできませんでした", "warn");
-            }
-          };
-
-          const rebuildBtn = document.createElement("button");
-          rebuildBtn.className = "btn";
-          rebuildBtn.textContent = "Rebuild / 再生成";
-          rebuildBtn.onclick = () => rebuild({ year: Number(yearEl.value), member_id: safeText(r.member_id) });
-
-          const rebuildYearBtn = document.createElement("button");
-          rebuildYearBtn.className = "btn secondary";
-          rebuildYearBtn.textContent = "Rebuild (Year) / 年度再生成";
-          rebuildYearBtn.onclick = () => rebuild({ year: Number(yearEl.value) });
-
-          act.appendChild(copyBtn);
-          act.appendChild(rebuildBtn);
-          act.appendChild(rebuildYearBtn);
-
-          tdAct.appendChild(act);
+          const tdStatus = document.createElement("td");
+          tdStatus.appendChild(statusTag(r.status));
 
           tr.appendChild(tdName);
           tr.appendChild(tdMid);
           tr.appendChild(tdYear);
           tr.appendChild(tdAmt);
           tr.appendChild(tdPdf);
-          tr.appendChild(tdAct);
+          tr.appendChild(tdStatus);
 
           tb.appendChild(tr);
         }
@@ -720,357 +673,245 @@
     if (grouped.length === 0) {
       const empty = document.createElement("div");
       empty.className = "hint";
-      empty.innerHTML = `No rows to display (check Year / Search).<br>表示データがありません（年度・検索条件をご確認ください）。`;
+      empty.textContent = "表示データがありません（年度・検索条件をご確認ください）";
       branchesEl.appendChild(empty);
-    }
-  }
-
-  async function loadVersion() {
-    try {
-      const v = await fetch(API + "/_version", { credentials:"include" }).then(r => r.json());
-      if (v && v.build) buildIdEl.textContent = v.build;
-      if (v && v.worker) els("workerName").textContent = v.worker;
-    } catch (e) {
-      buildIdEl.textContent = "unknown";
     }
   }
 
   async function loadDashboard() {
     const y = Number(yearEl.value);
-    if (!y || isNaN(y)) throw new Error("Year is invalid / 年度が不正です");
-    setBusy(refreshBtn, true, "Loading…");
-    try{
-      const data = await apiFetch(`/dashboard?year=${encodeURIComponent(y)}`, { method:"GET" });
-      rows = normalizeDashboard(data);
+    if (!y || isNaN(y)) throw new Error("年度が不正です");
 
-      if (!window.__collapsedInitialized) {
-        collapsed = new Set(rows.map(r => safeText(r.branch || "UNKNOWN")));
-        window.__collapsedInitialized = true;
+    const data = await apiFetch(`/dashboard?year=${encodeURIComponent(y)}`, { method:"GET" });
+    rows = normalizeDashboard(data);
+
+    // 初回だけは折りたたみにしておき、ユーザーが操作したら維持
+    if (!window.__collapsedInitialized) {
+      collapsed = new Set(rows.map(r => safeText(r.branch || "UNKNOWN")));
+      window.__collapsedInitialized = true;
+    }
+
+    render();
+  }
+
+  // --- validate: 複数行まとめ、not found 赤字＋リンク ---
+  function buildValidateMessage(errors) {
+    const missingIds = errors.filter(e => e.type === "MISSING_MEMBER_ID");
+    const missingEmails = errors.filter(e => e.type === "MISSING_EMAIL");
+
+    let html = `<div style="font-weight:900; margin-bottom:6px;">以下の理由により、CSVをアップロードできません</div>`;
+
+    if (missingIds.length) {
+      html += `<div style="margin-top:6px; font-weight:900;">・会員ID（member_id）が未入力の行があります</div>`;
+      html += `<div style="margin-top:6px;">`;
+      for (const e of missingIds) {
+        html += `・${escapeHtml(e.row)}行目：会員ID（member_id）が入力されていません<br>`;
       }
-
-      render();
-      toast(`Dashboard loaded (year ${y}) / 読み込み完了`, "ok");
-    }catch(e){
-      toast(`Dashboard load failed / 読み込み失敗: ${e.message}`, "bad", 9000);
-      throw e;
-    }finally{
-      setBusy(refreshBtn, false);
+      html += `</div>`;
     }
-  }
 
-  async function rebuild(params) {
-    const y = params.year;
-    if (!y || isNaN(Number(y))) { toast("Rebuild: year is invalid / 年度が不正です", "warn"); return; }
+    if (missingEmails.length) {
+      html += `<div style="margin-top:10px; font-weight:900;">・HubSpotにメールアドレスが登録されていない会員があります</div>`;
+      html += `<div style="margin-top:6px;">`;
+      for (const e of missingEmails) {
+        const mid = escapeHtml(e.member_id || "");
+        const row = escapeHtml(e.row || "");
+        const name = escapeHtml(e.name || "");
+        const isNotFound = (e.name === "(HubSpot not found)");
 
-    const qs = new URLSearchParams();
-    qs.set("year", String(y));
-    if (params.branch) qs.set("branch", params.branch);
-    if (params.member_id) qs.set("member_id", params.member_id);
-
-    const label =
-      params.member_id ? `Rebuild member ${params.member_id} / 個別再生成` :
-      params.branch ? `Rebuild branch ${params.branch} / 拠点再生成` :
-      `Rebuild year ${y} / 年度再生成`;
-
-    if (!confirm(`${label}\n\nRebuild PDFs from D1 to R2.\nD1正本からR2へPDF再生成します。続行しますか？`)) return;
-
-    toast(`${label} …`, "warn", 3000);
-    try{
-      await apiFetch(`/rebuild?${qs.toString()}`, { method:"POST" });
-      toast(`${label} OK`, "ok");
-      await loadDashboard();
-    }catch(e){
-      toast(`${label} failed: ${e.message}`, "bad", 9000);
+        html += `・${row}行目：ID「${mid}」<br>`;
+        if (isNotFound) {
+          html += `　<span class="notfound">HubSpotに該当する会員が見つかりません</span><br>`;
+        } else {
+          html += `　${name} さんのメールアドレスが未登録です<br>`;
+        }
+        html += `　→ <a class="link" href="https://app.hubspot.com/contacts" target="_blank" rel="noopener">HubSpotで確認する</a><br><br>`;
+      }
+      html += `</div>`;
     }
+
+    html += `<div style="margin-top:8px;">CSVの内容を修正、またはHubSpot側を整備してから、再度アップロードしてください。</div>`;
+    return html;
   }
 
-  function setSelectedFile(file) {
-    selectedFile = file;
-    fileNameEl.textContent = file ? file.name : "—";
-    importBtn.disabled = !file;
-    showPrecheckErrors(""); // clear
-  }
-
-  function resetJobUI() {
-    job = null;
-    jobIdEl.textContent = "—";
-    progressWrapEl.style.display = "none";
-    barFillEl.style.width = "0%";
-    progressTextEl.textContent = "—";
-    importLogEl.textContent = "";
-    autoStop();
-  }
-
-  function showJob(jobObj) {
-    job = jobObj || job;
-    if (!job) return;
-
-    jobIdEl.textContent = job.job_id || job.jobId || "—";
-    progressWrapEl.style.display = "block";
-
-    const total = Number(job.total_rows ?? job.totalRows ?? 0);
-    const processed = Number(job.processed_rows ?? job.processedRows ?? 0);
-    const ok = Number(job.ok_rows ?? job.okRows ?? 0);
-    const ng = Number(job.ng_rows ?? job.ngRows ?? 0);
-    const status = safeText(job.status || "—");
-
-    const pct = total > 0 ? Math.min(100, Math.round((processed / total) * 100)) : 0;
-    barFillEl.style.width = pct + "%";
-    progressTextEl.textContent =
-      `status=${status} | processed=${processed}/${total} | ok=${ok} | ng=${ng} | next_index=${job.next_index ?? job.nextIndex ?? "—"} | year=${job.year ?? yearEl.value}`;
-
-    importLogEl.textContent =
-      `Job ${job.job_id || job.jobId} — ${status}. Use Continue / Auto-run.\n（続き実行 / 自動実行で処理を進めます）`;
-  }
-
-  // ✅ 事前チェック（Worker側でHubSpot確認）
-  async function validateBeforeImport(file) {
-    showPrecheckErrors("");
-    if (!file) throw new Error("No file selected / ファイルが選択されていません");
-
-    const csvText = await file.text();
-
-    // call validate endpoint (must be implemented in Worker)
+  async function validateCsv(csvText) {
     const res = await fetch(API + "/import/validate", {
       method: "POST",
+      headers: { "Content-Type":"text/csv" },
+      body: csvText,
       credentials: "include",
-      headers: { "Content-Type": "text/csv" },
-      body: csvText
     });
 
-    const ct = res.headers.get("content-type") || "";
-    const js = ct.includes("application/json") ? await res.json().catch(() => null) : null;
+    const data = await res.json().catch(() => null);
+    if (!res.ok) throw new Error(data?.error || `validate_failed: HTTP ${res.status}`);
 
-    if (!res.ok) {
-      const msg = js?.error ? js.error : `Validate failed: HTTP ${res.status}`;
-      throw new Error(msg);
+    if (!data || data.ok !== true) {
+      return { ok:false, data };
     }
-
-    if (!js || js.ok !== true) {
-      const errors = js?.errors || [];
-      // Build message per your requirement
-      // 1) missing member_id => block with exact message
-      const missing = errors.find(e => e.type === "MISSING_MEMBER_ID");
-      if (missing) {
-        return {
-          ok: false,
-          message:
-`IDのない行が含まれているため、アップロードできません
-（CSVに member_id が空の行があります）
-
-Upload blocked: CSV contains row(s) with missing member_id.`
-        };
-      }
-
-      // 2) missing email => show first missing email message
-      const me = errors.find(e => e.type === "MISSING_EMAIL");
-      if (me) {
-        const mid = me.member_id || "UNKNOWN";
-        const name = me.name || "(no name)";
-        return {
-          ok: false,
-          message:
-`ID「${mid}」の、${name}さん（HubSpot内の名前）のメールアドレスが登録されていないため、アップロードできません
-
-Upload blocked: Contact for ID "${mid}" (${name}) has no email in HubSpot.`
-        };
-      }
-
-      // fallback
-      return {
-        ok: false,
-        message:
-`アップロードできません（事前チェックでエラーが見つかりました）
-Upload blocked: validation failed.`
-      };
-    }
-
-    return { ok: true, message: "" };
+    return { ok:true, data };
   }
 
-  async function importCsv(file) {
-    if (!file) return;
-    const y = Number(yearEl.value);
-    if (!y || isNaN(y)) { toast("Import: year is invalid / 年度が不正です", "warn"); return; }
-
-    resetJobUI();
-    setBusy(importBtn, true, "Uploading…");
-    try{
-      const text = await file.text();
-      const res = await fetch(API + "/import", {
-        method:"POST",
-        credentials:"include",
-        headers: { "Content-Type":"text/csv" },
-        body: text
-      });
-
-      const ct = res.headers.get("content-type") || "";
-      const body = ct.includes("application/json") ? await res.json().catch(() => null) : await res.text().catch(() => "");
-      if (!res.ok) {
-        const detail = (body && body.error) ? body.error : (typeof body === "string" ? body : JSON.stringify(body));
-        throw new Error(`Import failed: HTTP ${res.status} — ${detail}`);
-      }
-
-      const jid = (body && (body.job_id || body.jobId)) ? (body.job_id || body.jobId) : null;
-      if (jid) {
-        job = { job_id: jid, status: "READY", year: y, total_rows: 0, processed_rows: 0, ok_rows: 0, ng_rows: 0 };
-        showJob(job);
-        toast(`Import started. job_id=${jid} / 取込開始`, "ok");
-      } else if (body && (body.status || body.total_rows || body.totalRows)) {
-        job = body;
-        showJob(job);
-        toast(`Import started. job_id=${job.job_id || job.jobId || "—"} / 取込開始`, "ok");
-      } else {
-        toast("Import response parsed, but job_id not found. / job_idが見つかりません", "warn", 9000);
-        importLogEl.textContent = "Import response: " + (typeof body === "string" ? body : JSON.stringify(body));
-      }
-
-      await continueJobOnce();
-    }catch(e){
-      toast(e.message, "bad", 9000);
-    }finally{
-      setBusy(importBtn, false);
-    }
+  // --- import -> auto continue -> done -> refresh dashboard + expand all ---
+  function setProgressVisible(visible) {
+    progressWrapEl.style.display = visible ? "block" : "none";
   }
 
-  async function continueJobOnce() {
-    if (!job || !(job.job_id || job.jobId)) {
-      toast("Continue: job_id is missing / job_idがありません", "warn");
-      return;
-    }
-    const jid = job.job_id || job.jobId;
-    const batch = 50;
+  function updateProgress(job) {
+    const total = Number(job?.total_rows ?? 0);
+    const processed = Number(job?.processed_rows ?? 0);
+    const ok = Number(job?.ok_rows ?? 0);
+    const ng = Number(job?.ng_rows ?? 0);
+    const status = safeText(job?.status ?? "—");
+    const pct = total > 0 ? Math.min(100, Math.round((processed / total) * 100)) : 0;
 
-    setBusy(continueBtn, true, "Running…");
-    try{
-      const data = await apiFetch(`/import/continue?job_id=${encodeURIComponent(jid)}&batch=${batch}`, { method:"POST" });
-      if (data && (data.status || data.total_rows || data.totalRows)) showJob(data);
-      else importLogEl.textContent = "Continue response: " + (typeof data === "string" ? data : JSON.stringify(data));
+    barFillEl.style.width = pct + "%";
+    progressTextEl.textContent = `処理中：${processed}/${total}（OK:${ok} / NG:${ng}） 状態:${status}`;
+  }
 
-      const status = safeText((data && data.status) ? data.status : job.status).toUpperCase();
-      job.status = status;
+  async function startImportAndAutoRun(csvText) {
+    // 1) import
+    jobTextEl.textContent = "アップロード中…";
+    setProgressVisible(true);
+    barFillEl.style.width = "0%";
+    progressTextEl.textContent = "取込を開始しています…";
 
-      if (status === "DONE") {
-        toast("Import DONE / 取込完了", "ok");
-        autoStop();
-        window.__collapsedInitialized = false;
+    const importRes = await fetch(API + "/import", {
+      method:"POST",
+      headers:{ "Content-Type":"text/csv" },
+      body: csvText,
+      credentials:"include",
+    });
+
+    const importData = await importRes.json().catch(() => null);
+    if (!importRes.ok) throw new Error(importData?.error || `import_failed: HTTP ${importRes.status}`);
+
+    if (!importData?.job_id) throw new Error("import_failed: job_id_not_returned");
+
+    const jobId = importData.job_id;
+    const year = importData.year;
+
+    jobTextEl.textContent = `ジョブ開始：${jobId}`;
+    toast("アップロード完了。自動生成を開始します。", "ok");
+
+    // 2) auto-continue loop
+    let safety = 0;
+    while (true) {
+      safety++;
+      if (safety > 500) throw new Error("auto_continue_safety_stop");
+
+      const cont = await apiFetch(`/import/continue?job_id=${encodeURIComponent(jobId)}&batch=50`, { method:"POST" });
+
+      // cont shape: { ok:true, job: {...}, done: bool }
+      const job = cont?.job || cont?.job?.job || cont?.job; // robust-ish
+      if (job) updateProgress(job);
+
+      const done = !!cont?.done || safeText(job?.status).toUpperCase() === "DONE";
+      const err = safeText(job?.status).toUpperCase() === "ERROR";
+
+      if (err) {
+        toast("取込中にエラーが発生しました。ログ・一覧をご確認ください。", "bad", 9000);
+        break;
+      }
+
+      if (done) {
+        toast("PDF自動生成が完了しました。一覧を更新します。", "ok", 7000);
+        // 3) refresh dashboard and expand all
+        if (year) yearEl.value = String(year);
         await loadDashboard();
-      } else if (status === "ERROR") {
-        toast("Import ERROR / 取込エラー（ログ・一覧を確認）", "bad", 9000);
-        autoStop();
-        await loadDashboard();
+
+        collapsed.clear();      // ✅ 一斉展開
+        window.__collapsedInitialized = true; // keep state
+        render();
+
+        setTimeout(() => { setProgressVisible(false); }, 900);
+        break;
       }
-    }catch(e){
-      toast(`Continue failed / 続き実行失敗: ${e.message}`, "bad", 9000);
-      autoStop();
-    }finally{
-      setBusy(continueBtn, false);
+
+      // brief pause to avoid hammering
+      await new Promise(r => setTimeout(r, 350));
     }
   }
 
-  function autoStart() {
-    if (autoRunning) return;
-    autoRunning = true;
-    autoBtn.textContent = "Auto-running… / 自動実行中…";
-    autoBtn.disabled = true;
+  // Events
+  refreshBtn.onclick = async () => {
+    try{
+      window.__collapsedInitialized = false; // allow re-init collapse on manual refresh
+      await loadDashboard();
+      toast("一覧を更新しました。", "ok");
+    }catch(e){
+      toast(`更新に失敗しました：${e.message}`, "bad", 9000);
+    }
+  };
 
-    const tick = async () => {
-      if (!autoRunning) return;
-      await continueJobOnce();
-      const s = safeText(job?.status).toUpperCase();
-      if (autoRunning && s !== "DONE" && s !== "ERROR") autoTimer = setTimeout(tick, 550);
-      else autoStop();
-    };
-    tick();
-  }
-
-  function autoStop() {
-    autoRunning = false;
-    if (autoTimer) clearTimeout(autoTimer);
-    autoTimer = null;
-    autoBtn.textContent = "Auto-run / 自動実行";
-    autoBtn.disabled = false;
-  }
-
-  refreshBtn.onclick = async () => { try { await loadDashboard(); } catch(_) {} };
   qEl.oninput = () => render();
+
   expandAllBtn.onclick = () => { collapsed.clear(); render(); };
-  collapseAllBtn.onclick = () => { for (const r of rows) collapsed.add(safeText(r.branch || "UNKNOWN")); render(); };
+  collapseAllBtn.onclick = () => {
+    for (const r of rows) collapsed.add(safeText(r.branch || "UNKNOWN"));
+    render();
+  };
 
-  ["dragenter","dragover"].forEach(ev => dropEl.addEventListener(ev, (e) => {
-    e.preventDefault(); e.stopPropagation(); dropEl.classList.add("drag");
-  }));
-  ["dragleave","drop"].forEach(ev => dropEl.addEventListener(ev, (e) => {
-    e.preventDefault(); e.stopPropagation(); dropEl.classList.remove("drag");
-  }));
-  dropEl.addEventListener("drop", (e) => {
-    const f = e.dataTransfer.files && e.dataTransfer.files[0];
-    if (f) setSelectedFile(f);
-  });
+  fileEl.onchange = () => {
+    selectedFile = fileEl.files && fileEl.files[0] ? fileEl.files[0] : null;
+    fileNameEl.textContent = selectedFile ? selectedFile.name : "—";
+    importBtn.disabled = !selectedFile;
+    clearPrecheck();
+    setProgressVisible(false);
+    jobTextEl.textContent = "—";
+  };
 
-  pickBtn.onclick = () => fileEl.click();
-  fileEl.onchange = () => setSelectedFile(fileEl.files && fileEl.files[0]);
-
-  // ✅ ここがポイント：Importボタン押下 → validate → OKなら import
   importBtn.onclick = async () => {
-    try{
-      if (!selectedFile) return;
+    if (!selectedFile) return;
 
-      setBusy(importBtn, true, "Validating…");
-      const v = await validateBeforeImport(selectedFile);
+    clearPrecheck();
+    setBusy(importBtn, true, "確認中…");
+    try{
+      const csvText = await selectedFile.text();
+
+      // validate
+      const v = await validateCsv(csvText);
       if (!v.ok) {
-        showPrecheckErrors(v.message);
-        toast("Upload blocked / 取込を中止しました", "bad", 9000);
+        const errors = v.data?.errors || [];
+        showPrecheck(buildValidateMessage(errors));
+        toast("アップロードできません（事前チェックで問題が見つかりました）", "bad", 9000);
         return;
       }
-      showPrecheckErrors("");
-      toast("Pre-check OK / 事前チェックOK", "ok");
-      setBusy(importBtn, false);
 
-      // proceed import
-      await importCsv(selectedFile);
+      toast("事前チェックOK。自動生成を開始します。", "ok");
+      setBusy(importBtn, true, "生成中…");
+
+      // validate OK -> import+auto-run -> refresh+expand
+      await startImportAndAutoRun(csvText);
+
     }catch(e){
-      showPrecheckErrors(`アップロードできません（事前チェックで失敗しました）\nUpload blocked: validation error.\n\n${e.message}`);
-      toast(`Validation failed / 事前チェック失敗: ${e.message}`, "bad", 9000);
+      toast(`処理に失敗しました：${e.message}`, "bad", 9000);
     }finally{
       setBusy(importBtn, false);
     }
   };
 
-  continueBtn.onclick = async () => { await continueJobOnce(); };
-  autoBtn.onclick = () => autoStart();
-  stopBtn.onclick = () => { autoStop(); toast("Auto-run stopped / 自動実行を停止しました", "warn"); };
-
-  async function pickLatestYearWithData(candidates) {
-    for (const y of candidates) {
-      try{
-        const data = await apiFetch(`/dashboard?year=${encodeURIComponent(y)}`, { method:"GET" });
-        const r = normalizeDashboard(data);
-        if (r.length > 0) return y;
-      }catch(e){ /* ignore */ }
-    }
-    return null;
-  }
-
-  (async function init() {
-    els("apiBase").textContent = API;
-
+  // Boot
+  (async function init(){
     const now = new Date();
-    const thisYear = now.getFullYear();
-    yearEl.value = String(thisYear);
-
-    await loadVersion();
-
-    const y = await pickLatestYearWithData([thisYear, thisYear-1, thisYear-2, thisYear-3]);
-    if (y && y !== thisYear) {
-      yearEl.value = String(y);
-      toast(`Auto-selected year ${y} (latest with data) / データのある最新年度を自動選択`, "ok");
-    }
+    yearEl.value = String(now.getFullYear());
 
     try{
+      // auto pick latest year with data (thisYear down to -3)
+      const candidates = [now.getFullYear(), now.getFullYear()-1, now.getFullYear()-2, now.getFullYear()-3];
+      let chosen = null;
+
+      for (const y of candidates) {
+        try{
+          const d = await apiFetch(`/dashboard?year=${encodeURIComponent(y)}`, { method:"GET" });
+          const r = normalizeDashboard(d);
+          if (r.length > 0) { chosen = y; break; }
+        }catch(_){}
+      }
+      if (chosen) yearEl.value = String(chosen);
+
       await loadDashboard();
     }catch(e){
-      toast("If you see 401/403, login via Cloudflare Access then refresh. / 401/403の場合はAccessログイン後に再読込してください。", "warn", 9000);
+      toast("一覧の読み込みに失敗しました。Accessログイン後、再表示してください。", "warn", 9000);
     }
   })();
 
