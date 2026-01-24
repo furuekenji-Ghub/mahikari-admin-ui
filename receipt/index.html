@@ -30,19 +30,11 @@
     }
 
     html,body{height:100%;}
-    body{
-      margin:0;
-      font-family:var(--sans);
-      background:var(--bg);
-      color:var(--text);
-    }
-
+    body{margin:0;font-family:var(--sans);background:var(--bg);color:var(--text);}
     a{color:var(--accent2); text-decoration:none;}
     a:hover{text-decoration:underline;}
+    .wrap{max-width:1260px;margin:0 auto;padding:18px 16px 40px;}
 
-    .wrap{max-width:1260px; margin:0 auto; padding:18px 16px 40px;}
-
-    /* Top bar */
     .top{
       display:flex; gap:14px; align-items:flex-start; justify-content:space-between; flex-wrap:wrap;
       margin-bottom:14px;
@@ -54,23 +46,12 @@
     }
     .brand{display:flex; flex-direction:column; gap:6px;}
     .brand h1{
-      margin:0;
-      font-size:18px;
-      letter-spacing:.2px;
-      display:flex;
-      gap:10px;
-      flex-wrap:wrap;
-      align-items:baseline;
+      margin:0;font-size:18px;letter-spacing:.2px;
+      display:flex;gap:10px;flex-wrap:wrap;align-items:baseline;
     }
-    .brand h1 .jp{
-      color:var(--muted);
-      font-weight:800;
-    }
-    .sub{
-      color:var(--muted);
-      font-size:12px;
-      display:flex; gap:10px; align-items:center; flex-wrap:wrap;
-    }
+    .brand h1 .jp{color:var(--muted);font-weight:800;}
+    .bilingual{font-size:12px;color:var(--muted);margin-top:4px;line-height:1.35;}
+    .sub{color:var(--muted);font-size:12px;display:flex;gap:10px;align-items:center;flex-wrap:wrap;}
     .pill{
       display:inline-flex; align-items:center; gap:8px;
       padding:6px 10px;
@@ -89,235 +70,97 @@
       border:1px solid var(--line);
       border-radius:16px;
     }
-    .controls label{
-      font-size:12px;
-      color:var(--muted);
-      display:flex;
-      flex-direction:column;
-      gap:6px;
-    }
+    .controls label{font-size:12px;color:var(--muted);display:flex;flex-direction:column;gap:6px;}
     input[type="number"], input[type="text"], select{
-      background:#fff;
-      border:1px solid var(--line);
-      color:var(--text);
-      border-radius:10px;
-      padding:9px 10px;
-      font-size:14px;
-      outline:none;
-      min-width:120px;
+      background:#fff;border:1px solid var(--line);color:var(--text);
+      border-radius:10px;padding:9px 10px;font-size:14px;outline:none;min-width:120px;
     }
     input[type="text"]{min-width:220px;}
-    input:focus{
-      border-color: rgba(11,187,85,.55);
-      box-shadow: 0 0 0 4px rgba(11,187,85,.10);
-    }
+    input:focus{border-color: rgba(11,187,85,.55);box-shadow:0 0 0 4px rgba(11,187,85,.10);}
 
     .btn{
-      background:#fff;
-      border:1px solid var(--accent);
-      color:var(--accent);
-      padding:10px 12px;
-      border-radius:12px;
-      cursor:pointer;
-      font-weight:800;
-      font-size:13px;
-      letter-spacing:.2px;
-      user-select:none;
-      display:inline-flex; align-items:center; gap:8px;
-      transition: transform .05s ease, box-shadow .12s ease, background .12s ease, border-color .12s ease;
-      box-shadow: 0 1px 0 rgba(0,0,0,.02);
+      background:#fff;border:1px solid var(--accent);color:var(--accent);
+      padding:10px 12px;border-radius:12px;cursor:pointer;font-weight:800;font-size:13px;letter-spacing:.2px;
+      user-select:none;display:inline-flex;align-items:center;gap:8px;
+      transition:transform .05s ease, box-shadow .12s ease, background .12s ease, border-color .12s ease;
+      box-shadow:0 1px 0 rgba(0,0,0,.02);
     }
-    .btn:hover{
-      background: #f0fff8;
-      border-color: rgba(11,187,85,.75);
-      box-shadow: 0 8px 18px rgba(11,187,85,.12);
-    }
+    .btn:hover{background:#f0fff8;border-color:rgba(11,187,85,.75);box-shadow:0 8px 18px rgba(11,187,85,.12);}
     .btn:active{transform: translateY(1px);}
-    .btn.secondary{
-      border-color: #c7ceda;
-      color:#475569;
-      background:#fff;
-    }
-    .btn.secondary:hover{
-      background:#f8fafc;
-      border-color:#aab4c3;
-      box-shadow: 0 8px 18px rgba(2,6,23,.06);
-    }
-    .btn.danger{
-      border-color: rgba(220,38,38,.45);
-      color: rgba(220,38,38,.95);
-      background:#fff;
-    }
-    .btn.danger:hover{
-      border-color: rgba(220,38,38,.65);
-      background: rgba(220,38,38,.04);
-      box-shadow: 0 8px 18px rgba(220,38,38,.10);
-    }
-    .btn:disabled{opacity:.55; cursor:not-allowed; transform:none; box-shadow:none;}
+    .btn.secondary{border-color:#c7ceda;color:#475569;background:#fff;}
+    .btn.secondary:hover{background:#f8fafc;border-color:#aab4c3;box-shadow:0 8px 18px rgba(2,6,23,.06);}
+    .btn.danger{border-color:rgba(220,38,38,.45);color:rgba(220,38,38,.95);background:#fff;}
+    .btn.danger:hover{border-color:rgba(220,38,38,.65);background:rgba(220,38,38,.04);box-shadow:0 8px 18px rgba(220,38,38,.10);}
+    .btn:disabled{opacity:.55;cursor:not-allowed;transform:none;box-shadow:none;}
 
-    .grid{
-      display:grid;
-      grid-template-columns: 1.2fr .8fr;
-      gap:14px;
-      margin-top:14px;
-    }
+    .grid{display:grid;grid-template-columns:1.2fr .8fr;gap:14px;margin-top:14px;}
     @media (max-width: 980px){ .grid{grid-template-columns:1fr;} }
 
-    .card{
-      background: var(--card);
-      border:1px solid var(--line);
-      border-radius: 18px;
-      box-shadow: var(--shadow);
-      overflow:hidden;
-    }
+    .card{background:var(--card);border:1px solid var(--line);border-radius:18px;box-shadow:var(--shadow);overflow:hidden;}
     .cardHeader{
-      display:flex; align-items:flex-start; justify-content:space-between; gap:12px;
-      padding:14px 14px 10px;
-      border-bottom:1px solid var(--line2);
+      display:flex;align-items:flex-start;justify-content:space-between;gap:12px;
+      padding:14px 14px 10px;border-bottom:1px solid var(--line2);
       background: linear-gradient(180deg, #ffffff, #fbfdff);
     }
-    .cardHeader h2{
-      margin:0;
-      font-size:14px;
-      letter-spacing:.2px;
-    }
-    .cardHeader .h2jp{
-      display:block;
-      font-size:12px;
-      font-weight:800;
-      color:var(--muted);
-      margin-top:2px;
-    }
+    .cardHeader h2{margin:0;font-size:14px;letter-spacing:.2px;}
+    .cardHeader .h2jp{display:block;font-size:12px;font-weight:800;color:var(--muted);margin-top:2px;}
     .cardBody{padding:14px;}
     .muted{color:var(--muted);}
-    .hint{font-size:12px; color:var(--muted); line-height:1.35;}
-    .divider{height:1px; background: var(--line2); margin:10px 0;}
+    .hint{font-size:12px;color:var(--muted);line-height:1.35;}
+    .divider{height:1px;background:var(--line2);margin:10px 0;}
 
     .drop{
-      border:1.5px dashed #cbd5e1;
-      border-radius:14px;
-      padding:16px;
-      background:#f8fafc;
-      display:flex; flex-direction:column; gap:10px;
+      border:1.5px dashed #cbd5e1;border-radius:14px;padding:16px;background:#f8fafc;
+      display:flex;flex-direction:column;gap:10px;
     }
-    .drop.drag{
-      border-color: rgba(11,187,85,.55);
-      background: rgba(11,187,85,.08);
-    }
-    .dropRow{display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap;}
+    .drop.drag{border-color: rgba(11,187,85,.55);background: rgba(11,187,85,.08);}
+    .dropRow{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;}
     .small{font-size:12px;}
 
-    .progressWrap{display:flex; flex-direction:column; gap:8px; margin-top:10px;}
-    .bar{
-      height:10px;
-      border-radius:999px;
-      background: #eef2f7;
-      overflow:hidden;
-      border:1px solid var(--line);
-    }
-    .bar > div{
-      height:100%;
-      width:0%;
-      background: linear-gradient(90deg, rgba(11,187,85,.95), rgba(5,150,105,.85));
-      transition: width .2s ease;
-    }
+    .progressWrap{display:flex;flex-direction:column;gap:8px;margin-top:10px;}
+    .bar{height:10px;border-radius:999px;background:#eef2f7;overflow:hidden;border:1px solid var(--line);}
+    .bar > div{height:100%;width:0%;background: linear-gradient(90deg, rgba(11,187,85,.95), rgba(5,150,105,.85));transition: width .2s ease;}
 
-    .kpi{display:grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap:10px;}
-    @media (max-width: 620px){ .kpi{grid-template-columns: repeat(2, minmax(0, 1fr));} }
-    .kpiBox{
-      background: #fbfdff;
-      border:1px solid var(--line);
-      border-radius:14px;
-      padding:10px 12px;
-      display:flex; flex-direction:column; gap:6px;
-    }
-    .kpiLabel{font-size:11px; color:var(--muted);}
-    .kpiValue{font-size:18px; font-weight:900; letter-spacing:.2px;}
+    .kpi{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;}
+    @media (max-width: 620px){ .kpi{grid-template-columns:repeat(2,minmax(0,1fr));} }
+    .kpiBox{background:#fbfdff;border:1px solid var(--line);border-radius:14px;padding:10px 12px;display:flex;flex-direction:column;gap:6px;}
+    .kpiLabel{font-size:11px;color:var(--muted);}
+    .kpiValue{font-size:18px;font-weight:900;letter-spacing:.2px;}
     .kpiValue.good{color:var(--good);}
     .kpiValue.warn{color:var(--warn);}
     .kpiValue.bad{color:var(--bad);}
 
-    .branches{display:flex; flex-direction:column; gap:12px;}
-    .branchCard{
-      border-radius:16px;
-      border:1px solid var(--line);
-      background: #fff;
-      overflow:hidden;
-    }
-    .branchTop{
-      display:flex; align-items:center; justify-content:space-between; gap:10px;
-      padding:12px 12px 10px;
-      border-bottom:1px solid var(--line2);
-      background:#fbfdff;
-    }
-    .branchName{display:flex; align-items:baseline; gap:10px; flex-wrap:wrap;}
-    .branchName .code{font-weight:900; letter-spacing:.6px; font-size:14px;}
-    .branchMeta{color:var(--muted); font-size:12px; display:flex; gap:10px; align-items:center; flex-wrap:wrap;}
+    .branches{display:flex;flex-direction:column;gap:12px;}
+    .branchCard{border-radius:16px;border:1px solid var(--line);background:#fff;overflow:hidden;}
+    .branchTop{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:12px 12px 10px;border-bottom:1px solid var(--line2);background:#fbfdff;}
+    .branchName{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;}
+    .branchName .code{font-weight:900;letter-spacing:.6px;font-size:14px;}
+    .branchMeta{color:var(--muted);font-size:12px;display:flex;gap:10px;align-items:center;flex-wrap:wrap;}
 
-    .table{width:100%; border-collapse: collapse; font-size:13px;}
-    .table th,.table td{padding:10px 12px; border-bottom:1px solid var(--line2); vertical-align:top;}
-    .table th{
-      color:var(--muted);
-      font-size:11px;
-      letter-spacing:.3px;
-      text-transform:uppercase;
-      background: #fbfdff;
-    }
-
-    .rowActions{display:flex; gap:8px; align-items:center; flex-wrap:wrap;}
+    .table{width:100%;border-collapse:collapse;font-size:13px;}
+    .table th,.table td{padding:10px 12px;border-bottom:1px solid var(--line2);vertical-align:top;}
+    .table th{color:var(--muted);font-size:11px;letter-spacing:.3px;text-transform:uppercase;background:#fbfdff;}
+    .rowActions{display:flex;gap:8px;align-items:center;flex-wrap:wrap;}
 
     .tag{
-      display:inline-flex; align-items:center; gap:6px;
-      padding:4px 8px;
-      border-radius:999px;
-      font-size:11px;
-      border:1px solid var(--line);
-      background:#fff;
-      color:var(--muted);
-      white-space:nowrap;
-      font-weight:800;
+      display:inline-flex;align-items:center;gap:6px;padding:4px 8px;border-radius:999px;font-size:11px;
+      border:1px solid var(--line);background:#fff;color:var(--muted);white-space:nowrap;font-weight:800;
     }
-    .tag.good{border-color: rgba(22,163,74,.25); color: rgba(22,163,74,.95); background: rgba(22,163,74,.06);}
-    .tag.warn{border-color: rgba(217,119,6,.25); color: rgba(217,119,6,.95); background: rgba(217,119,6,.07);}
-    .tag.bad{border-color: rgba(220,38,38,.25); color: rgba(220,38,38,.95); background: rgba(220,38,38,.07);}
+    .tag.good{border-color: rgba(22,163,74,.25);color: rgba(22,163,74,.95);background: rgba(22,163,74,.06);}
+    .tag.warn{border-color: rgba(217,119,6,.25);color: rgba(217,119,6,.95);background: rgba(217,119,6,.07);}
+    .tag.bad{border-color: rgba(220,38,38,.25);color: rgba(220,38,38,.95);background: rgba(220,38,38,.07);}
+    .err{color: rgba(220,38,38,.95);font-size:12px;margin-top:6px;line-height:1.3;}
 
-    .err{
-      color: rgba(220,38,38,.95);
-      font-size:12px;
-      margin-top:6px;
-      line-height:1.3;
-    }
-
-    .toast{
-      position:fixed;
-      right:16px;
-      bottom:16px;
-      max-width: 520px;
-      z-index:9999;
-      display:flex;
-      flex-direction:column;
-      gap:10px;
-    }
+    .toast{position:fixed;right:16px;bottom:16px;max-width:520px;z-index:9999;display:flex;flex-direction:column;gap:10px;}
     .toastItem{
-      border-radius:14px;
-      padding:12px 12px;
-      border:1px solid var(--line);
-      background: rgba(255,255,255,.96);
-      box-shadow: var(--shadow);
-      color:var(--text);
-      display:flex; gap:10px; align-items:flex-start; justify-content:space-between;
+      border-radius:14px;padding:12px 12px;border:1px solid var(--line);
+      background: rgba(255,255,255,.96);box-shadow: var(--shadow);color:var(--text);
+      display:flex;gap:10px;align-items:flex-start;justify-content:space-between;
     }
-    .toastItem .msg{font-size:13px; line-height:1.25;}
-    .toastItem .x{
-      background: transparent;
-      border:0;
-      color:var(--muted);
-      cursor:pointer;
-      font-size:16px;
-      padding:0 6px;
-    }
+    .toastItem .msg{font-size:13px;line-height:1.25;}
+    .toastItem .x{background:transparent;border:0;color:var(--muted);cursor:pointer;font-size:16px;padding:0 6px;}
 
-    .footerNote{margin-top:14px; color:var(--muted); font-size:12px;}
+    .footerNote{margin-top:14px;color:var(--muted);font-size:12px;}
 
     .banner{
       border:1px solid rgba(217,119,6,.25);
@@ -331,19 +174,18 @@
       display:none;
     }
 
-    .bilingual{
+    /* ✅ 新規: 事前チェックのエラーボックス */
+    .precheckBox{
+      border:1px solid rgba(220,38,38,.22);
+      background: rgba(220,38,38,.06);
+      color: rgba(127,29,29,.95);
+      border-radius:14px;
+      padding:10px 12px;
       font-size:12px;
-      color:var(--muted);
-      margin-top:4px;
       line-height:1.35;
-    }
-
-    .sr{
-      position:absolute;
-      left:-9999px;
-      width:1px;
-      height:1px;
-      overflow:hidden;
+      margin-top:10px;
+      display:none;
+      white-space:pre-wrap;
     }
   </style>
 </head>
@@ -442,6 +284,10 @@
                   CSV header example / ヘッダ例：
                   <span class="mono">member_id,branch,amount,year</span>
                 </div>
+                <div class="hint" style="margin-top:6px;">
+                  Pre-check before upload: missing ID / missing HubSpot email will block import.<br>
+                  アップロード前に事前チェックします（ID未入力／HubSpotメール未登録は取込不可）。
+                </div>
               </div>
               <div class="rowActions">
                 <input type="file" id="file" accept=".csv,text/csv" style="display:none;">
@@ -459,6 +305,9 @@
               Job / ジョブ: <span class="mono" id="jobId">—</span>
             </div>
 
+            <!-- ✅ 新規: 事前チェック結果 -->
+            <div class="precheckBox" id="precheckErrors"></div>
+
             <div class="progressWrap" id="progressWrap" style="display:none;">
               <div class="bar"><div id="barFill"></div></div>
               <div class="small muted" id="progressText">—</div>
@@ -475,8 +324,8 @@
           <div class="divider"></div>
 
           <div class="hint">
-            Important: This UI is static; pdf-lib runs in Worker builds. Do not paste Worker code into Dashboard editor.<br>
-            注意：pdf-lib を使うため、Cloudflare Dashboard直貼りではなく GitHub → Workers Builds 経由でデプロイしてください。
+            Important: HubSpot check runs on Worker (server-side). Do not store HubSpot token in browser.<br>
+            注意：HubSpotチェックは Worker 側で行います（ブラウザにトークンを置きません）。
           </div>
         </div>
       </div>
@@ -521,6 +370,7 @@
   const continueBtn = els("continueBtn");
   const autoBtn = els("autoBtn");
   const stopBtn = els("stopBtn");
+  const precheckErrorsEl = els("precheckErrors");
 
   let rows = [];
   let collapsed = new Set();
@@ -551,6 +401,16 @@
     t.appendChild(item);
 
     setTimeout(() => item.remove(), ttl);
+  }
+
+  function showPrecheckErrors(message) {
+    if (!message) {
+      precheckErrorsEl.style.display = "none";
+      precheckErrorsEl.textContent = "";
+      return;
+    }
+    precheckErrorsEl.style.display = "block";
+    precheckErrorsEl.textContent = message;
   }
 
   function fmtMoneyFromCents(cents) {
@@ -679,10 +539,7 @@
 
   function renderEmptyYearBanner(filteredCount) {
     const y = Number(yearEl.value);
-    if (!y || isNaN(y)) {
-      emptyYearBannerEl.style.display = "none";
-      return;
-    }
+    if (!y || isNaN(y)) { emptyYearBannerEl.style.display = "none"; return; }
     if (filteredCount === 0) {
       emptyYearBannerEl.innerHTML =
         `<b>No data for year ${escapeHtml(String(y))}.</b> Please switch the year (e.g., 2025) or run CSV Import.<br>` +
@@ -831,10 +688,7 @@
           const rebuildBtn = document.createElement("button");
           rebuildBtn.className = "btn";
           rebuildBtn.textContent = "Rebuild / 再生成";
-          rebuildBtn.onclick = () => rebuild({
-            year: Number(yearEl.value),
-            member_id: safeText(r.member_id)
-          });
+          rebuildBtn.onclick = () => rebuild({ year: Number(yearEl.value), member_id: safeText(r.member_id) });
 
           const rebuildYearBtn = document.createElement("button");
           rebuildYearBtn.className = "btn secondary";
@@ -906,10 +760,7 @@
 
   async function rebuild(params) {
     const y = params.year;
-    if (!y || isNaN(Number(y))) {
-      toast("Rebuild: year is invalid / 年度が不正です", "warn");
-      return;
-    }
+    if (!y || isNaN(Number(y))) { toast("Rebuild: year is invalid / 年度が不正です", "warn"); return; }
 
     const qs = new URLSearchParams();
     qs.set("year", String(y));
@@ -937,6 +788,7 @@
     selectedFile = file;
     fileNameEl.textContent = file ? file.name : "—";
     importBtn.disabled = !file;
+    showPrecheckErrors(""); // clear
   }
 
   function resetJobUI() {
@@ -971,13 +823,75 @@
       `Job ${job.job_id || job.jobId} — ${status}. Use Continue / Auto-run.\n（続き実行 / 自動実行で処理を進めます）`;
   }
 
+  // ✅ 事前チェック（Worker側でHubSpot確認）
+  async function validateBeforeImport(file) {
+    showPrecheckErrors("");
+    if (!file) throw new Error("No file selected / ファイルが選択されていません");
+
+    const csvText = await file.text();
+
+    // call validate endpoint (must be implemented in Worker)
+    const res = await fetch(API + "/import/validate", {
+      method: "POST",
+      credentials: "include",
+      headers: { "Content-Type": "text/csv" },
+      body: csvText
+    });
+
+    const ct = res.headers.get("content-type") || "";
+    const js = ct.includes("application/json") ? await res.json().catch(() => null) : null;
+
+    if (!res.ok) {
+      const msg = js?.error ? js.error : `Validate failed: HTTP ${res.status}`;
+      throw new Error(msg);
+    }
+
+    if (!js || js.ok !== true) {
+      const errors = js?.errors || [];
+      // Build message per your requirement
+      // 1) missing member_id => block with exact message
+      const missing = errors.find(e => e.type === "MISSING_MEMBER_ID");
+      if (missing) {
+        return {
+          ok: false,
+          message:
+`IDのない行が含まれているため、アップロードできません
+（CSVに member_id が空の行があります）
+
+Upload blocked: CSV contains row(s) with missing member_id.`
+        };
+      }
+
+      // 2) missing email => show first missing email message
+      const me = errors.find(e => e.type === "MISSING_EMAIL");
+      if (me) {
+        const mid = me.member_id || "UNKNOWN";
+        const name = me.name || "(no name)";
+        return {
+          ok: false,
+          message:
+`ID「${mid}」の、${name}さん（HubSpot内の名前）のメールアドレスが登録されていないため、アップロードできません
+
+Upload blocked: Contact for ID "${mid}" (${name}) has no email in HubSpot.`
+        };
+      }
+
+      // fallback
+      return {
+        ok: false,
+        message:
+`アップロードできません（事前チェックでエラーが見つかりました）
+Upload blocked: validation failed.`
+      };
+    }
+
+    return { ok: true, message: "" };
+  }
+
   async function importCsv(file) {
     if (!file) return;
     const y = Number(yearEl.value);
-    if (!y || isNaN(y)) {
-      toast("Import: year is invalid / 年度が不正です", "warn");
-      return;
-    }
+    if (!y || isNaN(y)) { toast("Import: year is invalid / 年度が不正です", "warn"); return; }
 
     resetJobUI();
     setBusy(importBtn, true, "Uploading…");
@@ -1081,10 +995,7 @@
   refreshBtn.onclick = async () => { try { await loadDashboard(); } catch(_) {} };
   qEl.oninput = () => render();
   expandAllBtn.onclick = () => { collapsed.clear(); render(); };
-  collapseAllBtn.onclick = () => {
-    for (const r of rows) collapsed.add(safeText(r.branch || "UNKNOWN"));
-    render();
-  };
+  collapseAllBtn.onclick = () => { for (const r of rows) collapsed.add(safeText(r.branch || "UNKNOWN")); render(); };
 
   ["dragenter","dragover"].forEach(ev => dropEl.addEventListener(ev, (e) => {
     e.preventDefault(); e.stopPropagation(); dropEl.classList.add("drag");
@@ -1099,7 +1010,33 @@
 
   pickBtn.onclick = () => fileEl.click();
   fileEl.onchange = () => setSelectedFile(fileEl.files && fileEl.files[0]);
-  importBtn.onclick = async () => { if (!selectedFile) return; await importCsv(selectedFile); };
+
+  // ✅ ここがポイント：Importボタン押下 → validate → OKなら import
+  importBtn.onclick = async () => {
+    try{
+      if (!selectedFile) return;
+
+      setBusy(importBtn, true, "Validating…");
+      const v = await validateBeforeImport(selectedFile);
+      if (!v.ok) {
+        showPrecheckErrors(v.message);
+        toast("Upload blocked / 取込を中止しました", "bad", 9000);
+        return;
+      }
+      showPrecheckErrors("");
+      toast("Pre-check OK / 事前チェックOK", "ok");
+      setBusy(importBtn, false);
+
+      // proceed import
+      await importCsv(selectedFile);
+    }catch(e){
+      showPrecheckErrors(`アップロードできません（事前チェックで失敗しました）\nUpload blocked: validation error.\n\n${e.message}`);
+      toast(`Validation failed / 事前チェック失敗: ${e.message}`, "bad", 9000);
+    }finally{
+      setBusy(importBtn, false);
+    }
+  };
+
   continueBtn.onclick = async () => { await continueJobOnce(); };
   autoBtn.onclick = () => autoStart();
   stopBtn.onclick = () => { autoStop(); toast("Auto-run stopped / 自動実行を停止しました", "warn"); };
@@ -1110,9 +1047,7 @@
         const data = await apiFetch(`/dashboard?year=${encodeURIComponent(y)}`, { method:"GET" });
         const r = normalizeDashboard(data);
         if (r.length > 0) return y;
-      }catch(e){
-        // ignore
-      }
+      }catch(e){ /* ignore */ }
     }
     return null;
   }
