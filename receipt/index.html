@@ -3,240 +3,227 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>レシート管理</title>
+  <title>Receipt Admin / レシート管理</title>
   <style>
     :root{
       --bg:#f7f9fb;
       --card:#ffffff;
-      --card2:#fbfcfe;
       --text:#111827;
       --muted:#6b7280;
       --line:#e5e7eb;
       --line2:#eef2f7;
-
-      --good:#16a34a;
-      --warn:#d97706;
-      --bad:#dc2626;
-
       --accent:#0b5;
-
+      --danger:#dc2626;
+      --warn:#d97706;
       --shadow: 0 10px 24px rgba(17,24,39,.08);
-      --shadow2: 0 6px 14px rgba(17,24,39,.06);
       --radius:14px;
-
       --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
       --sans: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
     }
-
     *{ box-sizing:border-box; }
     body{ margin:0; font-family:var(--sans); background:var(--bg); color:var(--text); }
-    .wrap{ max-width:1260px; margin:0 auto; padding:18px 16px 40px; }
-
-    .top{
-      display:flex; gap:14px; align-items:flex-start; justify-content:space-between; flex-wrap:wrap;
-      margin-bottom:14px;
-      padding:16px 16px;
+    .wrap{ max-width:1280px; margin:0 auto; padding:18px 16px 40px; }
+    .header{
       background:var(--card);
       border:1px solid var(--line);
       border-radius:18px;
-      box-shadow: var(--shadow2);
+      box-shadow:var(--shadow);
+      padding:16px;
+      margin-bottom:14px;
     }
-    h1{ margin:0; font-size:18px; letter-spacing:.2px; }
-    .intro{ margin-top:6px; color:var(--muted); font-size:13px; line-height:1.4; }
+    h1{ margin:0; font-size:20px; }
+    .sub{ margin-top:6px; color:var(--muted); font-size:13px; line-height:1.4; }
+    .back{ display:inline-block; margin-top:10px; font-size:13px; color:var(--accent); text-decoration:none; font-weight:800; }
+    .back:hover{ text-decoration:underline; }
 
-    .controls{
-      display:flex; gap:10px; align-items:flex-end; flex-wrap:wrap;
-      padding:10px;
-      background: var(--card2);
+    .card{
+      background:var(--card);
       border:1px solid var(--line);
-      border-radius:16px;
+      border-radius:18px;
+      box-shadow:var(--shadow);
+      overflow:hidden;
+      margin-bottom:14px;
     }
-    .controls label{
-      font-size:12px; color:var(--muted);
-      display:flex; flex-direction:column; gap:6px;
+    .cardHead{
+      padding:14px 14px 10px;
+      border-bottom:1px solid var(--line2);
+      display:flex;
+      align-items:flex-end;
+      justify-content:space-between;
+      gap:12px;
+      flex-wrap:wrap;
+      background:linear-gradient(180deg,#fff,#fbfdff);
+    }
+    .cardHead h2{ margin:0; font-size:16px; }
+    .cardBody{ padding:14px; }
+
+    .row{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      align-items:flex-end;
+    }
+    label{
+      font-size:12px;
+      color:var(--muted);
+      display:flex;
+      flex-direction:column;
+      gap:6px;
     }
     input[type="number"], input[type="text"]{
-      background:#fff;
-      border:1px solid var(--line);
-      color:var(--text);
-      border-radius:10px;
       padding:9px 10px;
+      border-radius:10px;
+      border:1px solid var(--line);
       font-size:14px;
+      background:#fff;
       outline:none;
-      min-width:120px;
+      min-width:140px;
     }
-    input[type="text"]{ min-width:240px; }
+    input[type="text"]{ min-width:280px; }
     input:focus{
       border-color: rgba(11,187,85,.55);
       box-shadow: 0 0 0 4px rgba(11,187,85,.10);
     }
 
     .btn{
-      background:#fff;
-      border:1px solid var(--accent);
-      color:var(--accent);
       padding:10px 12px;
       border-radius:12px;
-      cursor:pointer;
+      border:1px solid var(--accent);
+      background:#fff;
+      color:var(--accent);
       font-weight:900;
       font-size:13px;
-      letter-spacing:.2px;
+      cursor:pointer;
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
       user-select:none;
-      display:inline-flex; align-items:center; gap:8px;
-      transition: transform .05s ease, box-shadow .12s ease, background .12s ease, border-color .12s ease;
-      box-shadow: 0 1px 0 rgba(0,0,0,.02);
     }
-    .btn:hover{
-      background:#f0fff8;
-      border-color: rgba(11,187,85,.75);
-      box-shadow: 0 8px 18px rgba(11,187,85,.12);
-    }
-    .btn:active{ transform: translateY(1px); }
-    .btn.secondary{
-      border-color:#c7ceda;
-      color:#475569;
-      background:#fff;
-    }
-    .btn.secondary:hover{
-      background:#f8fafc;
-      border-color:#aab4c3;
-      box-shadow: 0 8px 18px rgba(2,6,23,.06);
-    }
-    .btn:disabled{ opacity:.55; cursor:not-allowed; transform:none; box-shadow:none; }
+    .btn:hover{ background:#f0fff8; }
+    .btn:disabled{ opacity:.55; cursor:not-allowed; }
+    .btn.secondary{ border-color:#c7ceda; color:#475569; }
+    .btn.secondary:hover{ background:#f8fafc; }
+    .btn.danger{ border-color:rgba(220,38,38,.45); color:rgba(220,38,38,.95); }
+    .btn.danger:hover{ background:rgba(220,38,38,.04); }
 
-    .grid{
-      display:grid;
-      grid-template-columns: 1.2fr .8fr;
-      gap:14px;
-      margin-top:14px;
-    }
-    @media (max-width: 980px){ .grid{ grid-template-columns:1fr; } }
+    .note{ color:var(--muted); font-size:12px; line-height:1.4; margin-top:8px; }
 
-    .card{
-      background: var(--card);
-      border:1px solid var(--line);
-      border-radius: 18px;
-      box-shadow: var(--shadow);
-      overflow:hidden;
-    }
-    .cardHeader{
-      display:flex; align-items:flex-start; justify-content:space-between; gap:12px;
-      padding:14px 14px 10px;
-      border-bottom:1px solid var(--line2);
-      background: linear-gradient(180deg, #ffffff, #fbfdff);
-    }
-    .cardHeader h2{ margin:0; font-size:14px; letter-spacing:.2px; }
-    .cardHeader .sub{ display:block; font-size:12px; font-weight:800; color:var(--muted); margin-top:2px; }
-    .cardBody{ padding:14px; }
-
-    .pill{
-      display:inline-flex; align-items:center; gap:8px;
-      padding:6px 10px;
-      background: var(--card2);
-      border:1px solid var(--line);
-      border-radius:999px;
-      font-size:12px;
-      color:var(--muted);
-      white-space:nowrap;
-    }
-    .mono{ font-family:var(--mono); }
-    .muted{ color:var(--muted); }
-    .hint{ font-size:12px; color:var(--muted); line-height:1.35; }
-    .divider{ height:1px; background: var(--line2); margin:10px 0; }
-
-    .kpi{ display:grid; grid-template-columns: repeat(4, minmax(0,1fr)); gap:10px; }
-    @media (max-width: 620px){ .kpi{ grid-template-columns: repeat(2, minmax(0,1fr)); } }
-    .kpiBox{
-      background:#fbfdff;
-      border:1px solid var(--line);
-      border-radius:14px;
-      padding:10px 12px;
-      display:flex; flex-direction:column; gap:6px;
-    }
-    .kpiLabel{ font-size:11px; color:var(--muted); }
-    .kpiValue{ font-size:18px; font-weight:900; letter-spacing:.2px; }
-    .kpiValue.good{ color:var(--good); }
-    .kpiValue.warn{ color:var(--warn); }
-    .kpiValue.bad{ color:var(--bad); }
-
-    .branches{ display:flex; flex-direction:column; gap:12px; }
-    .branchCard{
-      border-radius:16px;
-      border:1px solid var(--line);
-      background:#fff;
-      overflow:hidden;
-    }
-    .branchTop{
-      display:flex; align-items:center; justify-content:space-between; gap:10px;
-      padding:12px 12px 10px;
-      border-bottom:1px solid var(--line2);
-      background:#fbfdff;
-    }
-    .branchName{ display:flex; align-items:baseline; gap:10px; flex-wrap:wrap; }
-    .branchName .code{ font-weight:900; letter-spacing:.6px; font-size:14px; }
-    .branchMeta{ color:var(--muted); font-size:12px; display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
-
-    .table{ width:100%; border-collapse:collapse; font-size:13px; }
-    .table th,.table td{ padding:10px 12px; border-bottom:1px solid var(--line2); vertical-align:top; }
-    .table th{
-      color:var(--muted);
-      font-size:11px;
-      letter-spacing:.3px;
-      text-transform:uppercase;
-      background:#fbfdff;
-    }
-    .rowActions{ display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
-
-    .tag{
-      display:inline-flex; align-items:center; gap:6px;
-      padding:4px 8px;
-      border-radius:999px;
-      font-size:11px;
-      border:1px solid var(--line);
-      background:#fff;
-      color:var(--muted);
-      white-space:nowrap;
-      font-weight:900;
-    }
-    .tag.good{ border-color: rgba(22,163,74,.25); color: rgba(22,163,74,.95); background: rgba(22,163,74,.06); }
-    .tag.warn{ border-color: rgba(217,119,6,.25); color: rgba(217,119,6,.95); background: rgba(217,119,6,.07); }
-    .tag.bad{ border-color: rgba(220,38,38,.25); color: rgba(220,38,38,.95); background: rgba(220,38,38,.07); }
-    .err{ color: rgba(220,38,38,.95); font-size:12px; margin-top:6px; line-height:1.3; }
-
-    .drop{
-      border:1.5px dashed #cbd5e1;
-      border-radius:14px;
-      padding:16px;
-      background:#f8fafc;
-      display:flex; flex-direction:column; gap:10px;
-    }
-    .dropRow{ display:flex; align-items:flex-start; justify-content:space-between; gap:12px; flex-wrap:wrap; }
-    .small{ font-size:12px; }
-
-    .progressWrap{ display:flex; flex-direction:column; gap:8px; margin-top:10px; }
-    .bar{ height:10px; border-radius:999px; background:#eef2f7; overflow:hidden; border:1px solid var(--line); }
-    .bar > div{ height:100%; width:0%; background: linear-gradient(90deg, rgba(11,187,85,.95), rgba(5,150,105,.85)); transition: width .2s ease; }
-
-    .precheckBox{
+    .errorBox{
       border:1px solid rgba(220,38,38,.22);
       background: rgba(220,38,38,.06);
       color: rgba(127,29,29,.95);
       border-radius:14px;
-      padding:10px 12px;
+      padding:12px;
       font-size:13px;
       line-height:1.4;
       margin-top:10px;
       display:none;
-      white-space:pre-wrap;
     }
-    .precheckBox .link{
-      color:#b91c1c;
+    .errorBox .notfound{ color:#b91c1c; font-weight:900; }
+    .errorBox .link{ color:#b91c1c; font-weight:900; text-decoration:underline; }
+
+    .progressWrap{ display:none; margin-top:10px; }
+    .bar{ height:10px; border-radius:999px; background:#eef2f7; overflow:hidden; border:1px solid var(--line); }
+    .bar > div{ height:100%; width:0%; background:linear-gradient(90deg, rgba(11,187,85,.95), rgba(5,150,105,.85)); transition: width .2s ease; }
+    .progressText{ margin-top:8px; font-size:12px; color:var(--muted); }
+
+    .toolbar{
+      display:flex;
+      gap:10px;
+      align-items:center;
+      justify-content:space-between;
+      flex-wrap:wrap;
+      margin-bottom:10px;
+    }
+    .kpiRow{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      align-items:center;
+      color:var(--muted);
+      font-size:12px;
+    }
+    .pill{
+      display:inline-flex; align-items:center; gap:8px;
+      padding:6px 10px;
+      border:1px solid var(--line);
+      border-radius:999px;
+      background:#fff;
+      white-space:nowrap;
+    }
+    .mono{ font-family:var(--mono); }
+
+    table{
+      width:100%;
+      border-collapse:collapse;
+      font-size:14px;
+    }
+    th, td{
+      padding:10px 10px;
+      border-bottom:1px solid var(--line2);
+      vertical-align:top;
+    }
+    th{
+      text-align:left;
+      font-size:12px;
+      color:var(--muted);
+      text-transform:uppercase;
+      letter-spacing:.3px;
+      background:#fbfdff;
+      position:sticky;
+      top:0;
+      z-index:1;
+    }
+    .status{
+      display:inline-flex;
+      padding:3px 8px;
+      border-radius:999px;
+      border:1px solid var(--line);
+      font-size:12px;
+      font-weight:900;
+      color:var(--muted);
+      background:#fff;
+      white-space:nowrap;
+    }
+    .status.done{ border-color:rgba(22,163,74,.25); color:rgba(22,163,74,.95); background:rgba(22,163,74,.06); }
+    .status.err{ border-color:rgba(220,38,38,.25); color:rgba(220,38,38,.95); background:rgba(220,38,38,.07); }
+    .status.pending{ border-color:rgba(217,119,6,.25); color:rgba(217,119,6,.95); background:rgba(217,119,6,.07); }
+
+    .pdfLink{
+      color:var(--accent);
       font-weight:900;
       text-decoration:underline;
+      cursor:pointer;
+      white-space:nowrap;
     }
-    .precheckBox .notfound{
-      color:#b91c1c;
+
+    /* Branch tabs (bottom) */
+    .tabsWrap{
+      margin-top:12px;
+      border-top:1px solid var(--line2);
+      padding-top:10px;
+    }
+    .tabs{
+      display:flex;
+      gap:8px;
+      flex-wrap:wrap;
+      align-items:center;
+    }
+    .tab{
+      padding:8px 10px;
+      border-radius:999px;
+      border:1px solid var(--line);
+      background:#fff;
+      cursor:pointer;
+      font-size:13px;
       font-weight:900;
+      color:#334155;
+      user-select:none;
+    }
+    .tab.active{
+      border-color: rgba(11,187,85,.55);
+      box-shadow: 0 0 0 4px rgba(11,187,85,.10);
+      color:#0a7a3f;
     }
 
     .toast{
@@ -259,129 +246,124 @@
       display:flex; gap:10px; align-items:flex-start; justify-content:space-between;
     }
     .toastItem .msg{ font-size:13px; line-height:1.25; }
-    .toastItem .x{
-      background: transparent;
-      border:0;
-      color:var(--muted);
-      cursor:pointer;
-      font-size:16px;
-      padding:0 6px;
-    }
+    .toastItem .x{ background:transparent; border:0; color:var(--muted); cursor:pointer; font-size:16px; padding:0 6px; }
 
     @media (max-width: 768px){
       input[type="number"], input[type="text"], .btn { width:100%; }
-      .controls{ width:100%; }
+      .toolbar{ align-items:stretch; }
     }
   </style>
 </head>
 
 <body>
   <div class="wrap">
-    <div class="top">
-      <div>
-        <h1>レシート管理</h1>
-        <div class="intro">
-          CSVをアップロードすると、PDFが自動生成されます。<br>
-          完了後、一覧が自動で更新され、拠点ごとの明細が一斉に表示されます。
+
+    <div class="header">
+      <h1>レシート管理</h1>
+      <div class="sub">
+        CSVをアップロードすると、内容を確認したうえでPDFを自動生成します<br>
+        完了後、一覧が自動で再表示されます
+      </div>
+      <a class="back" href="/">← ダッシュボードへ戻る</a>
+    </div>
+
+    <!-- Filters -->
+    <div class="card">
+      <div class="cardHead">
+        <h2>検索・表示</h2>
+        <div class="row">
+          <button class="btn secondary" id="reloadBtn">一覧を再読込</button>
         </div>
       </div>
-
-      <div class="controls" aria-label="Controls">
-        <label>
-          年度
-          <input type="number" id="year" min="2000" max="2100" step="1" />
-        </label>
-        <label>
-          検索（氏名・会員ID）
-          <input type="text" id="q" placeholder="例）TEST-0001 / Tanaka" />
-        </label>
-        <button class="btn" id="refreshBtn">再表示</button>
-        <button class="btn secondary" id="expandAllBtn">全て展開</button>
-        <button class="btn secondary" id="collapseAllBtn">全て折りたたみ</button>
+      <div class="cardBody">
+        <div class="row">
+          <label>年度
+            <input type="number" id="year" min="2000" max="2100" step="1">
+          </label>
+          <label>検索（氏名 / 会員ID）
+            <input type="text" id="q" placeholder="例）TEST-0001 / Tanaka">
+          </label>
+        </div>
+        <div class="note">※ 表示対象は選択した年度のレシートです</div>
       </div>
     </div>
 
-    <div class="grid">
-      <!-- Dashboard -->
-      <div class="card">
-        <div class="cardHeader">
-          <div>
-            <h2>一覧</h2>
-            <span class="sub">拠点ごとに明細を表示します</span>
-          </div>
-          <div class="branchMeta">
-            <span class="pill">件数 <span class="mono" id="rowsCount">—</span></span>
-            <span class="pill">拠点数 <span class="mono" id="branchCount">—</span></span>
-          </div>
-        </div>
-
-        <div class="cardBody">
-          <div class="kpi" style="margin-bottom:12px;">
-            <div class="kpiBox">
-              <div class="kpiLabel">完了</div>
-              <div class="kpiValue good" id="kpiDone">—</div>
-            </div>
-            <div class="kpiBox">
-              <div class="kpiLabel">未完了</div>
-              <div class="kpiValue warn" id="kpiPending">—</div>
-            </div>
-            <div class="kpiBox">
-              <div class="kpiLabel">エラー</div>
-              <div class="kpiValue bad" id="kpiError">—</div>
-            </div>
-            <div class="kpiBox">
-              <div class="kpiLabel">合計金額</div>
-              <div class="kpiValue" id="kpiAmount">—</div>
-            </div>
-          </div>
-
-          <div class="branches" id="branches"></div>
+    <!-- Upload -->
+    <div class="card">
+      <div class="cardHead">
+        <h2>CSVアップロード</h2>
+        <div class="row">
+          <button class="btn" id="uploadBtn" disabled>アップロード → 自動生成</button>
         </div>
       </div>
-
-      <!-- CSV Import -->
-      <div class="card">
-        <div class="cardHeader">
-          <div>
-            <h2>CSVアップロード</h2>
-            <span class="sub">事前チェック後に自動生成を開始します</span>
-          </div>
-          <div class="pill">
-            CSV形式：<span class="mono">member_id,branch,amount,year</span>
-          </div>
+      <div class="cardBody">
+        <div class="row">
+          <label>CSVファイル
+            <input type="file" id="file" accept=".csv,text/csv">
+          </label>
+        </div>
+        <div class="note">
+          CSV形式：<span class="mono">member_id,branch,amount,year</span><br>
+          事前チェック：会員IDの欠け／HubSpot側のメール未登録（または会員不在）
         </div>
 
-        <div class="cardBody">
-          <div class="drop">
-            <div class="dropRow">
-              <div>
-                <div style="font-weight:900;">CSVを選択</div>
-                <div class="hint" style="margin-top:6px;">
-                  ・会員ID（member_id）が空の行がある場合はアップロードできません<br>
-                  ・HubSpotにメールが未登録（または該当会員が存在しない）場合もアップロードできません
-                </div>
-              </div>
-              <div class="rowActions">
-                <input type="file" id="file" accept=".csv,text/csv" />
-                <button class="btn" id="importBtn" disabled>アップロードして自動生成</button>
-              </div>
-            </div>
+        <div class="errorBox" id="errors"></div>
 
-            <div class="divider"></div>
-
-            <div class="small muted">選択中：<span class="mono" id="fileName">—</span></div>
-            <div class="small muted">進捗：<span class="mono" id="jobText">—</span></div>
-
-            <div class="precheckBox" id="precheckErrors"></div>
-
-            <div class="progressWrap" id="progressWrap" style="display:none;">
-              <div class="bar"><div id="barFill"></div></div>
-              <div class="small muted" id="progressText">—</div>
-            </div>
-          </div>
+        <div class="progressWrap" id="progressWrap">
+          <div class="bar"><div id="barFill"></div></div>
+          <div class="progressText" id="progressText">—</div>
         </div>
       </div>
     </div>
+
+    <!-- Dashboard -->
+    <div class="card">
+      <div class="cardHead">
+        <h2>一覧（生成結果）</h2>
+        <div class="row">
+          <button class="btn secondary" id="allBranchBtn">全Branch</button>
+          <button class="btn" id="sendBulkBtn" disabled>メール一括送信（準備中）</button>
+        </div>
+      </div>
+
+      <div class="cardBody">
+
+        <div class="toolbar">
+          <div class="kpiRow">
+            <span class="pill">件数 <span class="mono" id="kpiRows">—</span></span>
+            <span class="pill">完了 <span class="mono" id="kpiDone">—</span></span>
+            <span class="pill">未完了 <span class="mono" id="kpiPending">—</span></span>
+            <span class="pill">エラー <span class="mono" id="kpiError">—</span></span>
+            <span class="pill">合計 <span class="mono" id="kpiAmount">—</span></span>
+          </div>
+        </div>
+
+        <div style="overflow:auto; border:1px solid var(--line2); border-radius:12px; max-height:520px;">
+          <table>
+            <thead>
+              <tr>
+                <th style="width:10%;">Send</th>
+                <th style="width:12%;">Member ID</th>
+                <th style="width:18%;">Name</th>
+                <th style="width:10%;">Branch</th>
+                <th style="width:10%;">Year</th>
+                <th style="width:12%;">Amount</th>
+                <th style="width:12%;">Status</th>
+                <th style="width:16%;">PDF</th>
+              </tr>
+            </thead>
+            <tbody id="tbody"></tbody>
+          </table>
+        </div>
+
+        <div class="tabsWrap">
+          <div class="muted" style="font-size:12px; margin-bottom:6px;">Branchタブ：</div>
+          <div class="tabs" id="tabs"></div>
+        </div>
+
+      </div>
+    </div>
+
   </div>
 
   <div class="toast" id="toast"></div>
@@ -392,37 +374,35 @@
 
   const el = (id) => document.getElementById(id);
 
-  // Controls
   const yearEl = el("year");
   const qEl = el("q");
-  const refreshBtn = el("refreshBtn");
-  const expandAllBtn = el("expandAllBtn");
-  const collapseAllBtn = el("collapseAllBtn");
+  const reloadBtn = el("reloadBtn");
 
-  // Dashboard
-  const rowsCountEl = el("rowsCount");
-  const branchCountEl = el("branchCount");
-  const kpiDoneEl = el("kpiDone");
-  const kpiPendingEl = el("kpiPending");
-  const kpiErrorEl = el("kpiError");
-  const kpiAmountEl = el("kpiAmount");
-  const branchesEl = el("branches");
-
-  // Import
   const fileEl = el("file");
-  const importBtn = el("importBtn");
-  const fileNameEl = el("fileName");
-  const jobTextEl = el("jobText");
-  const precheckErrorsEl = el("precheckErrors");
+  const uploadBtn = el("uploadBtn");
+  const errorsEl = el("errors");
+
   const progressWrapEl = el("progressWrap");
   const barFillEl = el("barFill");
   const progressTextEl = el("progressText");
 
-  let rows = [];
-  let collapsed = new Set(); // branch collapsed
-  let selectedFile = null;
+  const tbodyEl = el("tbody");
+  const tabsEl = el("tabs");
+  const allBranchBtn = el("allBranchBtn");
 
-  function toast(msg, type = "info", ttl = 5200) {
+  const kpiRowsEl = el("kpiRows");
+  const kpiDoneEl = el("kpiDone");
+  const kpiPendingEl = el("kpiPending");
+  const kpiErrorEl = el("kpiError");
+  const kpiAmountEl = el("kpiAmount");
+
+  const sendBulkBtn = el("sendBulkBtn");
+
+  let selectedFile = null;
+  let allRows = [];
+  let selectedBranch = "ALL";
+
+  function toast(msg, type="info", ttl=5200){
     const t = el("toast");
     const item = document.createElement("div");
     item.className = "toastItem";
@@ -446,33 +426,37 @@
     setTimeout(() => item.remove(), ttl);
   }
 
-  function setBusy(btn, busy, busyLabel) {
+  function setBusy(btn, busy, label){
     btn.disabled = !!busy;
-    if (busy && busyLabel) { btn.dataset._label = btn.textContent; btn.textContent = busyLabel; }
+    if (busy && label) { btn.dataset._label = btn.textContent; btn.textContent = label; }
     if (!busy && btn.dataset._label) { btn.textContent = btn.dataset._label; delete btn.dataset._label; }
   }
 
-  function showPrecheck(html) {
-    precheckErrorsEl.style.display = "block";
-    precheckErrorsEl.innerHTML = html;
+  function showErrors(html){
+    errorsEl.style.display = "block";
+    errorsEl.innerHTML = html;
   }
-  function clearPrecheck() {
-    precheckErrorsEl.style.display = "none";
-    precheckErrorsEl.innerHTML = "";
+  function clearErrors(){
+    errorsEl.style.display = "none";
+    errorsEl.innerHTML = "";
   }
 
-  function fmtInt(n) {
-    if (n == null || isNaN(Number(n))) return "—";
-    return Number(n).toLocaleString("en-US");
+  function showProgress(show){
+    progressWrapEl.style.display = show ? "block" : "none";
   }
-  function fmtMoneyFromCents(cents) {
-    if (cents == null || isNaN(Number(cents))) return "—";
-    const v = Number(cents) / 100;
-    return v.toLocaleString("en-US", { style:"currency", currency:"USD" });
+  function updateProgress(job){
+    const total = Number(job?.total_rows ?? 0);
+    const processed = Number(job?.processed_rows ?? 0);
+    const ok = Number(job?.ok_rows ?? 0);
+    const ng = Number(job?.ng_rows ?? 0);
+    const status = String(job?.status ?? "—");
+    const pct = total > 0 ? Math.min(100, Math.round((processed/total)*100)) : 0;
+    barFillEl.style.width = pct + "%";
+    progressTextEl.textContent = `処理中：${processed}/${total}（OK:${ok} / NG:${ng}） 状態:${status}`;
   }
-  function safeText(v){ return (v == null) ? "" : String(v); }
+
   function escapeHtml(str){
-    return String(str)
+    return String(str ?? "")
       .replaceAll("&","&amp;")
       .replaceAll("<","&lt;")
       .replaceAll(">","&gt;")
@@ -480,250 +464,161 @@
       .replaceAll("'","&#039;");
   }
 
-  async function apiFetch(path, opts = {}) {
-    const url = path.startsWith("http") ? path : (API + path);
-    const res = await fetch(url, {
-      credentials: "include",
-      ...opts,
-      headers: { ...(opts.headers || {}) }
-    });
+  function fmtInt(n){
+    if (n == null || isNaN(Number(n))) return "—";
+    return Number(n).toLocaleString("en-US");
+  }
+  function fmtMoneyFromCents(cents){
+    if (cents == null || isNaN(Number(cents))) return "—";
+    const v = Number(cents) / 100;
+    return v.toLocaleString("en-US", { style:"currency", currency:"USD" });
+  }
 
+  async function apiFetch(path, opts={}){
+    const res = await fetch(API + path, { credentials:"include", ...opts, headers:{...(opts.headers||{})} });
     const ct = res.headers.get("content-type") || "";
     const isJson = ct.includes("application/json");
-    const body = isJson ? await res.json().catch(() => null) : await res.text().catch(() => "");
+    const body = isJson ? await res.json().catch(()=>null) : await res.text().catch(()=> "");
     if (!res.ok) {
-      const detail = (body && body.error) ? body.error : (typeof body === "string" ? body : JSON.stringify(body));
+      const detail = body?.error ? body.error : (typeof body === "string" ? body : JSON.stringify(body));
       throw new Error(`HTTP ${res.status} — ${detail}`);
     }
     return body;
   }
 
-  function normalizeDashboard(data) {
-    let r = [];
-    if (data && Array.isArray(data.rows)) r = data.rows;
-    else if (Array.isArray(data)) r = data;
-    else if (data && Array.isArray(data.results)) r = data.results;
-    return r.map(x => ({
-      year: x.year,
-      member_id: x.member_id,
-      branch: x.branch,
-      name: x.name,
-      amount_cents: x.amount_cents,
-      issue_date: x.issue_date,
-      pdf_key: x.pdf_key,
-      status: x.status,
-      error: x.error
-    }));
+  function statusBadge(s){
+    const up = String(s||"").toUpperCase();
+    if (up === "DONE") return `<span class="status done">DONE</span>`;
+    if (up === "ERROR") return `<span class="status err">ERROR</span>`;
+    return `<span class="status pending">${escapeHtml(up || "PENDING")}</span>`;
   }
 
-  function groupByBranch(list) {
-    const map = new Map();
-    for (const row of list) {
-      const b = safeText(row.branch || "UNKNOWN").trim() || "UNKNOWN";
-      if (!map.has(b)) map.set(b, []);
-      map.get(b).push(row);
-    }
-    return Array.from(map.entries()).sort((a,b) => a[0].localeCompare(b[0]));
-  }
-
-  function statusTag(status) {
-    const s = safeText(status).toUpperCase();
-    const span = document.createElement("span");
-    span.className = "tag";
-    span.textContent = s || "—";
-    if (s === "DONE") span.classList.add("good");
-    else if (s === "ERROR") span.classList.add("bad");
-    else span.classList.add("warn");
-    return span;
-  }
-
-  function computeKpi(list) {
-    let done=0, pending=0, err=0, amount=0;
-    for (const r of list) {
-      const s = safeText(r.status).toUpperCase();
+  function computeKpi(rows){
+    let done=0, pending=0, err=0, sum=0;
+    for (const r of rows) {
+      const s = String(r.status||"").toUpperCase();
       if (s === "DONE") done++;
       else if (s === "ERROR") err++;
       else pending++;
-      if (!isNaN(Number(r.amount_cents))) amount += Number(r.amount_cents);
+      if (!isNaN(Number(r.amount_cents))) sum += Number(r.amount_cents);
     }
+    kpiRowsEl.textContent = fmtInt(rows.length);
     kpiDoneEl.textContent = fmtInt(done);
     kpiPendingEl.textContent = fmtInt(pending);
     kpiErrorEl.textContent = fmtInt(err);
-    kpiAmountEl.textContent = fmtMoneyFromCents(amount);
+    kpiAmountEl.textContent = fmtMoneyFromCents(sum);
   }
 
-  function applyFilter(list) {
+  function applyFilter(rows){
     const q = qEl.value.trim().toLowerCase();
-    if (!q) return list;
-    return list.filter(r => safeText(r.name).toLowerCase().includes(q) || safeText(r.member_id).toLowerCase().includes(q));
+    let out = rows;
+
+    if (selectedBranch !== "ALL") out = out.filter(r => String(r.branch||"") === selectedBranch);
+
+    if (q) {
+      out = out.filter(r =>
+        String(r.member_id||"").toLowerCase().includes(q) ||
+        String(r.name||"").toLowerCase().includes(q)
+      );
+    }
+    return out;
   }
 
-  function render() {
-    const filtered = applyFilter(rows);
-    const grouped = groupByBranch(filtered);
+  function buildTabs(rows){
+    const branches = Array.from(new Set(rows.map(r => String(r.branch||"UNKNOWN")))).sort((a,b)=>a.localeCompare(b));
+    tabsEl.innerHTML = "";
 
-    rowsCountEl.textContent = fmtInt(filtered.length);
-    branchCountEl.textContent = fmtInt(grouped.length);
-    computeKpi(filtered);
+    const makeTab = (label, value) => {
+      const btn = document.createElement("button");
+      btn.className = "tab" + (selectedBranch === value ? " active" : "");
+      btn.textContent = label;
+      btn.onclick = () => { selectedBranch = value; buildTabs(allRows); render(); };
+      return btn;
+    };
 
-    branchesEl.innerHTML = "";
+    tabsEl.appendChild(makeTab("All", "ALL"));
+    for (const b of branches) tabsEl.appendChild(makeTab(b, b));
+  }
 
-    for (const [branch, list] of grouped) {
-      list.sort((a,b) => safeText(a.name).localeCompare(safeText(b.name)));
+  function render(){
+    const rows = applyFilter(allRows);
+    computeKpi(rows);
 
-      const totalCents = list.reduce((sum, r) => sum + (isNaN(Number(r.amount_cents)) ? 0 : Number(r.amount_cents)), 0);
-      const done = list.filter(r => safeText(r.status).toUpperCase() === "DONE").length;
-      const err = list.filter(r => safeText(r.status).toUpperCase() === "ERROR").length;
+    // Email buttons are UI-only for now (API not yet implemented)
+    sendBulkBtn.disabled = true;
 
-      const card = document.createElement("div");
-      card.className = "branchCard";
+    tbodyEl.innerHTML = "";
+    if (rows.length === 0) {
+      const tr = document.createElement("tr");
+      tr.innerHTML = `<td colspan="8" class="muted" style="padding:14px;">表示するデータがありません</td>`;
+      tbodyEl.appendChild(tr);
+      return;
+    }
 
-      const top = document.createElement("div");
-      top.className = "branchTop";
+    for (const r of rows) {
+      const memberId = String(r.member_id||"").trim();
+      const year = String(r.year||"").trim();
 
-      const left = document.createElement("div");
-      left.className = "branchName";
-      left.innerHTML = `
-        <div class="code">${escapeHtml(branch)}</div>
-        <div class="branchMeta">
-          <span class="pill">件数 <span class="mono">${fmtInt(list.length)}</span></span>
-          <span class="pill">完了 <span class="mono">${fmtInt(done)}</span></span>
-          <span class="pill">エラー <span class="mono">${fmtInt(err)}</span></span>
-          <span class="pill">合計 <span class="mono">${escapeHtml(fmtMoneyFromCents(totalCents))}</span></span>
-        </div>
+      const tr = document.createElement("tr");
+
+      const oneBtn = `<button class="btn secondary" data-action="sendOne" data-mid="${escapeHtml(memberId)}" data-year="${escapeHtml(year)}" disabled>送信（準備中）</button>`;
+
+      const pdf = r.pdf_key
+        ? `<a class="pdfLink" href="/api/admin/receipt/pdf?member_id=${encodeURIComponent(memberId)}&year=${encodeURIComponent(year)}" target="_blank" rel="noopener">PDF</a>`
+        : "—";
+
+      tr.innerHTML = `
+        <td>${oneBtn}</td>
+        <td class="mono">${escapeHtml(memberId || "—")}</td>
+        <td>${escapeHtml(String(r.name||"—"))}</td>
+        <td>${escapeHtml(String(r.branch||"—"))}</td>
+        <td class="mono">${escapeHtml(String(r.year||"—"))}</td>
+        <td>${escapeHtml(fmtMoneyFromCents(r.amount_cents))}</td>
+        <td>${statusBadge(r.status)}</td>
+        <td>${pdf}</td>
       `;
 
-      const right = document.createElement("div");
-      right.className = "rowActions";
-
-      const toggleBtn = document.createElement("button");
-      toggleBtn.className = "btn secondary";
-      toggleBtn.textContent = collapsed.has(branch) ? "展開" : "折りたたみ";
-      toggleBtn.onclick = () => {
-        if (collapsed.has(branch)) collapsed.delete(branch);
-        else collapsed.add(branch);
-        render();
-      };
-
-      right.appendChild(toggleBtn);
-
-      top.appendChild(left);
-      top.appendChild(right);
-      card.appendChild(top);
-
-      if (!collapsed.has(branch)) {
-        const table = document.createElement("table");
-        table.className = "table";
-        table.innerHTML = `
-          <thead>
-            <tr>
-              <th style="width:28%;">氏名</th>
-              <th style="width:16%;">会員ID</th>
-              <th style="width:10%;">年度</th>
-              <th style="width:12%;">金額</th>
-              <th style="width:14%;">PDFキー</th>
-              <th style="width:20%;">状態</th>
-            </tr>
-          </thead>
-          <tbody></tbody>
-        `;
-        const tb = table.querySelector("tbody");
-
-        for (const r of list) {
-          const tr = document.createElement("tr");
-
-          const tdName = document.createElement("td");
-          tdName.innerHTML = `
-            <div style="font-weight:900;">${escapeHtml(safeText(r.name) || "—")}</div>
-            <div class="small muted">発行日 <span class="mono">${escapeHtml(safeText(r.issue_date) || "—")}</span></div>
-            ${r.error ? `<div class="err">${escapeHtml(safeText(r.error))}</div>` : ""}
-          `;
-
-          const tdMid = document.createElement("td");
-          tdMid.innerHTML = `<span class="mono">${escapeHtml(safeText(r.member_id) || "—")}</span>`;
-
-          const tdYear = document.createElement("td");
-          tdYear.innerHTML = `<span class="mono">${escapeHtml(safeText(r.year) || "—")}</span>`;
-
-          const tdAmt = document.createElement("td");
-          tdAmt.innerHTML = `<div style="font-weight:900;">${escapeHtml(fmtMoneyFromCents(r.amount_cents))}</div>`;
-
-          const tdPdf = document.createElement("td");
-          tdPdf.innerHTML = `<span class="mono" style="font-size:12px; word-break:break-all;">${escapeHtml(safeText(r.pdf_key) || "—")}</span>`;
-
-          const tdStatus = document.createElement("td");
-          tdStatus.appendChild(statusTag(r.status));
-
-          tr.appendChild(tdName);
-          tr.appendChild(tdMid);
-          tr.appendChild(tdYear);
-          tr.appendChild(tdAmt);
-          tr.appendChild(tdPdf);
-          tr.appendChild(tdStatus);
-
-          tb.appendChild(tr);
-        }
-
-        card.appendChild(table);
-      }
-
-      branchesEl.appendChild(card);
-    }
-
-    if (grouped.length === 0) {
-      const empty = document.createElement("div");
-      empty.className = "hint";
-      empty.textContent = "表示データがありません（年度・検索条件をご確認ください）";
-      branchesEl.appendChild(empty);
+      tbodyEl.appendChild(tr);
     }
   }
 
-  async function loadDashboard() {
+  async function loadDashboard(){
     const y = Number(yearEl.value);
     if (!y || isNaN(y)) throw new Error("年度が不正です");
 
     const data = await apiFetch(`/dashboard?year=${encodeURIComponent(y)}`, { method:"GET" });
-    rows = normalizeDashboard(data);
-
-    // 初回だけは折りたたみにしておき、ユーザーが操作したら維持
-    if (!window.__collapsedInitialized) {
-      collapsed = new Set(rows.map(r => safeText(r.branch || "UNKNOWN")));
-      window.__collapsedInitialized = true;
-    }
-
+    allRows = Array.isArray(data?.rows) ? data.rows : [];
+    buildTabs(allRows);
     render();
   }
 
-  // --- validate: 複数行まとめ、not found 赤字＋リンク ---
-  function buildValidateMessage(errors) {
+  function buildValidateHtml(errors){
     const missingIds = errors.filter(e => e.type === "MISSING_MEMBER_ID");
     const missingEmails = errors.filter(e => e.type === "MISSING_EMAIL");
 
     let html = `<div style="font-weight:900; margin-bottom:6px;">以下の理由により、CSVをアップロードできません</div>`;
 
     if (missingIds.length) {
-      html += `<div style="margin-top:6px; font-weight:900;">・会員ID（member_id）が未入力の行があります</div>`;
+      html += `<div style="margin-top:8px; font-weight:900;">会員ID（member_id）が未入力の行があります</div>`;
       html += `<div style="margin-top:6px;">`;
-      for (const e of missingIds) {
-        html += `・${escapeHtml(e.row)}行目：会員ID（member_id）が入力されていません<br>`;
-      }
+      for (const e of missingIds) html += `・${escapeHtml(e.row)}行目：会員ID（member_id）が入力されていません<br>`;
       html += `</div>`;
     }
 
     if (missingEmails.length) {
-      html += `<div style="margin-top:10px; font-weight:900;">・HubSpotにメールアドレスが登録されていない会員があります</div>`;
+      html += `<div style="margin-top:12px; font-weight:900;">HubSpotにメールアドレスが登録されていない会員があります</div>`;
       html += `<div style="margin-top:6px;">`;
       for (const e of missingEmails) {
         const mid = escapeHtml(e.member_id || "");
         const row = escapeHtml(e.row || "");
-        const name = escapeHtml(e.name || "");
-        const isNotFound = (e.name === "(HubSpot not found)");
+        const name = String(e.name || "");
+        const isNotFound = (name === "(HubSpot not found)");
 
         html += `・${row}行目：ID「${mid}」<br>`;
         if (isNotFound) {
           html += `　<span class="notfound">HubSpotに該当する会員が見つかりません</span><br>`;
         } else {
-          html += `　${name} さんのメールアドレスが未登録です<br>`;
+          html += `　${escapeHtml(name)} さんのメールアドレスが未登録です<br>`;
         }
         html += `　→ <a class="link" href="https://app.hubspot.com/contacts" target="_blank" rel="noopener">HubSpotで確認する</a><br><br>`;
       }
@@ -734,66 +629,37 @@
     return html;
   }
 
-  async function validateCsv(csvText) {
+  async function validateCsv(csvText){
     const res = await fetch(API + "/import/validate", {
-      method: "POST",
-      headers: { "Content-Type":"text/csv" },
+      method:"POST",
+      headers:{ "Content-Type":"text/csv" },
       body: csvText,
-      credentials: "include",
+      credentials:"include"
     });
-
-    const data = await res.json().catch(() => null);
+    const data = await res.json().catch(()=>null);
     if (!res.ok) throw new Error(data?.error || `validate_failed: HTTP ${res.status}`);
-
-    if (!data || data.ok !== true) {
-      return { ok:false, data };
-    }
+    if (!data || data.ok !== true) return { ok:false, data };
     return { ok:true, data };
   }
 
-  // --- import -> auto continue -> done -> refresh dashboard + expand all ---
-  function setProgressVisible(visible) {
-    progressWrapEl.style.display = visible ? "block" : "none";
-  }
-
-  function updateProgress(job) {
-    const total = Number(job?.total_rows ?? 0);
-    const processed = Number(job?.processed_rows ?? 0);
-    const ok = Number(job?.ok_rows ?? 0);
-    const ng = Number(job?.ng_rows ?? 0);
-    const status = safeText(job?.status ?? "—");
-    const pct = total > 0 ? Math.min(100, Math.round((processed / total) * 100)) : 0;
-
-    barFillEl.style.width = pct + "%";
-    progressTextEl.textContent = `処理中：${processed}/${total}（OK:${ok} / NG:${ng}） 状態:${status}`;
-  }
-
-  async function startImportAndAutoRun(csvText) {
-    // 1) import
-    jobTextEl.textContent = "アップロード中…";
-    setProgressVisible(true);
+  async function importAndAutoRun(csvText){
+    showProgress(true);
     barFillEl.style.width = "0%";
-    progressTextEl.textContent = "取込を開始しています…";
+    progressTextEl.textContent = "アップロード中…";
 
     const importRes = await fetch(API + "/import", {
       method:"POST",
       headers:{ "Content-Type":"text/csv" },
       body: csvText,
-      credentials:"include",
+      credentials:"include"
     });
-
-    const importData = await importRes.json().catch(() => null);
+    const importData = await importRes.json().catch(()=>null);
     if (!importRes.ok) throw new Error(importData?.error || `import_failed: HTTP ${importRes.status}`);
 
-    if (!importData?.job_id) throw new Error("import_failed: job_id_not_returned");
+    const jobId = importData?.job_id;
+    const year = importData?.year;
+    if (!jobId) throw new Error("import_failed: job_id_not_returned");
 
-    const jobId = importData.job_id;
-    const year = importData.year;
-
-    jobTextEl.textContent = `ジョブ開始：${jobId}`;
-    toast("アップロード完了。自動生成を開始します。", "ok");
-
-    // 2) auto-continue loop
     let safety = 0;
     while (true) {
       safety++;
@@ -801,92 +667,69 @@
 
       const cont = await apiFetch(`/import/continue?job_id=${encodeURIComponent(jobId)}&batch=50`, { method:"POST" });
 
-      // cont shape: { ok:true, job: {...}, done: bool }
-      const job = cont?.job || cont?.job?.job || cont?.job; // robust-ish
+      const job = cont?.job; // your Worker returns { ok:true, job: updated, ... }
       if (job) updateProgress(job);
 
-      const done = !!cont?.done || safeText(job?.status).toUpperCase() === "DONE";
-      const err = safeText(job?.status).toUpperCase() === "ERROR";
-
-      if (err) {
-        toast("取込中にエラーが発生しました。ログ・一覧をご確認ください。", "bad", 9000);
+      const status = String(job?.status || "").toUpperCase();
+      if (status === "ERROR") {
+        toast("取込中にエラーが発生しました。一覧でERROR行をご確認ください。", "bad", 9000);
         break;
       }
-
-      if (done) {
-        toast("PDF自動生成が完了しました。一覧を更新します。", "ok", 7000);
-        // 3) refresh dashboard and expand all
+      if (status === "DONE") {
+        toast("自動生成が完了しました。一覧を更新します。", "ok", 7000);
         if (year) yearEl.value = String(year);
         await loadDashboard();
 
-        collapsed.clear();      // ✅ 一斉展開
-        window.__collapsedInitialized = true; // keep state
+        selectedBranch = "ALL"; // 全表示
+        buildTabs(allRows);
         render();
 
-        setTimeout(() => { setProgressVisible(false); }, 900);
+        showProgress(false);
         break;
       }
 
-      // brief pause to avoid hammering
       await new Promise(r => setTimeout(r, 350));
     }
   }
 
   // Events
-  refreshBtn.onclick = async () => {
-    try{
-      window.__collapsedInitialized = false; // allow re-init collapse on manual refresh
-      await loadDashboard();
-      toast("一覧を更新しました。", "ok");
-    }catch(e){
-      toast(`更新に失敗しました：${e.message}`, "bad", 9000);
-    }
+  reloadBtn.onclick = async () => {
+    try{ await loadDashboard(); toast("一覧を更新しました。", "ok"); }
+    catch(e){ toast(`更新に失敗しました：${e.message}`, "bad", 9000); }
   };
-
   qEl.oninput = () => render();
-
-  expandAllBtn.onclick = () => { collapsed.clear(); render(); };
-  collapseAllBtn.onclick = () => {
-    for (const r of rows) collapsed.add(safeText(r.branch || "UNKNOWN"));
-    render();
-  };
+  allBranchBtn.onclick = () => { selectedBranch = "ALL"; buildTabs(allRows); render(); };
 
   fileEl.onchange = () => {
-    selectedFile = fileEl.files && fileEl.files[0] ? fileEl.files[0] : null;
-    fileNameEl.textContent = selectedFile ? selectedFile.name : "—";
-    importBtn.disabled = !selectedFile;
-    clearPrecheck();
-    setProgressVisible(false);
-    jobTextEl.textContent = "—";
+    selectedFile = (fileEl.files && fileEl.files[0]) ? fileEl.files[0] : null;
+    uploadBtn.disabled = !selectedFile;
+    clearErrors();
+    showProgress(false);
   };
 
-  importBtn.onclick = async () => {
+  uploadBtn.onclick = async () => {
     if (!selectedFile) return;
-
-    clearPrecheck();
-    setBusy(importBtn, true, "確認中…");
+    clearErrors();
+    setBusy(uploadBtn, true, "確認中…");
     try{
       const csvText = await selectedFile.text();
 
-      // validate
       const v = await validateCsv(csvText);
       if (!v.ok) {
         const errors = v.data?.errors || [];
-        showPrecheck(buildValidateMessage(errors));
+        showErrors(buildValidateHtml(errors));
         toast("アップロードできません（事前チェックで問題が見つかりました）", "bad", 9000);
         return;
       }
 
       toast("事前チェックOK。自動生成を開始します。", "ok");
-      setBusy(importBtn, true, "生成中…");
-
-      // validate OK -> import+auto-run -> refresh+expand
-      await startImportAndAutoRun(csvText);
+      setBusy(uploadBtn, true, "生成中…");
+      await importAndAutoRun(csvText);
 
     }catch(e){
       toast(`処理に失敗しました：${e.message}`, "bad", 9000);
     }finally{
-      setBusy(importBtn, false);
+      setBusy(uploadBtn, false);
     }
   };
 
@@ -895,24 +738,18 @@
     const now = new Date();
     yearEl.value = String(now.getFullYear());
 
-    try{
-      // auto pick latest year with data (thisYear down to -3)
-      const candidates = [now.getFullYear(), now.getFullYear()-1, now.getFullYear()-2, now.getFullYear()-3];
-      let chosen = null;
-
-      for (const y of candidates) {
-        try{
-          const d = await apiFetch(`/dashboard?year=${encodeURIComponent(y)}`, { method:"GET" });
-          const r = normalizeDashboard(d);
-          if (r.length > 0) { chosen = y; break; }
-        }catch(_){}
-      }
-      if (chosen) yearEl.value = String(chosen);
-
-      await loadDashboard();
-    }catch(e){
-      toast("一覧の読み込みに失敗しました。Accessログイン後、再表示してください。", "warn", 9000);
+    // pick latest year with data (thisYear down to -3)
+    const candidates = [now.getFullYear(), now.getFullYear()-1, now.getFullYear()-2, now.getFullYear()-3];
+    for (const y of candidates) {
+      try{
+        const data = await apiFetch(`/dashboard?year=${encodeURIComponent(y)}`, { method:"GET" });
+        const rows = Array.isArray(data?.rows) ? data.rows : [];
+        if (rows.length > 0) { yearEl.value = String(y); break; }
+      }catch(_){}
     }
+
+    try{ await loadDashboard(); }
+    catch(e){ toast("一覧の読み込みに失敗しました。Accessログイン後、再読込してください。", "warn", 9000); }
   })();
 
 })();
