@@ -197,7 +197,6 @@
       white-space:nowrap;
     }
 
-    /* Branch tabs (bottom) */
     .tabsWrap{
       margin-top:12px;
       border-top:1px solid var(--line2);
@@ -245,7 +244,7 @@
       color:var(--text);
       display:flex; gap:10px; align-items:flex-start; justify-content:space-between;
     }
-    .toastItem .msg{ font-size:13px; line-height:1.25; }
+    .toastItem .msg{ font-size:13px; line-height:1.25; white-space:pre-wrap; }
     .toastItem .x{ background:transparent; border:0; color:var(--muted); cursor:pointer; font-size:16px; padding:0 6px; }
 
     @media (max-width: 768px){
@@ -322,7 +321,7 @@
         <h2>一覧（生成結果）</h2>
         <div class="row">
           <button class="btn secondary" id="allBranchBtn">全Branch</button>
-          <button class="btn" id="sendBulkBtn" disabled>メール一括送信（準備中）</button>
+          <button class="btn" id="sendBulkBtn" disabled>メール一括送信</button>
         </div>
       </div>
 
@@ -371,6 +370,12 @@
 <script>
 (() => {
   const API = "/api/admin/receipt";
+
+  // ★ Worker側メールAPI（ここだけ変えればOK）
+  // 個別送信：member_id + year
+  const API_SEND_ONE  = "/email/send-one";
+  // 一括送信：year + branch(ALL可)
+  const API_SEND_BULK = "/email/send-bulk";
 
   const el = (id) => document.getElementById(id);
 
@@ -512,15 +517,11 @@
   function applyFilter(rows){
     const q = qEl.value.trim().toLowerCase();
     let out = rows;
-
     if (selectedBranch !== "ALL") out = out.filter(r => String(r.branch||"") === selectedBranch);
-
-    if (q) {
-      out = out.filter(r =>
-        String(r.member_id||"").toLowerCase().includes(q) ||
-        String(r.name||"").toLowerCase().includes(q)
-      );
-    }
+    if (q) out = out.filter(r =>
+      String(r.member_id||"").toLowerCase().includes(q) ||
+      String(r.name||"").toLowerCase().includes(q)
+    );
     return out;
   }
 
@@ -532,7 +533,7 @@
       const btn = document.createElement("button");
       btn.className = "tab" + (selectedBranch === value ? " active" : "");
       btn.textContent = label;
-      btn.onclick = () => { selectedBranch = value; buildTabs(allRows); render(); };
+      btn.onclick = () => { selectedBranch = value; buildTabs(allRows); render(); updateBulkBtn(); };
       return btn;
     };
 
@@ -540,12 +541,18 @@
     for (const b of branches) tabsEl.appendChild(makeTab(b, b));
   }
 
+  function updateBulkBtn(){
+    const rows = applyFilter(allRows);
+    const hasAny = rows.length > 0;
+    const hasDone = rows.some(r => String(r.status||"").toUpperCase() === "DONE");
+    // DONEのみ送信対象にする運用（ERROR/PENDINGは送れない）
+    sendBulkBtn.disabled = !(hasAny && hasDone);
+  }
+
   function render(){
     const rows = applyFilter(allRows);
     computeKpi(rows);
-
-    // Email buttons are UI-only for now (API not yet implemented)
-    sendBulkBtn.disabled = true;
+    updateBulkBtn();
 
     tbodyEl.innerHTML = "";
     if (rows.length === 0) {
@@ -558,10 +565,16 @@
     for (const r of rows) {
       const memberId = String(r.member_id||"").trim();
       const year = String(r.year||"").trim();
+      const status = String(r.status||"").toUpperCase();
+      const canSend = (status === "DONE"); // DONEのみ送信
 
       const tr = document.createElement("tr");
 
-      const oneBtn = `<button class="btn secondary" data-action="sendOne" data-mid="${escapeHtml(memberId)}" data-year="${escapeHtml(year)}" disabled>送信（準備中）</button>`;
+      const oneBtn = `
+        <button class="btn secondary" data-action="sendOne" data-mid="${escapeHtml(memberId)}" data-year="${escapeHtml(year)}" ${canSend ? "" : "disabled"}>
+          個別送信
+        </button>
+      `;
 
       const pdf = r.pdf_key
         ? `<a class="pdfLink" href="/api/admin/receipt/pdf?member_id=${encodeURIComponent(memberId)}&year=${encodeURIComponent(year)}" target="_blank" rel="noopener">PDF</a>`
@@ -585,76 +598,25 @@
   async function loadDashboard(){
     const y = Number(yearEl.value);
     if (!y || isNaN(y)) throw new Error("年度が不正です");
-
     const data = await apiFetch(`/dashboard?year=${encodeURIComponent(y)}`, { method:"GET" });
     allRows = Array.isArray(data?.rows) ? data.rows : [];
     buildTabs(allRows);
     render();
   }
 
-  function buildValidateHtml(errors){
-    const missingIds = errors.filter(e => e.type === "MISSING_MEMBER_ID");
-    const missingEmails = errors.filter(e => e.type === "MISSING_EMAIL");
-
-    let html = `<div style="font-weight:900; margin-bottom:6px;">以下の理由により、CSVをアップロードできません</div>`;
-
-    if (missingIds.length) {
-      html += `<div style="margin-top:8px; font-weight:900;">会員ID（member_id）が未入力の行があります</div>`;
-      html += `<div style="margin-top:6px;">`;
-      for (const e of missingIds) html += `・${escapeHtml(e.row)}行目：会員ID（member_id）が入力されていません<br>`;
-      html += `</div>`;
-    }
-
-    if (missingEmails.length) {
-      html += `<div style="margin-top:12px; font-weight:900;">HubSpotにメールアドレスが登録されていない会員があります</div>`;
-      html += `<div style="margin-top:6px;">`;
-      for (const e of missingEmails) {
-        const mid = escapeHtml(e.member_id || "");
-        const row = escapeHtml(e.row || "");
-        const name = String(e.name || "");
-        const isNotFound = (name === "(HubSpot not found)");
-
-        html += `・${row}行目：ID「${mid}」<br>`;
-        if (isNotFound) {
-          html += `　<span class="notfound">HubSpotに該当する会員が見つかりません</span><br>`;
-        } else {
-          html += `　${escapeHtml(name)} さんのメールアドレスが未登録です<br>`;
-        }
-        html += `　→ <a class="link" href="https://app.hubspot.com/contacts" target="_blank" rel="noopener">HubSpotで確認する</a><br><br>`;
-      }
-      html += `</div>`;
-    }
-
-    html += `<div style="margin-top:8px;">CSVの内容を修正、またはHubSpot側を整備してから、再度アップロードしてください。</div>`;
-    return html;
-  }
-
-  async function validateCsv(csvText){
-    const res = await fetch(API + "/import/validate", {
-      method:"POST",
-      headers:{ "Content-Type":"text/csv" },
-      body: csvText,
-      credentials:"include"
-    });
-    const data = await res.json().catch(()=>null);
-    if (!res.ok) throw new Error(data?.error || `validate_failed: HTTP ${res.status}`);
-    if (!data || data.ok !== true) return { ok:false, data };
-    return { ok:true, data };
-  }
-
+  // --------------------------
+  // CSV upload: import → continue loop
+  // --------------------------
   async function importAndAutoRun(csvText){
     showProgress(true);
     barFillEl.style.width = "0%";
     progressTextEl.textContent = "アップロード中…";
 
-    const importRes = await fetch(API + "/import", {
+    const importData = await apiFetch(`/import`, {
       method:"POST",
       headers:{ "Content-Type":"text/csv" },
-      body: csvText,
-      credentials:"include"
+      body: csvText
     });
-    const importData = await importRes.json().catch(()=>null);
-    if (!importRes.ok) throw new Error(importData?.error || `import_failed: HTTP ${importRes.status}`);
 
     const jobId = importData?.job_id;
     const year = importData?.year;
@@ -667,7 +629,7 @@
 
       const cont = await apiFetch(`/import/continue?job_id=${encodeURIComponent(jobId)}&batch=50`, { method:"POST" });
 
-      const job = cont?.job; // your Worker returns { ok:true, job: updated, ... }
+      const job = cont?.job;
       if (job) updateProgress(job);
 
       const status = String(job?.status || "").toUpperCase();
@@ -675,15 +637,10 @@
         toast("取込中にエラーが発生しました。一覧でERROR行をご確認ください。", "bad", 9000);
         break;
       }
-      if (status === "DONE") {
+      if (status === "DONE" || cont?.done === true) {
         toast("自動生成が完了しました。一覧を更新します。", "ok", 7000);
         if (year) yearEl.value = String(year);
         await loadDashboard();
-
-        selectedBranch = "ALL"; // 全表示
-        buildTabs(allRows);
-        render();
-
         showProgress(false);
         break;
       }
@@ -691,6 +648,78 @@
       await new Promise(r => setTimeout(r, 350));
     }
   }
+
+  // --------------------------
+  // EMAIL: Individual & Bulk
+  // --------------------------
+  async function sendOne(memberId, year){
+    const y = Number(yearEl.value);
+    if (!memberId) throw new Error("member_id missing");
+    const targetYear = year ? Number(year) : y;
+
+    const res = await apiFetch(API_SEND_ONE, {
+      method:"POST",
+      headers:{ "Content-Type":"application/json" },
+      body: JSON.stringify({ member_id: memberId, year: targetYear })
+    });
+    return res;
+  }
+
+  async function sendBulk(year, branch){
+    const targetYear = Number(year);
+    const res = await apiFetch(API_SEND_BULK, {
+      method:"POST",
+      headers:{ "Content-Type":"application/json" },
+      body: JSON.stringify({ year: targetYear, branch: branch || "ALL" })
+    });
+    return res;
+  }
+
+  // Table button events (delegation)
+  tbodyEl.addEventListener("click", async (e) => {
+    const btn = e.target.closest("button[data-action]");
+    if (!btn) return;
+    const action = btn.dataset.action;
+    if (action !== "sendOne") return;
+
+    const memberId = btn.dataset.mid;
+    const year = btn.dataset.year;
+
+    setBusy(btn, true, "送信中…");
+    try{
+      const res = await sendOne(memberId, year);
+      toast(`個別送信 完了：${memberId} (${year})`, "ok", 7000);
+      console.log("send-one result:", res);
+    }catch(err){
+      toast(`個別送信 失敗：${memberId} — ${err.message}`, "bad", 9000);
+      console.error(err);
+    }finally{
+      setBusy(btn, false);
+    }
+  });
+
+  // Bulk button
+  sendBulkBtn.onclick = async () => {
+    const y = Number(yearEl.value);
+    const branch = selectedBranch; // ALL or specific
+    if (!y) return;
+
+    if (!confirm(`メール一括送信しますか？\nYear=${y}\nBranch=${branch}\n\n※ DONE の行のみ送信対象`)) return;
+
+    setBusy(sendBulkBtn, true, "送信中…");
+    try{
+      const res = await sendBulk(y, branch);
+      const sentOk = res?.sent_ok ?? res?.sent ?? "—";
+      const sentNg = res?.sent_ng ?? 0;
+      toast(`一括送信 完了：OK=${sentOk} / NG=${sentNg}`, "ok", 9000);
+      console.log("send-bulk result:", res);
+    }catch(err){
+      toast(`一括送信 失敗：${err.message}`, "bad", 9000);
+      console.error(err);
+    }finally{
+      setBusy(sendBulkBtn, false);
+    }
+  };
 
   // Events
   reloadBtn.onclick = async () => {
@@ -710,22 +739,11 @@
   uploadBtn.onclick = async () => {
     if (!selectedFile) return;
     clearErrors();
-    setBusy(uploadBtn, true, "確認中…");
+    setBusy(uploadBtn, true, "生成中…");
     try{
       const csvText = await selectedFile.text();
-
-      const v = await validateCsv(csvText);
-      if (!v.ok) {
-        const errors = v.data?.errors || [];
-        showErrors(buildValidateHtml(errors));
-        toast("アップロードできません（事前チェックで問題が見つかりました）", "bad", 9000);
-        return;
-      }
-
-      toast("事前チェックOK。自動生成を開始します。", "ok");
-      setBusy(uploadBtn, true, "生成中…");
+      toast("自動生成を開始します。", "ok");
       await importAndAutoRun(csvText);
-
     }catch(e){
       toast(`処理に失敗しました：${e.message}`, "bad", 9000);
     }finally{
@@ -736,17 +754,7 @@
   // Boot
   (async function init(){
     const now = new Date();
-    yearEl.value = String(now.getFullYear());
-
-    // pick latest year with data (thisYear down to -3)
-    const candidates = [now.getFullYear(), now.getFullYear()-1, now.getFullYear()-2, now.getFullYear()-3];
-    for (const y of candidates) {
-      try{
-        const data = await apiFetch(`/dashboard?year=${encodeURIComponent(y)}`, { method:"GET" });
-        const rows = Array.isArray(data?.rows) ? data.rows : [];
-        if (rows.length > 0) { yearEl.value = String(y); break; }
-      }catch(_){}
-    }
+    yearEl.value = String(now.getFullYear() - 1); // 既定：去年
 
     try{ await loadDashboard(); }
     catch(e){ toast("一覧の読み込みに失敗しました。Accessログイン後、再読込してください。", "warn", 9000); }
