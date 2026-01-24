@@ -3,66 +3,102 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Receipt Admin Dashboard</title>
+  <title>Receipt Admin Dashboard / レシート管理</title>
   <style>
     :root{
-      --bg:#0b0f17;
-      --panel:#121a2a;
-      --panel2:#0f1626;
-      --text:#e8eefc;
-      --muted:#a9b6d6;
-      --line:#22304d;
-      --good:#28c76f;
-      --warn:#ffb020;
-      --bad:#ff4d4f;
-      --btn:#2b3b62;
-      --btn2:#1b2742;
-      --shadow: 0 10px 30px rgba(0,0,0,.35);
+      --bg:#f7f9fb;
+      --card:#ffffff;
+      --card2:#fbfcfe;
+      --text:#111827;
+      --muted:#6b7280;
+      --line:#e5e7eb;
+      --line2:#eef2f7;
+
+      --good:#16a34a;
+      --warn:#d97706;
+      --bad:#dc2626;
+
+      --accent:#0b5;
+      --accent2:#059669;
+
+      --shadow: 0 10px 24px rgba(17,24,39,.08);
+      --shadow2: 0 6px 14px rgba(17,24,39,.06);
       --radius:14px;
+
       --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
       --sans: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
     }
+
     html,body{height:100%;}
     body{
       margin:0;
       font-family:var(--sans);
-      background: radial-gradient(1200px 900px at 20% -10%, #1a2a55 0%, rgba(26,42,85,0) 55%) ,
-                  radial-gradient(900px 700px at 100% 0%, #2a1b52 0%, rgba(42,27,82,0) 55%),
-                  var(--bg);
+      background:var(--bg);
       color:var(--text);
     }
-    a{color:#a8c7ff; text-decoration:none;}
+
+    a{color:var(--accent2); text-decoration:none;}
     a:hover{text-decoration:underline;}
-    .wrap{max-width:1260px; margin:0 auto; padding:22px 18px 40px;}
+
+    .wrap{max-width:1260px; margin:0 auto; padding:18px 16px 40px;}
+
+    /* Top bar */
     .top{
       display:flex; gap:14px; align-items:flex-start; justify-content:space-between; flex-wrap:wrap;
-      margin-bottom:16px;
+      margin-bottom:14px;
+      padding:16px 16px;
+      background:var(--card);
+      border:1px solid var(--line);
+      border-radius:18px;
+      box-shadow: var(--shadow2);
     }
     .brand{display:flex; flex-direction:column; gap:6px;}
-    .brand h1{margin:0; font-size:18px; letter-spacing:.2px;}
-    .sub{color:var(--muted); font-size:12px; display:flex; gap:10px; align-items:center; flex-wrap:wrap;}
+    .brand h1{
+      margin:0;
+      font-size:18px;
+      letter-spacing:.2px;
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      align-items:baseline;
+    }
+    .brand h1 .jp{
+      color:var(--muted);
+      font-weight:800;
+    }
+    .sub{
+      color:var(--muted);
+      font-size:12px;
+      display:flex; gap:10px; align-items:center; flex-wrap:wrap;
+    }
     .pill{
       display:inline-flex; align-items:center; gap:8px;
       padding:6px 10px;
-      background: rgba(255,255,255,.04);
-      border:1px solid rgba(255,255,255,.08);
+      background: var(--card2);
+      border:1px solid var(--line);
       border-radius:999px;
       font-size:12px;
       color:var(--muted);
     }
     .mono{font-family:var(--mono);}
+
     .controls{
-      display:flex; gap:10px; align-items:center; flex-wrap:wrap;
-      background: rgba(255,255,255,.04);
-      border:1px solid rgba(255,255,255,.08);
-      border-radius: var(--radius);
+      display:flex; gap:10px; align-items:flex-end; flex-wrap:wrap;
       padding:10px;
-      box-shadow: var(--shadow);
+      background: var(--card2);
+      border:1px solid var(--line);
+      border-radius:16px;
     }
-    .controls label{font-size:12px; color:var(--muted); display:flex; flex-direction:column; gap:6px;}
+    .controls label{
+      font-size:12px;
+      color:var(--muted);
+      display:flex;
+      flex-direction:column;
+      gap:6px;
+    }
     input[type="number"], input[type="text"], select{
-      background: rgba(0,0,0,.25);
-      border:1px solid rgba(255,255,255,.10);
+      background:#fff;
+      border:1px solid var(--line);
       color:var(--text);
       border-radius:10px;
       padding:9px 10px;
@@ -71,26 +107,53 @@
       min-width:120px;
     }
     input[type="text"]{min-width:220px;}
+    input:focus{
+      border-color: rgba(11,187,85,.55);
+      box-shadow: 0 0 0 4px rgba(11,187,85,.10);
+    }
+
     .btn{
-      background: linear-gradient(180deg, rgba(255,255,255,.07), rgba(255,255,255,.03));
-      border:1px solid rgba(255,255,255,.10);
-      color:var(--text);
+      background:#fff;
+      border:1px solid var(--accent);
+      color:var(--accent);
       padding:10px 12px;
       border-radius:12px;
       cursor:pointer;
-      font-weight:600;
+      font-weight:800;
       font-size:13px;
       letter-spacing:.2px;
-      transition: transform .05s ease, border-color .12s ease, background .12s ease;
       user-select:none;
       display:inline-flex; align-items:center; gap:8px;
+      transition: transform .05s ease, box-shadow .12s ease, background .12s ease, border-color .12s ease;
+      box-shadow: 0 1px 0 rgba(0,0,0,.02);
     }
-    .btn:hover{border-color: rgba(255,255,255,.22);}
+    .btn:hover{
+      background: #f0fff8;
+      border-color: rgba(11,187,85,.75);
+      box-shadow: 0 8px 18px rgba(11,187,85,.12);
+    }
     .btn:active{transform: translateY(1px);}
-    .btn.secondary{background: rgba(255,255,255,.04);}
-    .btn.danger{border-color: rgba(255,77,79,.35);}
-    .btn.danger:hover{border-color: rgba(255,77,79,.55);}
-    .btn:disabled{opacity:.55; cursor:not-allowed; transform:none;}
+    .btn.secondary{
+      border-color: #c7ceda;
+      color:#475569;
+      background:#fff;
+    }
+    .btn.secondary:hover{
+      background:#f8fafc;
+      border-color:#aab4c3;
+      box-shadow: 0 8px 18px rgba(2,6,23,.06);
+    }
+    .btn.danger{
+      border-color: rgba(220,38,38,.45);
+      color: rgba(220,38,38,.95);
+      background:#fff;
+    }
+    .btn.danger:hover{
+      border-color: rgba(220,38,38,.65);
+      background: rgba(220,38,38,.04);
+      box-shadow: 0 8px 18px rgba(220,38,38,.10);
+    }
+    .btn:disabled{opacity:.55; cursor:not-allowed; transform:none; box-shadow:none;}
 
     .grid{
       display:grid;
@@ -101,48 +164,75 @@
     @media (max-width: 980px){ .grid{grid-template-columns:1fr;} }
 
     .card{
-      background: linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.03));
-      border:1px solid rgba(255,255,255,.08);
-      border-radius: var(--radius);
+      background: var(--card);
+      border:1px solid var(--line);
+      border-radius: 18px;
       box-shadow: var(--shadow);
       overflow:hidden;
     }
     .cardHeader{
-      display:flex; align-items:center; justify-content:space-between; gap:12px;
+      display:flex; align-items:flex-start; justify-content:space-between; gap:12px;
       padding:14px 14px 10px;
-      border-bottom:1px solid rgba(255,255,255,.06);
+      border-bottom:1px solid var(--line2);
+      background: linear-gradient(180deg, #ffffff, #fbfdff);
     }
-    .cardHeader h2{margin:0; font-size:14px; letter-spacing:.2px;}
+    .cardHeader h2{
+      margin:0;
+      font-size:14px;
+      letter-spacing:.2px;
+    }
+    .cardHeader .h2jp{
+      display:block;
+      font-size:12px;
+      font-weight:800;
+      color:var(--muted);
+      margin-top:2px;
+    }
     .cardBody{padding:14px;}
     .muted{color:var(--muted);}
     .hint{font-size:12px; color:var(--muted); line-height:1.35;}
-    .divider{height:1px; background: rgba(255,255,255,.08); margin:10px 0;}
+    .divider{height:1px; background: var(--line2); margin:10px 0;}
 
     .drop{
-      border:1.5px dashed rgba(255,255,255,.18);
+      border:1.5px dashed #cbd5e1;
       border-radius:14px;
       padding:16px;
-      background: rgba(0,0,0,.18);
+      background:#f8fafc;
       display:flex; flex-direction:column; gap:10px;
     }
-    .drop.drag{border-color: rgba(168,199,255,.55); background: rgba(168,199,255,.10);}
+    .drop.drag{
+      border-color: rgba(11,187,85,.55);
+      background: rgba(11,187,85,.08);
+    }
     .dropRow{display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap;}
     .small{font-size:12px;}
+
     .progressWrap{display:flex; flex-direction:column; gap:8px; margin-top:10px;}
-    .bar{height:10px; border-radius:999px; background: rgba(255,255,255,.08); overflow:hidden; border:1px solid rgba(255,255,255,.08);}
-    .bar > div{height:100%; width:0%; background: linear-gradient(90deg, rgba(168,199,255,.95), rgba(120,255,215,.85)); transition: width .2s ease;}
+    .bar{
+      height:10px;
+      border-radius:999px;
+      background: #eef2f7;
+      overflow:hidden;
+      border:1px solid var(--line);
+    }
+    .bar > div{
+      height:100%;
+      width:0%;
+      background: linear-gradient(90deg, rgba(11,187,85,.95), rgba(5,150,105,.85));
+      transition: width .2s ease;
+    }
 
     .kpi{display:grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap:10px;}
     @media (max-width: 620px){ .kpi{grid-template-columns: repeat(2, minmax(0, 1fr));} }
     .kpiBox{
-      background: rgba(0,0,0,.18);
-      border:1px solid rgba(255,255,255,.08);
+      background: #fbfdff;
+      border:1px solid var(--line);
       border-radius:14px;
       padding:10px 12px;
       display:flex; flex-direction:column; gap:6px;
     }
     .kpiLabel{font-size:11px; color:var(--muted);}
-    .kpiValue{font-size:18px; font-weight:800; letter-spacing:.2px;}
+    .kpiValue{font-size:18px; font-weight:900; letter-spacing:.2px;}
     .kpiValue.good{color:var(--good);}
     .kpiValue.warn{color:var(--warn);}
     .kpiValue.bad{color:var(--bad);}
@@ -150,34 +240,53 @@
     .branches{display:flex; flex-direction:column; gap:12px;}
     .branchCard{
       border-radius:16px;
-      border:1px solid rgba(255,255,255,.08);
-      background: rgba(0,0,0,.16);
+      border:1px solid var(--line);
+      background: #fff;
       overflow:hidden;
     }
     .branchTop{
       display:flex; align-items:center; justify-content:space-between; gap:10px;
       padding:12px 12px 10px;
-      border-bottom:1px solid rgba(255,255,255,.06);
+      border-bottom:1px solid var(--line2);
+      background:#fbfdff;
     }
     .branchName{display:flex; align-items:baseline; gap:10px; flex-wrap:wrap;}
     .branchName .code{font-weight:900; letter-spacing:.6px; font-size:14px;}
     .branchMeta{color:var(--muted); font-size:12px; display:flex; gap:10px; align-items:center; flex-wrap:wrap;}
+
     .table{width:100%; border-collapse: collapse; font-size:13px;}
-    .table th,.table td{padding:10px 12px; border-bottom:1px solid rgba(255,255,255,.06); vertical-align:top;}
-    .table th{color:var(--muted); font-size:11px; letter-spacing:.3px; text-transform:uppercase; background: rgba(255,255,255,.02);}
+    .table th,.table td{padding:10px 12px; border-bottom:1px solid var(--line2); vertical-align:top;}
+    .table th{
+      color:var(--muted);
+      font-size:11px;
+      letter-spacing:.3px;
+      text-transform:uppercase;
+      background: #fbfdff;
+    }
+
     .rowActions{display:flex; gap:8px; align-items:center; flex-wrap:wrap;}
+
     .tag{
       display:inline-flex; align-items:center; gap:6px;
-      padding:4px 8px; border-radius:999px; font-size:11px;
-      border:1px solid rgba(255,255,255,.12);
-      background: rgba(255,255,255,.04);
+      padding:4px 8px;
+      border-radius:999px;
+      font-size:11px;
+      border:1px solid var(--line);
+      background:#fff;
       color:var(--muted);
       white-space:nowrap;
+      font-weight:800;
     }
-    .tag.good{border-color: rgba(40,199,111,.35); color: rgba(40,199,111,.95); background: rgba(40,199,111,.08);}
-    .tag.warn{border-color: rgba(255,176,32,.35); color: rgba(255,176,32,.95); background: rgba(255,176,32,.08);}
-    .tag.bad{border-color: rgba(255,77,79,.35); color: rgba(255,77,79,.95); background: rgba(255,77,79,.08);}
-    .err{color: rgba(255,77,79,.95); font-size:12px; margin-top:6px; line-height:1.3;}
+    .tag.good{border-color: rgba(22,163,74,.25); color: rgba(22,163,74,.95); background: rgba(22,163,74,.06);}
+    .tag.warn{border-color: rgba(217,119,6,.25); color: rgba(217,119,6,.95); background: rgba(217,119,6,.07);}
+    .tag.bad{border-color: rgba(220,38,38,.25); color: rgba(220,38,38,.95); background: rgba(220,38,38,.07);}
+
+    .err{
+      color: rgba(220,38,38,.95);
+      font-size:12px;
+      margin-top:6px;
+      line-height:1.3;
+    }
 
     .toast{
       position:fixed;
@@ -192,28 +301,49 @@
     .toastItem{
       border-radius:14px;
       padding:12px 12px;
-      border:1px solid rgba(255,255,255,.10);
-      background: rgba(15,22,38,.92);
+      border:1px solid var(--line);
+      background: rgba(255,255,255,.96);
       box-shadow: var(--shadow);
       color:var(--text);
       display:flex; gap:10px; align-items:flex-start; justify-content:space-between;
     }
     .toastItem .msg{font-size:13px; line-height:1.25;}
-    .toastItem .x{background: transparent; border:0; color:var(--muted); cursor:pointer; font-size:16px; padding:0 6px;}
+    .toastItem .x{
+      background: transparent;
+      border:0;
+      color:var(--muted);
+      cursor:pointer;
+      font-size:16px;
+      padding:0 6px;
+    }
 
     .footerNote{margin-top:14px; color:var(--muted); font-size:12px;}
 
-    /* new: empty-year banner */
     .banner{
-      border:1px solid rgba(255,176,32,.35);
-      background: rgba(255,176,32,.08);
-      color: rgba(255,176,32,.95);
+      border:1px solid rgba(217,119,6,.25);
+      background: rgba(217,119,6,.08);
+      color: rgba(124,45,18,.95);
       border-radius:14px;
       padding:10px 12px;
       font-size:12px;
       line-height:1.35;
       margin-bottom:12px;
       display:none;
+    }
+
+    .bilingual{
+      font-size:12px;
+      color:var(--muted);
+      margin-top:4px;
+      line-height:1.35;
+    }
+
+    .sr{
+      position:absolute;
+      left:-9999px;
+      width:1px;
+      height:1px;
+      overflow:hidden;
     }
   </style>
 </head>
@@ -222,36 +352,46 @@
   <div class="wrap">
     <div class="top">
       <div class="brand">
-        <h1>Receipt System — Admin Dashboard</h1>
+        <h1>
+          <span>Receipt System — Admin Dashboard</span>
+          <span class="jp">／レシート管理</span>
+        </h1>
+        <div class="bilingual">
+          Manage annual contribution receipts (CSV → D1 → PDF → R2).<br>
+          年間御奉納レシートを管理します（CSV → D1 → PDF → R2）。
+        </div>
         <div class="sub">
-          <span class="pill">Worker: <span class="mono" id="workerName">kamikumite-receipt</span></span>
-          <span class="pill">Build: <span class="mono" id="buildId">—</span></span>
-          <span class="pill">API: <span class="mono" id="apiBase">/api/admin/receipt</span></span>
+          <span class="pill">Worker / Worker名: <span class="mono" id="workerName">kamikumite-receipt</span></span>
+          <span class="pill">Build / ビルド: <span class="mono" id="buildId">—</span></span>
+          <span class="pill">API / API: <span class="mono" id="apiBase">/api/admin/receipt</span></span>
         </div>
       </div>
 
-      <div class="controls">
+      <div class="controls" aria-label="Controls">
         <label>
-          Year
+          Year / 年度
           <input type="number" id="year" min="2000" max="2100" step="1" />
         </label>
         <label>
-          Search (name / member_id)
-          <input type="text" id="q" placeholder="e.g. TEST-0001 or Tanaka" />
+          Search (name / member_id) / 検索（氏名・Member ID）
+          <input type="text" id="q" placeholder="e.g. TEST-0001 / Tanaka" />
         </label>
-        <button class="btn" id="refreshBtn">↻ Refresh</button>
-        <button class="btn secondary" id="expandAllBtn">▾ Expand all</button>
-        <button class="btn secondary" id="collapseAllBtn">▸ Collapse all</button>
+        <button class="btn" id="refreshBtn">↻ Refresh / 再読込</button>
+        <button class="btn secondary" id="expandAllBtn">▾ Expand all / 全て展開</button>
+        <button class="btn secondary" id="collapseAllBtn">▸ Collapse all / 全て折りたたみ</button>
       </div>
     </div>
 
     <div class="grid">
       <div class="card">
         <div class="cardHeader">
-          <h2>Dashboard</h2>
+          <div>
+            <h2>Dashboard</h2>
+            <span class="h2jp">ダッシュボード</span>
+          </div>
           <div class="branchMeta">
-            <span class="pill">Rows: <span class="mono" id="rowsCount">—</span></span>
-            <span class="pill">Branches: <span class="mono" id="branchCount">—</span></span>
+            <span class="pill">Rows / 件数: <span class="mono" id="rowsCount">—</span></span>
+            <span class="pill">Branches / 拠点数: <span class="mono" id="branchCount">—</span></span>
           </div>
         </div>
         <div class="cardBody">
@@ -259,19 +399,19 @@
 
           <div class="kpi" style="margin-bottom:12px;">
             <div class="kpiBox">
-              <div class="kpiLabel">DONE</div>
+              <div class="kpiLabel">DONE / 完了</div>
               <div class="kpiValue good" id="kpiDone">—</div>
             </div>
             <div class="kpiBox">
-              <div class="kpiLabel">PENDING</div>
+              <div class="kpiLabel">PENDING / 未完了</div>
               <div class="kpiValue warn" id="kpiPending">—</div>
             </div>
             <div class="kpiBox">
-              <div class="kpiLabel">ERROR</div>
+              <div class="kpiLabel">ERROR / エラー</div>
               <div class="kpiValue bad" id="kpiError">—</div>
             </div>
             <div class="kpiBox">
-              <div class="kpiLabel">TOTAL AMOUNT</div>
+              <div class="kpiLabel">TOTAL AMOUNT / 合計金額</div>
               <div class="kpiValue" id="kpiAmount">—</div>
             </div>
           </div>
@@ -279,6 +419,7 @@
           <div class="branches" id="branches"></div>
 
           <div class="footerNote">
+            Note: R2 is cache, D1 is source of truth. You can recover PDFs by Rebuild.<br>
             ※ R2 はキャッシュ / D1 が正本です。PDF が無くても Rebuild で復旧できます。
           </div>
         </div>
@@ -286,39 +427,45 @@
 
       <div class="card">
         <div class="cardHeader">
-          <h2>CSV Import</h2>
+          <div>
+            <h2>CSV Import</h2>
+            <span class="h2jp">CSV取込</span>
+          </div>
           <div class="pill">POST <span class="mono">/import</span> → <span class="mono">/import/continue</span></div>
         </div>
         <div class="cardBody">
           <div class="drop" id="drop">
             <div class="dropRow">
               <div>
-                <div style="font-weight:800;">Drag & Drop CSV</div>
-                <div class="hint">ヘッダ例：<span class="mono">member_id,branch,amount,year</span></div>
+                <div style="font-weight:900;">Drag & Drop CSV / CSVをドラッグ＆ドロップ</div>
+                <div class="hint">
+                  CSV header example / ヘッダ例：
+                  <span class="mono">member_id,branch,amount,year</span>
+                </div>
               </div>
               <div class="rowActions">
                 <input type="file" id="file" accept=".csv,text/csv" style="display:none;">
-                <button class="btn secondary" id="pickBtn">Choose file</button>
-                <button class="btn" id="importBtn" disabled>Upload & Start</button>
+                <button class="btn secondary" id="pickBtn">Choose file / ファイル選択</button>
+                <button class="btn" id="importBtn" disabled>Upload & Start / 取込開始</button>
               </div>
             </div>
 
             <div class="divider"></div>
 
             <div class="small muted">
-              Selected: <span class="mono" id="fileName">—</span>
+              Selected / 選択中: <span class="mono" id="fileName">—</span>
             </div>
             <div class="small muted">
-              Job: <span class="mono" id="jobId">—</span>
+              Job / ジョブ: <span class="mono" id="jobId">—</span>
             </div>
 
             <div class="progressWrap" id="progressWrap" style="display:none;">
               <div class="bar"><div id="barFill"></div></div>
               <div class="small muted" id="progressText">—</div>
               <div class="rowActions">
-                <button class="btn secondary" id="continueBtn">Continue batch</button>
-                <button class="btn secondary" id="autoBtn">Auto-run</button>
-                <button class="btn danger" id="stopBtn">Stop</button>
+                <button class="btn secondary" id="continueBtn">Continue batch / 続きを実行</button>
+                <button class="btn secondary" id="autoBtn">Auto-run / 自動実行</button>
+                <button class="btn danger" id="stopBtn">Stop / 停止</button>
               </div>
             </div>
 
@@ -328,7 +475,8 @@
           <div class="divider"></div>
 
           <div class="hint">
-            注意：<b>pdf-lib</b> を使うため、Cloudflare Dashboard 直貼りではなく <b>GitHub → Workers Builds</b> 経由でデプロイしてください。
+            Important: This UI is static; pdf-lib runs in Worker builds. Do not paste Worker code into Dashboard editor.<br>
+            注意：pdf-lib を使うため、Cloudflare Dashboard直貼りではなく GitHub → Workers Builds 経由でデプロイしてください。
           </div>
         </div>
       </div>
@@ -397,9 +545,9 @@
     item.appendChild(left);
     item.appendChild(x);
 
-    if (type === "ok") item.style.borderColor = "rgba(40,199,111,.35)";
-    if (type === "warn") item.style.borderColor = "rgba(255,176,32,.35)";
-    if (type === "bad") item.style.borderColor = "rgba(255,77,79,.35)";
+    if (type === "ok") item.style.borderColor = "rgba(22,163,74,.25)";
+    if (type === "warn") item.style.borderColor = "rgba(217,119,6,.25)";
+    if (type === "bad") item.style.borderColor = "rgba(220,38,38,.25)";
     t.appendChild(item);
 
     setTimeout(() => item.remove(), ttl);
@@ -537,9 +685,8 @@
     }
     if (filteredCount === 0) {
       emptyYearBannerEl.innerHTML =
-        `Year <b>${escapeHtml(String(y))}</b> のデータが見つかりませんでした。<br>` +
-        `・別の年（例：2025）に変更して Refresh するか<br>` +
-        `・CSV Import で <span class="mono">year=${escapeHtml(String(y))}</span> の台帳を投入してください。`;
+        `<b>No data for year ${escapeHtml(String(y))}.</b> Please switch the year (e.g., 2025) or run CSV Import.<br>` +
+        `<b>${escapeHtml(String(y))}年のデータが見つかりません。</b> 年度を変更（例：2025）するか、CSV取込を実行してください。`;
       emptyYearBannerEl.style.display = "block";
     } else {
       emptyYearBannerEl.style.display = "none";
@@ -584,10 +731,10 @@
       const meta = document.createElement("div");
       meta.className = "branchMeta";
       meta.innerHTML = `
-        <span class="pill">Rows <span class="mono">${fmtInt(list.length)}</span></span>
-        <span class="pill">DONE <span class="mono">${fmtInt(done)}</span></span>
-        <span class="pill">ERROR <span class="mono">${fmtInt(err)}</span></span>
-        <span class="pill">Sum <span class="mono">${fmtMoneyFromCents(totalCents)}</span></span>
+        <span class="pill">Rows / 件数 <span class="mono">${fmtInt(list.length)}</span></span>
+        <span class="pill">DONE / 完了 <span class="mono">${fmtInt(done)}</span></span>
+        <span class="pill">ERROR / エラー <span class="mono">${fmtInt(err)}</span></span>
+        <span class="pill">Sum / 合計 <span class="mono">${fmtMoneyFromCents(totalCents)}</span></span>
       `;
 
       left.appendChild(code);
@@ -598,7 +745,7 @@
 
       const toggleBtn = document.createElement("button");
       toggleBtn.className = "btn secondary";
-      toggleBtn.textContent = collapsed.has(branch) ? "▸ Expand" : "▾ Collapse";
+      toggleBtn.textContent = collapsed.has(branch) ? "▸ Expand / 展開" : "▾ Collapse / 折りたたみ";
       toggleBtn.onclick = () => {
         if (collapsed.has(branch)) collapsed.delete(branch);
         else collapsed.add(branch);
@@ -607,7 +754,7 @@
 
       const rebuildBranchBtn = document.createElement("button");
       rebuildBranchBtn.className = "btn";
-      rebuildBranchBtn.textContent = "Rebuild (Branch)";
+      rebuildBranchBtn.textContent = "Rebuild (Branch) / 拠点再生成";
       rebuildBranchBtn.onclick = () => rebuild({ year: Number(yearEl.value), branch });
 
       right.appendChild(toggleBtn);
@@ -624,12 +771,12 @@
         table.innerHTML = `
           <thead>
             <tr>
-              <th style="width:28%;">Name</th>
+              <th style="width:28%;">Name / 氏名</th>
               <th style="width:16%;">Member ID</th>
-              <th style="width:10%;">Year</th>
-              <th style="width:12%;">Amount</th>
+              <th style="width:10%;">Year / 年度</th>
+              <th style="width:12%;">Amount / 金額</th>
               <th style="width:14%;">PDF</th>
-              <th style="width:20%;">Actions</th>
+              <th style="width:20%;">Actions / 操作</th>
             </tr>
           </thead>
           <tbody></tbody>
@@ -641,8 +788,8 @@
 
           const tdName = document.createElement("td");
           tdName.innerHTML = `
-            <div style="font-weight:800;">${escapeHtml(safeText(r.name) || "—")}</div>
-            <div class="small muted">Issue: <span class="mono">${escapeHtml(safeText(r.issue_date) || "—")}</span></div>
+            <div style="font-weight:900;">${escapeHtml(safeText(r.name) || "—")}</div>
+            <div class="small muted">Issue / 発行日: <span class="mono">${escapeHtml(safeText(r.issue_date) || "—")}</span></div>
             ${r.error ? `<div class="err">${escapeHtml(safeText(r.error))}</div>` : ""}
           `;
 
@@ -654,7 +801,7 @@
           tdYear.appendChild(statusTag(r.status));
 
           const tdAmt = document.createElement("td");
-          tdAmt.innerHTML = `<div style="font-weight:800;">${escapeHtml(fmtMoneyFromCents(r.amount_cents))}</div>
+          tdAmt.innerHTML = `<div style="font-weight:900;">${escapeHtml(fmtMoneyFromCents(r.amount_cents))}</div>
                              <div class="small muted"><span class="mono">${escapeHtml(fmtInt(r.amount_cents))}</span> cents</div>`;
 
           const tdPdf = document.createElement("td");
@@ -670,20 +817,20 @@
 
           const copyBtn = document.createElement("button");
           copyBtn.className = "btn secondary";
-          copyBtn.textContent = "Copy key";
+          copyBtn.textContent = "Copy key / キーコピー";
           copyBtn.disabled = !key;
           copyBtn.onclick = async () => {
             try{
               await navigator.clipboard.writeText(key);
               toast(`Copied pdf_key (${branch})`, "ok");
             }catch(e){
-              toast("Clipboard copy failed (browser security).", "warn");
+              toast("Clipboard copy failed / コピーできませんでした", "warn");
             }
           };
 
           const rebuildBtn = document.createElement("button");
           rebuildBtn.className = "btn";
-          rebuildBtn.textContent = "Rebuild";
+          rebuildBtn.textContent = "Rebuild / 再生成";
           rebuildBtn.onclick = () => rebuild({
             year: Number(yearEl.value),
             member_id: safeText(r.member_id)
@@ -691,7 +838,7 @@
 
           const rebuildYearBtn = document.createElement("button");
           rebuildYearBtn.className = "btn secondary";
-          rebuildYearBtn.textContent = "Rebuild (Year)";
+          rebuildYearBtn.textContent = "Rebuild (Year) / 年度再生成";
           rebuildYearBtn.onclick = () => rebuild({ year: Number(yearEl.value) });
 
           act.appendChild(copyBtn);
@@ -719,7 +866,7 @@
     if (grouped.length === 0) {
       const empty = document.createElement("div");
       empty.className = "hint";
-      empty.textContent = "No rows to display (check Year / Search).";
+      empty.innerHTML = `No rows to display (check Year / Search).<br>表示データがありません（年度・検索条件をご確認ください）。`;
       branchesEl.appendChild(empty);
     }
   }
@@ -736,23 +883,21 @@
 
   async function loadDashboard() {
     const y = Number(yearEl.value);
-    if (!y || isNaN(y)) throw new Error("Year is invalid");
+    if (!y || isNaN(y)) throw new Error("Year is invalid / 年度が不正です");
     setBusy(refreshBtn, true, "Loading…");
     try{
       const data = await apiFetch(`/dashboard?year=${encodeURIComponent(y)}`, { method:"GET" });
       rows = normalizeDashboard(data);
 
-      // new: 初回のみ「BranchをデフォルトCollapse」したいので、初回ロード時に collapsed を作る
-      // ただしユーザーが手で開閉した後は維持
       if (!window.__collapsedInitialized) {
         collapsed = new Set(rows.map(r => safeText(r.branch || "UNKNOWN")));
         window.__collapsedInitialized = true;
       }
 
       render();
-      toast(`Dashboard loaded (year ${y})`, "ok");
+      toast(`Dashboard loaded (year ${y}) / 読み込み完了`, "ok");
     }catch(e){
-      toast(`Dashboard load failed: ${e.message}`, "bad", 9000);
+      toast(`Dashboard load failed / 読み込み失敗: ${e.message}`, "bad", 9000);
       throw e;
     }finally{
       setBusy(refreshBtn, false);
@@ -762,7 +907,7 @@
   async function rebuild(params) {
     const y = params.year;
     if (!y || isNaN(Number(y))) {
-      toast("Rebuild: year is invalid", "warn");
+      toast("Rebuild: year is invalid / 年度が不正です", "warn");
       return;
     }
 
@@ -772,11 +917,11 @@
     if (params.member_id) qs.set("member_id", params.member_id);
 
     const label =
-      params.member_id ? `Rebuild member ${params.member_id}` :
-      params.branch ? `Rebuild branch ${params.branch}` :
-      `Rebuild year ${y}`;
+      params.member_id ? `Rebuild member ${params.member_id} / 個別再生成` :
+      params.branch ? `Rebuild branch ${params.branch} / 拠点再生成` :
+      `Rebuild year ${y} / 年度再生成`;
 
-    if (!confirm(`${label}\n\nD1正本からR2へPDF再生成します。続行しますか？`)) return;
+    if (!confirm(`${label}\n\nRebuild PDFs from D1 to R2.\nD1正本からR2へPDF再生成します。続行しますか？`)) return;
 
     toast(`${label} …`, "warn", 3000);
     try{
@@ -823,14 +968,14 @@
       `status=${status} | processed=${processed}/${total} | ok=${ok} | ng=${ng} | next_index=${job.next_index ?? job.nextIndex ?? "—"} | year=${job.year ?? yearEl.value}`;
 
     importLogEl.textContent =
-      `Job ${job.job_id || job.jobId} — ${status}. Use Continue / Auto-run to process batches.`;
+      `Job ${job.job_id || job.jobId} — ${status}. Use Continue / Auto-run.\n（続き実行 / 自動実行で処理を進めます）`;
   }
 
   async function importCsv(file) {
     if (!file) return;
     const y = Number(yearEl.value);
     if (!y || isNaN(y)) {
-      toast("Import: year is invalid", "warn");
+      toast("Import: year is invalid / 年度が不正です", "warn");
       return;
     }
 
@@ -856,13 +1001,13 @@
       if (jid) {
         job = { job_id: jid, status: "READY", year: y, total_rows: 0, processed_rows: 0, ok_rows: 0, ng_rows: 0 };
         showJob(job);
-        toast(`Import started. job_id=${jid}`, "ok");
+        toast(`Import started. job_id=${jid} / 取込開始`, "ok");
       } else if (body && (body.status || body.total_rows || body.totalRows)) {
         job = body;
         showJob(job);
-        toast(`Import started. job_id=${job.job_id || job.jobId || "—"}`, "ok");
+        toast(`Import started. job_id=${job.job_id || job.jobId || "—"} / 取込開始`, "ok");
       } else {
-        toast("Import response parsed, but job_id not found. Check API response.", "warn", 9000);
+        toast("Import response parsed, but job_id not found. / job_idが見つかりません", "warn", 9000);
         importLogEl.textContent = "Import response: " + (typeof body === "string" ? body : JSON.stringify(body));
       }
 
@@ -876,7 +1021,7 @@
 
   async function continueJobOnce() {
     if (!job || !(job.job_id || job.jobId)) {
-      toast("Continue: job_id is missing", "warn");
+      toast("Continue: job_id is missing / job_idがありません", "warn");
       return;
     }
     const jid = job.job_id || job.jobId;
@@ -892,17 +1037,17 @@
       job.status = status;
 
       if (status === "DONE") {
-        toast("Import DONE", "ok");
+        toast("Import DONE / 取込完了", "ok");
         autoStop();
-        window.__collapsedInitialized = false; // new data => re-collapse default next load
+        window.__collapsedInitialized = false;
         await loadDashboard();
       } else if (status === "ERROR") {
-        toast("Import ERROR (see log / dashboard)", "bad", 9000);
+        toast("Import ERROR / 取込エラー（ログ・一覧を確認）", "bad", 9000);
         autoStop();
         await loadDashboard();
       }
     }catch(e){
-      toast(`Continue failed: ${e.message}`, "bad", 9000);
+      toast(`Continue failed / 続き実行失敗: ${e.message}`, "bad", 9000);
       autoStop();
     }finally{
       setBusy(continueBtn, false);
@@ -912,7 +1057,7 @@
   function autoStart() {
     if (autoRunning) return;
     autoRunning = true;
-    autoBtn.textContent = "Auto-running…";
+    autoBtn.textContent = "Auto-running… / 自動実行中…";
     autoBtn.disabled = true;
 
     const tick = async () => {
@@ -929,7 +1074,7 @@
     autoRunning = false;
     if (autoTimer) clearTimeout(autoTimer);
     autoTimer = null;
-    autoBtn.textContent = "Auto-run";
+    autoBtn.textContent = "Auto-run / 自動実行";
     autoBtn.disabled = false;
   }
 
@@ -957,17 +1102,16 @@
   importBtn.onclick = async () => { if (!selectedFile) return; await importCsv(selectedFile); };
   continueBtn.onclick = async () => { await continueJobOnce(); };
   autoBtn.onclick = () => autoStart();
-  stopBtn.onclick = () => { autoStop(); toast("Auto-run stopped", "warn"); };
+  stopBtn.onclick = () => { autoStop(); toast("Auto-run stopped / 自動実行を停止しました", "warn"); };
 
   async function pickLatestYearWithData(candidates) {
-    // candidates: [2026,2025,2024...] で順に dashboard を叩いて最初に rows>0 の年を採用
     for (const y of candidates) {
       try{
         const data = await apiFetch(`/dashboard?year=${encodeURIComponent(y)}`, { method:"GET" });
         const r = normalizeDashboard(data);
         if (r.length > 0) return y;
       }catch(e){
-        // Access/一時エラーの場合は無視して次へ
+        // ignore
       }
     }
     return null;
@@ -976,24 +1120,22 @@
   (async function init() {
     els("apiBase").textContent = API;
 
-    // 初期は "今年" を入れるが、データがなければ最新のデータ年に自動で切替
     const now = new Date();
     const thisYear = now.getFullYear();
     yearEl.value = String(thisYear);
 
     await loadVersion();
 
-    // new: 最新年自動選択（最大3年分だけ探す）
     const y = await pickLatestYearWithData([thisYear, thisYear-1, thisYear-2, thisYear-3]);
     if (y && y !== thisYear) {
       yearEl.value = String(y);
-      toast(`Auto-selected year ${y} (latest with data)`, "ok");
+      toast(`Auto-selected year ${y} (latest with data) / データのある最新年度を自動選択`, "ok");
     }
 
     try{
       await loadDashboard();
     }catch(e){
-      toast("If you see 401/403, Cloudflare Access protection is working. Login, then refresh.", "warn", 9000);
+      toast("If you see 401/403, login via Cloudflare Access then refresh. / 401/403の場合はAccessログイン後に再読込してください。", "warn", 9000);
     }
   })();
 
