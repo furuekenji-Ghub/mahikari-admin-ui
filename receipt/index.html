@@ -95,8 +95,6 @@
     .btn:disabled{ opacity:.55; cursor:not-allowed; }
     .btn.secondary{ border-color:#c7ceda; color:#475569; }
     .btn.secondary:hover{ background:#f8fafc; }
-    .btn.danger{ border-color:rgba(220,38,38,.45); color:rgba(220,38,38,.95); }
-    .btn.danger:hover{ background:rgba(220,38,38,.04); }
 
     .note{ color:var(--muted); font-size:12px; line-height:1.4; margin-top:8px; }
 
@@ -250,27 +248,6 @@
       <a class="back" href="/">← ダッシュボードへ戻る</a>
     </div>
 
-    <!-- Filters -->
-    <div class="card">
-      <div class="cardHead">
-        <h2>検索・表示</h2>
-        <div class="row">
-          <button class="btn secondary" id="reloadBtn">一覧を再読込</button>
-        </div>
-      </div>
-      <div class="cardBody">
-        <div class="row">
-          <label>年度
-            <input type="number" id="year" min="2000" max="2100" step="1">
-          </label>
-          <label>検索（氏名 / 会員ID）
-            <input type="text" id="q" placeholder="例）TEST-0001 / Tanaka">
-          </label>
-        </div>
-        <div class="note">※ 表示対象は選択した年度のレシートです</div>
-      </div>
-    </div>
-
     <!-- Upload -->
     <div class="card">
       <div class="cardHead">
@@ -303,13 +280,20 @@
       <div class="cardHead">
         <h2>一覧（生成結果）</h2>
         <div class="row">
+          <label>年度
+            <input type="number" id="year" min="2000" max="2100" step="1">
+          </label>
+          <label>検索（氏名 / 会員ID）
+            <input type="text" id="q" placeholder="例）TEST-0001 / Tanaka">
+          </label>
+          <button class="btn secondary" id="reloadBtn">一覧を再読込</button>
           <button class="btn secondary" id="allBranchBtn">全Branch</button>
           <button class="btn" id="sendBulkBtn" disabled>メール一括送信（DONEのみ）</button>
         </div>
+        <div class="note">※ 表示対象は選択した年度のレシートです</div>
       </div>
 
       <div class="cardBody">
-
         <div class="toolbar">
           <div class="kpiRow">
             <span class="pill">件数 <span class="mono" id="kpiRows">—</span></span>
@@ -353,7 +337,6 @@
 <script>
 (() => {
   const API = "/api/admin/receipt";
-  // Worker側メールAPI（確定）
   const API_SEND_ONE  = "/email/send-one";
   const API_SEND_BULK = "/email/send-bulk";
   const API_VALIDATE  = "/import/validate";
@@ -363,6 +346,8 @@
   const yearEl = el("year");
   const qEl = el("q");
   const reloadBtn = el("reloadBtn");
+  const allBranchBtn = el("allBranchBtn");
+  const sendBulkBtn = el("sendBulkBtn");
 
   const fileEl = el("file");
   const uploadBtn = el("uploadBtn");
@@ -374,7 +359,6 @@
 
   const tbodyEl = el("tbody");
   const tabsEl = el("tabs");
-  const allBranchBtn = el("allBranchBtn");
 
   const kpiRowsEl = el("kpiRows");
   const kpiDoneEl = el("kpiDone");
@@ -382,17 +366,13 @@
   const kpiErrorEl = el("kpiError");
   const kpiAmountEl = el("kpiAmount");
 
-  const sendBulkBtn = el("sendBulkBtn");
-
   let selectedFile = null;
   let allRows = [];
   let selectedBranch = "ALL";
-
-  // UI-only sent marker
-  const sentMap = new Map(); // key: member_id|year -> stamp
+  const sentMap = new Map(); // member_id|year -> time
 
   function toast(msg, type="info", ttl=5200){
-    const t = el("toast");
+    const t = document.getElementById("toast");
     const item = document.createElement("div");
     item.className = "toastItem";
     const left = document.createElement("div");
@@ -594,61 +574,48 @@
     render();
   }
 
-  // ===========================
-  // VALIDATE UI
-  // ===========================
+  // VALIDATE
   function buildValidateHtml(errors){
-    const groups = {
-      MISSING_MEMBER_ID: [],
-      MISSING_BRANCH: [],
-      INVALID_AMOUNT: [],
-      INVALID_YEAR: [],
-      HUBSPOT_NOT_FOUND: [],
-      MISSING_EMAIL: []
-    };
-    for (const e of errors) {
-      const t = e.type || "UNKNOWN";
-      (groups[t] || (groups[t]=[])).push(e);
-    }
+    const groups = {};
+    for (const e of errors) (groups[e.type] ||= []).push(e);
 
     let html = `<b>CSVをアップロードできません（事前チェックで問題が見つかりました）</b><br><br>`;
 
-    if (groups.MISSING_MEMBER_ID.length) {
-      html += `<b>会員ID（member_id）が未入力</b><br>`;
-      html += groups.MISSING_MEMBER_ID.map(e => `・${e.row}行目：member_id が空です`).join("<br>") + "<br><br>";
-    }
-    if (groups.MISSING_BRANCH.length) {
-      html += `<b>Branch が未入力</b><br>`;
-      html += groups.MISSING_BRANCH.map(e => `・${e.row}行目：ID <code>${escapeHtml(e.member_id||"")}</code> の branch が空です`).join("<br>") + "<br><br>";
-    }
-    if (groups.INVALID_AMOUNT.length) {
+    if (groups.INVALID_AMOUNT) {
       html += `<b>金額（amount）が不正</b><br>`;
       html += groups.INVALID_AMOUNT.map(e => `・${e.row}行目：ID <code>${escapeHtml(e.member_id||"")}</code> の amount を確認してください`).join("<br>") + "<br><br>";
     }
-    if (groups.INVALID_YEAR.length) {
-      html += `<b>年度（year）が不正</b><br>`;
-      html += groups.INVALID_YEAR.map(e => `・${e.row}行目：ID <code>${escapeHtml(e.member_id||"")}</code> の year を確認してください`).join("<br>") + "<br><br>";
-    }
-    if (groups.HUBSPOT_NOT_FOUND.length) {
+    if (groups.HUBSPOT_NOT_FOUND) {
       html += `<b>HubSpotに会員が存在しません</b><br>`;
       html += groups.HUBSPOT_NOT_FOUND.map(e => `・${e.row}行目：ID <code>${escapeHtml(e.member_id||"")}</code> が見つかりません`).join("<br>") + "<br><br>";
     }
-    if (groups.MISSING_EMAIL.length) {
+    if (groups.MISSING_EMAIL) {
       html += `<b>HubSpotにメールアドレスが登録されていません</b><br>`;
       html += groups.MISSING_EMAIL.map(e => `・${e.row}行目：ID <code>${escapeHtml(e.member_id||"")}</code>（${escapeHtml(e.name||"") }）`).join("<br>");
-      html += `<br><br>→ HubSpotで該当コンタクトに email を入力してください`;
+      html += `<br><br>→ HubSpotで該当コンタクトに email を入力してください<br><br>`;
+    }
+    if (groups.MISSING_MEMBER_ID) {
+      html += `<b>会員ID（member_id）が未入力</b><br>`;
+      html += groups.MISSING_MEMBER_ID.map(e => `・${e.row}行目：member_id が空です`).join("<br>") + "<br><br>";
+    }
+    if (groups.MISSING_BRANCH) {
+      html += `<b>Branchが未入力</b><br>`;
+      html += groups.MISSING_BRANCH.map(e => `・${e.row}行目：ID <code>${escapeHtml(e.member_id||"")}</code> の branch が空です`).join("<br>") + "<br><br>";
+    }
+    if (groups.INVALID_YEAR) {
+      html += `<b>年度（year）が不正</b><br>`;
+      html += groups.INVALID_YEAR.map(e => `・${e.row}行目：ID <code>${escapeHtml(e.member_id||"")}</code> の year を確認してください`).join("<br>") + "<br><br>";
     }
 
     return html;
   }
 
   async function validateCsv(csvText){
-    const res = await apiFetch(API_VALIDATE, {
+    return await apiFetch(API_VALIDATE, {
       method:"POST",
       headers:{ "Content-Type":"text/csv" },
       body: csvText
     });
-    return res; // {ok:true} or {ok:false, errors:[...]}
   }
 
   async function importAndAutoRun(csvText){
@@ -676,10 +643,7 @@
       if (job) updateProgress(job);
 
       const status = String(job?.status || "").toUpperCase();
-      if (status === "ERROR") {
-        toast("取込中にエラーが発生しました。一覧でERROR行をご確認ください。", "bad", 9000);
-        break;
-      }
+      if (status === "ERROR") { toast("取込中にエラーが発生しました。", "bad", 9000); break; }
       if (status === "DONE" || cont?.done === true) {
         toast("自動生成が完了しました。一覧を更新します。", "ok", 7000);
         if (year) yearEl.value = String(year);
@@ -687,93 +651,34 @@
         showProgress(false);
         break;
       }
-
       await new Promise(r => setTimeout(r, 350));
     }
   }
 
-  // ===========================
   // MAIL
-  // ===========================
   async function sendOne(memberId, year){
-    const targetYear = Number(year);
     return await apiFetch(API_SEND_ONE, {
       method:"POST",
       headers:{ "Content-Type":"application/json" },
-      body: JSON.stringify({ member_id: memberId, year: targetYear })
+      body: JSON.stringify({ member_id: memberId, year: Number(year) })
     });
   }
-
   async function sendBulk(year, branch){
-    const targetYear = Number(year);
     return await apiFetch(API_SEND_BULK, {
       method:"POST",
       headers:{ "Content-Type":"application/json" },
-      body: JSON.stringify({ year: targetYear, branch: branch || "ALL" })
+      body: JSON.stringify({ year: Number(year), branch: branch || "ALL" })
     });
   }
 
-  tbodyEl.addEventListener("click", async (e) => {
-    const btn = e.target.closest("button[data-action]");
-    if (!btn) return;
-    if (btn.dataset.action !== "sendOne") return;
-
-    const memberId = btn.dataset.mid;
-    const year = btn.dataset.year;
-
-    setBusy(btn, true, "送信中…");
-    try{
-      const res = await sendOne(memberId, year);
-      const stamp = new Date().toLocaleTimeString("ja-JP", { hour:"2-digit", minute:"2-digit" });
-      sentMap.set(`${memberId}|${year}`, stamp);
-      toast(`個別送信 完了：${memberId} (${year})\nTo: ${res?.to || "—"}`, "ok", 9000);
-      render();
-    }catch(err){
-      toast(`個別送信 失敗：${memberId}\n${err.message}`, "bad", 12000);
-      console.error(err);
-    }finally{
-      setBusy(btn, false);
-    }
-  });
-
-  sendBulkBtn.onclick = async () => {
-    const y = Number(yearEl.value);
-    const branch = selectedBranch;
-    const targets = doneRowsCurrentScope();
-    if (!targets.length) { toast("DONEの対象がありません。", "warn"); return; }
-
-    const msg =
-      `メール一括送信しますか？\n\n` +
-      `Year: ${y}\n` +
-      `Branch: ${branch}\n` +
-      `Targets (DONE only): ${targets.length}\n\n` +
-      `※ PENDING/ERROR は送信されません`;
-
-    if (!confirm(msg)) return;
-
-    setBusy(sendBulkBtn, true, "送信中…");
-    try{
-      const res = await sendBulk(y, branch);
-      const stamp = new Date().toLocaleTimeString("ja-JP", { hour:"2-digit", minute:"2-digit" });
-      for (const r of targets) sentMap.set(`${r.member_id}|${r.year}`, stamp);
-      toast(`一括送信 完了\nOK: ${res?.sent_ok ?? "—"} / NG: ${res?.sent_ng ?? "—"}\nTargets: ${res?.targets ?? targets.length}`, "ok", 12000);
-      render();
-    }catch(err){
-      toast(`一括送信 失敗\n${err.message}`, "bad", 12000);
-      console.error(err);
-    }finally{
-      setBusy(sendBulkBtn, false);
-    }
-  };
-
-  // ===========================
-  // EVENTS
-  // ===========================
+  // Events
   reloadBtn.onclick = async () => {
     try{ await loadDashboard(); toast("一覧を更新しました。", "ok"); }
     catch(e){ toast(`更新に失敗しました：${e.message}`, "bad", 9000); }
   };
+
   qEl.oninput = () => render();
+
   allBranchBtn.onclick = () => { selectedBranch = "ALL"; buildTabs(allRows); render(); };
 
   fileEl.onchange = () => {
@@ -791,7 +696,6 @@
     try{
       const csvText = await selectedFile.text();
 
-      // ① validate
       const v = await validateCsv(csvText);
       if (v.ok !== true) {
         showErrors(buildValidateHtml(v.errors || []));
@@ -799,7 +703,6 @@
         return;
       }
 
-      // ② import + continue
       toast("事前チェックOK。自動生成を開始します。", "ok");
       setBusy(uploadBtn, true, "生成中…");
       await importAndAutoRun(csvText);
@@ -812,12 +715,57 @@
     }
   };
 
-  // ===========================
-  // BOOT
-  // ===========================
+  // Row send-one
+  tbodyEl.addEventListener("click", async (e) => {
+    const btn = e.target.closest("button[data-action]");
+    if (!btn) return;
+    if (btn.dataset.action !== "sendOne") return;
+
+    const memberId = btn.dataset.mid;
+    const year = btn.dataset.year;
+    setBusy(btn, true, "送信中…");
+    try{
+      const res = await sendOne(memberId, year);
+      const stamp = new Date().toLocaleTimeString("ja-JP",{hour:"2-digit",minute:"2-digit"});
+      sentMap.set(`${memberId}|${year}`, stamp);
+      toast(`個別送信 完了：${memberId} (${year})\nTo: ${res?.to || "—"}`, "ok", 9000);
+      render();
+    }catch(err){
+      toast(`個別送信 失敗：${memberId}\n${err.message}`, "bad", 12000);
+      console.error(err);
+    }finally{
+      setBusy(btn, false);
+    }
+  });
+
+  // Bulk send
+  sendBulkBtn.onclick = async () => {
+    const y = Number(yearEl.value);
+    const branch = selectedBranch;
+    const targets = doneRowsCurrentScope();
+    if (!targets.length) { toast("DONEの対象がありません。", "warn"); return; }
+
+    if (!confirm(`メール一括送信しますか？\n\nYear: ${y}\nBranch: ${branch}\nTargets (DONE only): ${targets.length}`)) return;
+
+    setBusy(sendBulkBtn, true, "送信中…");
+    try{
+      const res = await sendBulk(y, branch);
+      const stamp = new Date().toLocaleTimeString("ja-JP",{hour:"2-digit",minute:"2-digit"});
+      for (const r of targets) sentMap.set(`${r.member_id}|${r.year}`, stamp);
+      toast(`一括送信 完了\nOK: ${res?.sent_ok ?? "—"} / NG: ${res?.sent_ng ?? "—"}\nTargets: ${res?.targets ?? targets.length}`, "ok", 12000);
+      render();
+    }catch(err){
+      toast(`一括送信 失敗\n${err.message}`, "bad", 12000);
+      console.error(err);
+    }finally{
+      setBusy(sendBulkBtn, false);
+    }
+  };
+
+  // Boot
   (async function init(){
     const now = new Date();
-    yearEl.value = String(now.getFullYear() - 1); // 既定：去年
+    yearEl.value = String(now.getFullYear() - 1);
     try{ await loadDashboard(); }
     catch(e){ toast("一覧の読み込みに失敗しました。Accessログイン後、再読込してください。", "warn", 9000); }
   })();
