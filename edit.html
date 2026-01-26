@@ -100,9 +100,8 @@
   const GENDER_OPTIONS = [["","(blank)"],["Male","Male"],["Female","Female"],["Other","Other"]];
   const YESNO_OPTIONS = [["","(blank)"],["Yes","Yes"],["No","No"]];
 
-  // Emailは後から追加・変更が必須とのことなので、Emailも必須扱いにできます
-  // （必要なら下のREQUIRED_KEYSから email を外してください）
-  const REQUIRED_KEYS = new Set(["firstname","lastname","email","active_status","branch"]);
+  // ✅ Email は必須ではなく任意（firstname/lastname/active_status/branch のみ必須）
+  const REQUIRED_KEYS = new Set(["firstname","lastname","active_status","branch"]);
 
   const EDIT_FIELDS = [
     ["firstname","First Name","text"],
@@ -240,10 +239,12 @@
     const errors = [];
     if (REQUIRED_KEYS.has("firstname") && !props.firstname) errors.push("First Name is required. / First Name は必須です");
     if (REQUIRED_KEYS.has("lastname") && !props.lastname) errors.push("Last Name is required. / Last Name は必須です");
-    if (REQUIRED_KEYS.has("email") && !props.email) errors.push("Email is required. / Email は必須です");
+
+    // ✅ Email は任意。ただし入力された場合は形式チェック
     if (props.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(props.email)){
       errors.push("Email format looks invalid. / Email形式が正しくない可能性があります");
     }
+
     if (REQUIRED_KEYS.has("active_status") && !props.active_status) errors.push("Active Status is required. / Active Status は必須です");
     if (REQUIRED_KEYS.has("branch") && !props.branch) errors.push("Branch is required. / Branch は必須です");
     return errors;
@@ -321,7 +322,6 @@
         });
 
         if (r.aborted) {
-          // retry quietly
           await new Promise(res => setTimeout(res, 600));
           continue;
         }
@@ -345,13 +345,11 @@
           return;
         }
 
-        // continue phases
         phase = r.data.phase || "delete_dup_notes";
         dupId = r.data.dupId || dupId;
         dupCursor = r.data.dupCursor ?? r.data.cursor ?? dupCursor;
         dupNotesDeletedTotal = r.data.dupNotesDeletedTotal ?? dupNotesDeletedTotal;
 
-        // progress
         if (phase === "delete_dup_notes") {
           setStatus(`Deleting duplicate contact... / 重複連絡先削除中... (${dupNotesDeletedTotal})`);
         } else {
@@ -362,7 +360,7 @@
       }
     }
 
-    // Email not changed → normal update
+    // Email not changed OR email cleared → normal update
     setStatus("Saving... / 保存中...");
     const r = await api("/api/contacts/update", {
       method:"POST",
