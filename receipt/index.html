@@ -95,13 +95,15 @@
 
 <script>
   // ===== API endpoints =====
-  const API_BASE = "https://api.kamikumite.worlddivinelight.org";
-  const API = {
-    requestCode: `${API_BASE}/api/receipt/request-code`,
-    verifyCode:  `${API_BASE}/api/receipt/verify-code`,
-    years:       `${API_BASE}/api/receipt/years`,
-    download: (year) => `${API_BASE}/api/receipt/download?year=${encodeURIComponent(year)}`
-  };
+const API_BASE = "https://api.kamikumite.worlddivinelight.org";
+
+const API = {
+  requestCode: API_BASE + "/api/receipt/request-code",
+  verifyCode: API_BASE + "/api/receipt/verify-code",
+  years: API_BASE + "/api/receipt/years",
+  download: (year) =>
+    API_BASE + "/api/receipt/download?year=" + encodeURIComponent(year)
+};
 
   const el = {
     email: document.getElementById("email"),
