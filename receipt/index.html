@@ -138,12 +138,11 @@ const API = {
 
     setMsg(el.msg1, "Sending... / 送信中...", "");
     try {
-      const res = await fetch(API.requestCode, {
-        method: "POST",
-        headers: { "content-type":"application/json" },
-        credentials: "include",
-        body: JSON.stringify({ email })
-      });
+const res = await .kamikumite.worlddivinelight.org/api/receipt/request-code", {
+  method: "POST",
+  headers: { "content-type":"application/json" },
+  body: JSON.stringify({ email })
+});
       const data = await safeJson(res);
 
       if (!res.ok || data.ok === false) {
