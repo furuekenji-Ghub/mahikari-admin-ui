@@ -672,6 +672,13 @@
       body: JSON.stringify({ member_id: memberId, year: Number(year) })
     });
   }
+  async function deleteOne(memberId, year) {
+  return await apiFetch(`/delete`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ member_id: String(memberId), year: Number(year) })
+  });
+}
   async function sendBulk(year, branch){
     return await apiFetch(API_SEND_BULK, {
       method:"POST",
