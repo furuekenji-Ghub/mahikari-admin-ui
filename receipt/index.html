@@ -96,6 +96,9 @@
     .btn.secondary{ border-color:#c7ceda; color:#475569; }
     .btn.secondary:hover{ background:#f8fafc; }
 
+    .btn.danger{ border-color:#dc2626; color:#dc2626; }
+    .btn.danger:hover{ background:#fff5f5; }
+
     .note{ color:var(--muted); font-size:12px; line-height:1.4; margin-top:8px; }
 
     .errorBox{
@@ -721,28 +724,56 @@
     }
   };
 
-  // Row send-one
-  tbodyEl.addEventListener("click", async (e) => {
-    const btn = e.target.closest("button[data-action]");
-    if (!btn) return;
-    if (btn.dataset.action !== "sendOne") return;
+// Row actions (send / delete)
+tbodyEl.addEventListener("click", async (e) => {
+  const btn = e.target.closest("button[data-action]");
+  if (!btn) return;
 
-    const memberId = btn.dataset.mid;
-    const year = btn.dataset.year;
-    setBusy(btn, true, "送信中…");
-    try{
+  const action = btn.dataset.action;
+  const memberId = btn.dataset.mid;
+  const year = btn.dataset.year;
+
+  // ========= 個別送信 =========
+  if (action === "sendOne") {
+    setBusy(btn, true, "送信中...");
+    try {
       const res = await sendOne(memberId, year);
-      const stamp = new Date().toLocaleTimeString("ja-JP",{hour:"2-digit",minute:"2-digit"});
+      const stamp = new Date().toLocaleTimeString("ja-JP", {
+        hour: "2-digit",
+        minute: "2-digit",
+      });
       sentMap.set(`${memberId}|${year}`, stamp);
-      toast(`個別送信 完了：${memberId} (${year})\nTo: ${res?.to || "—"}`, "ok", 9000);
+      toast(`個別送信 完了：${memberId} (${year})\nTo: ${res?.to || "-"}`, "ok", 9000);
       render();
-    }catch(err){
+    } catch (err) {
       toast(`個別送信 失敗：${memberId}\n${err.message}`, "bad", 12000);
       console.error(err);
-    }finally{
+    } finally {
       setBusy(btn, false);
     }
-  });
+    return;
+  }
+
+  // ========= 削除 =========
+  if (action === "deleteOne") {
+    if (!confirm(
+      `この行を完全に削除します。\n\nmember_id: ${memberId}\nyear: ${year}\n\n※ D1の行とPDFが削除されます`
+    )) return;
+
+    setBusy(btn, true, "削除中...");
+    try {
+      await deleteOne(memberId, year);
+      toast(`削除しました：${memberId} (${year})`, "ok", 9000);
+      await loadDashboard(); // 一覧を再読込
+    } catch (err) {
+      toast(`削除失敗：${memberId}\n${err.message}`, "bad", 12000);
+      console.error(err);
+    } finally {
+      setBusy(btn, false);
+    }
+    return;
+  }
+});
 
   // Bulk send
   sendBulkBtn.onclick = async () => {
