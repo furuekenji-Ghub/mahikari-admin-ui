@@ -4,6 +4,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Receipt Admin / レシート管理</title>
+  <meta name="robots" content="noindex,nofollow" />
   <style>
     :root{
       --bg:#f7f9fb;
@@ -13,11 +14,12 @@
       --line:#e5e7eb;
       --line2:#eef2f7;
       --accent:#0b5;
+      --accent2:#059669;
       --danger:#dc2626;
       --warn:#d97706;
       --shadow: 0 10px 24px rgba(17,24,39,.08);
       --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
-      --sans: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
+      --sans: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Noto Sans JP", sans-serif;
     }
     *{ box-sizing:border-box; }
     body{ margin:0; font-family:var(--sans); background:var(--bg); color:var(--text); }
@@ -32,7 +34,7 @@
     }
     h1{ margin:0; font-size:20px; }
     .sub{ margin-top:6px; color:var(--muted); font-size:13px; line-height:1.4; }
-    .back{ display:inline-block; margin-top:10px; font-size:13px; color:var(--accent); text-decoration:none; font-weight:800; }
+    .back{ display:inline-block; margin-top:10px; font-size:13px; color:var(--accent); text-decoration:none; font-weight:900; }
     .back:hover{ text-decoration:underline; }
 
     .card{
@@ -64,7 +66,7 @@
       flex-direction:column;
       gap:6px;
     }
-    input[type="number"], input[type="text"]{
+    input[type="number"], input[type="text"], input[type="email"]{
       padding:9px 10px;
       border-radius:10px;
       border:1px solid var(--line);
@@ -74,7 +76,10 @@
       min-width:140px;
     }
     input[type="text"]{ min-width:280px; }
-    input:focus{ border-color: rgba(11,187,85,.55); box-shadow: 0 0 0 4px rgba(11,187,85,.10); }
+    input:focus{
+      border-color: rgba(11,187,85,.55);
+      box-shadow: 0 0 0 4px rgba(11,187,85,.10);
+    }
 
     .btn{
       padding:10px 12px;
@@ -95,9 +100,14 @@
     .btn:disabled{ opacity:.55; cursor:not-allowed; }
     .btn.secondary{ border-color:#c7ceda; color:#475569; }
     .btn.secondary:hover{ background:#f8fafc; }
-
-    .btn.danger{ border-color:#dc2626; color:#dc2626; }
-    .btn.danger:hover{ background:#fff5f5; }
+    .btn.danger{ border-color: rgba(220,38,38,.55); color:#b91c1c; }
+    .btn.danger:hover{ background: rgba(220,38,38,.06); }
+    .btn.solid{
+      background: linear-gradient(180deg, rgba(11,187,85,.95), rgba(5,150,105,.92));
+      color:white;
+      border-color: rgba(5,150,105,.35);
+    }
+    .btn.solid:hover{ filter: brightness(.98); }
 
     .note{ color:var(--muted); font-size:12px; line-height:1.4; margin-top:8px; }
 
@@ -159,6 +169,7 @@
       top:0;
       z-index:1;
     }
+
     .status{
       display:inline-flex;
       padding:3px 8px;
@@ -173,8 +184,12 @@
     .status.done{ border-color:rgba(22,163,74,.25); color:rgba(22,163,74,.95); background:rgba(22,163,74,.06); }
     .status.err{ border-color:rgba(220,38,38,.25); color:rgba(220,38,38,.95); background:rgba(220,38,38,.07); }
     .status.pending{ border-color:rgba(217,119,6,.25); color:rgba(217,119,6,.95); background:rgba(217,119,6,.07); }
+    .status.needs{ border-color:rgba(217,119,6,.25); color:rgba(217,119,6,.95); background:rgba(217,119,6,.07); }
 
     .pdfLink{ color:var(--accent); font-weight:900; text-decoration:underline; cursor:pointer; white-space:nowrap; }
+    .mutedSmall{ color:var(--muted); font-size:12px; }
+    .smallInput{ min-width:220px; }
+    .rowLine{ display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
 
     .tabsWrap{ margin-top:12px; border-top:1px solid var(--line2); padding-top:10px; }
     .tabs{ display:flex; gap:8px; flex-wrap:wrap; align-items:center; }
@@ -200,7 +215,7 @@
       position:fixed;
       right:16px;
       bottom:16px;
-      max-width: 560px;
+      max-width: 640px;
       z-index:9999;
       display:flex;
       flex-direction:column;
@@ -218,23 +233,17 @@
     .toastItem .msg{ font-size:13px; line-height:1.25; white-space:pre-wrap; }
     .toastItem .x{ background:transparent; border:0; color:var(--muted); cursor:pointer; font-size:16px; padding:0 6px; }
 
-    .sentBadge{
-      display:inline-flex;
-      align-items:center;
-      gap:6px;
-      padding:3px 8px;
-      border-radius:999px;
-      border:1px solid rgba(22,163,74,.25);
-      color:rgba(22,163,74,.95);
-      background:rgba(22,163,74,.06);
-      font-size:12px;
-      font-weight:900;
-      white-space:nowrap;
+    .chk{
+      width:16px; height:16px;
+      accent-color: var(--accent2);
+      cursor:pointer;
     }
+    .chk:disabled{ cursor:not-allowed; opacity:.6; }
 
-    @media (max-width: 768px){
-      input[type="number"], input[type="text"], .btn { width:100%; }
+    @media (max-width: 860px){
+      input[type="number"], input[type="text"], input[type="email"], .btn { width:100%; }
       .toolbar{ align-items:stretch; }
+      th{ position:static; }
     }
   </style>
 </head>
@@ -256,7 +265,7 @@
       <div class="cardHead">
         <h2>CSVアップロード</h2>
         <div class="row">
-          <button class="btn" id="uploadBtn" disabled>アップロード → 事前チェック → 自動生成</button>
+          <button class="btn solid" id="uploadBtn" disabled>アップロード → 事前チェック → 自動生成</button>
         </div>
       </div>
       <div class="cardBody">
@@ -287,23 +296,34 @@
             <input type="number" id="year" min="2000" max="2100" step="1">
           </label>
           <label>検索（氏名 / 会員ID）
-            <input type="text" id="q" placeholder="例）TEST-0001 / Tanaka">
+            <input type="text" id="q" placeholder="例）5580 / Kimura">
           </label>
           <button class="btn secondary" id="reloadBtn">一覧を再読込</button>
           <button class="btn secondary" id="allBranchBtn">全Branch</button>
-          <button class="btn" id="sendBulkBtn" disabled>メール一括送信（DONEのみ）</button>
+
+          <span class="pill">選択 <span class="mono" id="selCount">0</span></span>
+          <button class="btn secondary" id="selAllBtn">全選択</button>
+          <button class="btn secondary" id="selNoneBtn">全解除</button>
+
+          <button class="btn" id="sendSelectedBtn" disabled>選択送信</button>
+          <button class="btn danger" id="deleteSelectedBtn" disabled>選択削除</button>
+
+          <button class="btn danger" id="bulkDeleteBtn">前年を全削除（要入力）</button>
         </div>
-        <div class="note">※ 表示対象は選択した年度のレシートです</div>
+        <div class="note">※ 表示対象は選択した年度のレシートです（送信対象は DONE のみ）</div>
       </div>
 
       <div class="cardBody">
         <div class="toolbar">
           <div class="kpiRow">
             <span class="pill">件数 <span class="mono" id="kpiRows">—</span></span>
-            <span class="pill">完了 <span class="mono" id="kpiDone">—</span></span>
-            <span class="pill">未完了 <span class="mono" id="kpiPending">—</span></span>
-            <span class="pill">エラー <span class="mono" id="kpiError">—</span></span>
+            <span class="pill">DONE <span class="mono" id="kpiDone">—</span></span>
+            <span class="pill">PENDING/NEEDS <span class="mono" id="kpiPending">—</span></span>
+            <span class="pill">ERROR <span class="mono" id="kpiError">—</span></span>
             <span class="pill">合計 <span class="mono" id="kpiAmount">—</span></span>
+          </div>
+          <div class="kpiRow">
+            <span class="pill">Build <span class="mono" id="buildTag">—</span></span>
           </div>
         </div>
 
@@ -311,14 +331,16 @@
           <table>
             <thead>
               <tr>
-                <th style="width:14%;">Send</th>
-                <th style="width:12%;">Member ID</th>
+                <th style="width:6%;">✔</th>
+                <th style="width:12%;">Send</th>
+                <th style="width:10%;">Delete</th>
+                <th style="width:14%;">Member ID</th>
                 <th style="width:18%;">Name</th>
                 <th style="width:10%;">Branch</th>
-                <th style="width:10%;">Year</th>
+                <th style="width:8%;">Year</th>
                 <th style="width:12%;">Amount</th>
                 <th style="width:12%;">Status</th>
-                <th style="width:12%;">PDF</th>
+                <th style="width:8%;">PDF</th>
               </tr>
             </thead>
             <tbody id="tbody"></tbody>
@@ -326,8 +348,41 @@
         </div>
 
         <div class="tabsWrap">
-          <div class="muted" style="font-size:12px; margin-bottom:6px;">Branchタブ：</div>
+          <div class="mutedSmall" style="margin-bottom:6px;">Branchタブ：</div>
           <div class="tabs" id="tabs"></div>
+        </div>
+
+        <!-- Email Missing List -->
+        <div class="card" id="missingCard" style="margin-top:14px; display:none;">
+          <div class="cardHead">
+            <h2>Email Missing List（未登録）</h2>
+            <div class="row">
+              <button class="btn secondary" id="reloadMissingBtn">再読込</button>
+            </div>
+          </div>
+          <div class="cardBody">
+            <div class="note">
+              ここに出る人は <b>送信対象のチェックができません</b>（Email未登録のため）<br>
+              Emailを入力して保存すると、次回リロードで通常一覧に移動し送信可能になります
+            </div>
+
+            <div style="overflow:auto; border:1px solid var(--line2); border-radius:12px; max-height:420px; margin-top:10px;">
+              <table>
+                <thead>
+                  <tr>
+                    <th style="width:14%;">Member ID</th>
+                    <th style="width:20%;">Name</th>
+                    <th style="width:10%;">Branch</th>
+                    <th style="width:8%;">Year</th>
+                    <th style="width:12%;">Amount</th>
+                    <th style="width:18%;">Email（入力）</th>
+                    <th style="width:18%;">Action</th>
+                  </tr>
+                </thead>
+                <tbody id="missingTbody"></tbody>
+              </table>
+            </div>
+          </div>
         </div>
 
       </div>
@@ -339,18 +394,40 @@
 
 <script>
 (() => {
+  // ========= API base =========
   const API = "/api/admin/receipt";
-  const API_SEND_ONE  = "/email/send-one";
-  const API_SEND_BULK = "/email/send-bulk";
-  const API_VALIDATE  = "/import/validate";
 
+  // endpoints
+  const EP = {
+    version: "/_version",
+    dashboard: "/dashboard",
+    validate: "/import/validate",
+    import: "/import",
+    cont: "/import/continue",
+    sendOne: "/email/send-one",
+    sendBulk: "/email/send-bulk",
+    sendSelected: "/email/send-selected",
+
+    deleteSelected: "/delete-selected",
+    bulkDeleteYear: "/bulk-delete-year",
+    setEmail: "/set-email",
+    missingEmail: "/missing-email",
+  };
+
+  // ========= elements =========
   const el = (id) => document.getElementById(id);
 
   const yearEl = el("year");
   const qEl = el("q");
   const reloadBtn = el("reloadBtn");
   const allBranchBtn = el("allBranchBtn");
-  const sendBulkBtn = el("sendBulkBtn");
+
+  const selCountEl = el("selCount");
+  const selAllBtn = el("selAllBtn");
+  const selNoneBtn = el("selNoneBtn");
+  const sendSelectedBtn = el("sendSelectedBtn");
+  const deleteSelectedBtn = el("deleteSelectedBtn");
+  const bulkDeleteBtn = el("bulkDeleteBtn");
 
   const fileEl = el("file");
   const uploadBtn = el("uploadBtn");
@@ -368,12 +445,24 @@
   const kpiPendingEl = el("kpiPending");
   const kpiErrorEl = el("kpiError");
   const kpiAmountEl = el("kpiAmount");
+  const buildTagEl = el("buildTag");
 
+  const missingCard = el("missingCard");
+  const reloadMissingBtn = el("reloadMissingBtn");
+  const missingTbody = el("missingTbody");
+
+  // ========= state =========
   let selectedFile = null;
   let allRows = [];
   let selectedBranch = "ALL";
-  const sentMap = new Map(); // member_id|year -> time
 
+  // selection set: key = `${member_id}|${year}`
+  const selected = new Set();
+
+  // sent label memory
+  const sentMap = new Map();
+
+  // ========= utils =========
   function toast(msg, type="info", ttl=5200){
     const t = document.getElementById("toast");
     const item = document.createElement("div");
@@ -416,6 +505,7 @@
   function showProgress(show){
     progressWrapEl.style.display = show ? "block" : "none";
   }
+
   function updateProgress(job){
     const total = Number(job?.total_rows ?? 0);
     const processed = Number(job?.processed_rows ?? 0);
@@ -440,29 +530,53 @@
     if (n == null || isNaN(Number(n))) return "—";
     return Number(n).toLocaleString("en-US");
   }
+
   function fmtMoneyFromCents(cents){
     if (cents == null || isNaN(Number(cents))) return "—";
     const v = Number(cents) / 100;
     return v.toLocaleString("en-US", { style:"currency", currency:"USD" });
   }
 
+  function keyOf(memberId, year){ return `${String(memberId||"").trim()}|${String(year||"").trim()}`; }
+
+  function statusBadge(row){
+    const up = String(row.status||"").toUpperCase();
+    if (up === "DONE") return `<span class="status done">DONE</span>`;
+    if (up === "NEEDS_EMAIL") return `<span class="status needs">NEEDS_EMAIL</span>`;
+    if (up === "ERROR") return `<span class="status err">ERROR</span>`;
+    return `<span class="status pending">${escapeHtml(up || "PENDING")}</span>`;
+  }
+
+  function isSendable(row){
+    return String(row.status||"").toUpperCase() === "DONE";
+  }
+
   async function apiFetch(path, opts={}){
-    const res = await fetch(API + path, { credentials:"include", ...opts, headers:{...(opts.headers||{})} });
+    const res = await fetch(API + path, {
+      credentials:"include",
+      ...opts,
+      headers:{ ...(opts.headers||{}) }
+    });
     const ct = res.headers.get("content-type") || "";
-    const isJson = ct.includes("application/json");
-    const body = isJson ? await res.json().catch(()=>null) : await res.text().catch(()=> "");
+    const body = ct.includes("application/json")
+      ? await res.json().catch(()=>null)
+      : await res.text().catch(()=> "");
     if (!res.ok) {
-      const detail = body?.error ? body.error : (typeof body === "string" ? body : JSON.stringify(body));
-      throw new Error(`HTTP ${res.status} — ${detail}`);
+      const msg = body?.error ? body.error : (typeof body === "string" ? body : JSON.stringify(body));
+      throw new Error(`HTTP ${res.status} — ${msg}`);
     }
     return body;
   }
 
-  function statusBadge(s){
-    const up = String(s||"").toUpperCase();
-    if (up === "DONE") return `<span class="status done">DONE</span>`;
-    if (up === "ERROR") return `<span class="status err">ERROR</span>`;
-    return `<span class="status pending">${escapeHtml(up || "PENDING")}</span>`;
+  function applyFilter(rows){
+    const q = qEl.value.trim().toLowerCase();
+    let out = rows;
+    if (selectedBranch !== "ALL") out = out.filter(r => String(r.branch||"") === selectedBranch);
+    if (q) out = out.filter(r =>
+      String(r.member_id||"").toLowerCase().includes(q) ||
+      String(r.name||"").toLowerCase().includes(q)
+    );
+    return out;
   }
 
   function computeKpi(rows){
@@ -481,55 +595,59 @@
     kpiAmountEl.textContent = fmtMoneyFromCents(sum);
   }
 
-  function applyFilter(rows){
-    const q = qEl.value.trim().toLowerCase();
-    let out = rows;
-    if (selectedBranch !== "ALL") out = out.filter(r => String(r.branch||"") === selectedBranch);
-    if (q) out = out.filter(r =>
-      String(r.member_id||"").toLowerCase().includes(q) ||
-      String(r.name||"").toLowerCase().includes(q)
-    );
-    return out;
+  function rebuildSelectionDefaults(){
+    // default: select all sendable rows
+    selected.clear();
+    for (const r of allRows) {
+      if (isSendable(r)) selected.add(keyOf(r.member_id, r.year));
+    }
+    updateSelectionUI();
   }
 
-  function buildTabs(rows){
-    const branches = Array.from(new Set(rows.map(r => String(r.branch||"UNKNOWN")))).sort((a,b)=>a.localeCompare(b));
+  function updateSelectionUI(){
+    selCountEl.textContent = String(selected.size);
+    sendSelectedBtn.disabled = (selected.size === 0);
+    deleteSelectedBtn.disabled = (selected.size === 0);
+  }
+
+  function buildTabs(rows, missingCount){
+    const branches = Array.from(new Set(rows.map(r => String(r.branch||"UNKNOWN"))))
+      .sort((a,b)=>a.localeCompare(b));
     tabsEl.innerHTML = "";
 
     const makeTab = (label, value) => {
       const btn = document.createElement("button");
       btn.className = "tab" + (selectedBranch === value ? " active" : "");
       btn.textContent = label;
-      btn.onclick = () => { selectedBranch = value; buildTabs(allRows); render(); };
+      btn.onclick = () => { selectedBranch = value; render(); };
       return btn;
     };
 
     tabsEl.appendChild(makeTab("All", "ALL"));
     for (const b of branches) tabsEl.appendChild(makeTab(b, b));
-  }
 
-  function doneRowsCurrentScope(){
-    const rows = applyFilter(allRows);
-    return rows.filter(r => String(r.status||"").toUpperCase() === "DONE");
-  }
-
-  function updateBulkBtn(){
-    const doneRows = doneRowsCurrentScope();
-    sendBulkBtn.disabled = (doneRows.length === 0);
-    sendBulkBtn.textContent = doneRows.length
-      ? `メール一括送信（DONEのみ：${doneRows.length}件）`
-      : `メール一括送信（DONEのみ）`;
+    // Email Missing tab (visual only, does not affect main list filter)
+    const missLabel = missingCount > 0 ? `Email Missing (${missingCount})` : "Email Missing";
+    const missBtn = document.createElement("button");
+    missBtn.className = "tab";
+    missBtn.textContent = missLabel;
+    missBtn.onclick = async () => {
+      await loadMissingEmail();
+      missingCard.style.display = "block";
+      missingCard.scrollIntoView({ behavior:"smooth", block:"start" });
+    };
+    tabsEl.appendChild(missBtn);
   }
 
   function render(){
     const rows = applyFilter(allRows);
     computeKpi(rows);
-    updateBulkBtn();
+    updateSelectionUI();
 
     tbodyEl.innerHTML = "";
     if (rows.length === 0) {
       const tr = document.createElement("tr");
-      tr.innerHTML = `<td colspan="8" class="muted" style="padding:14px;">表示するデータがありません</td>`;
+      tr.innerHTML = `<td colspan="10" class="mutedSmall" style="padding:14px;">表示するデータがありません</td>`;
       tbodyEl.appendChild(tr);
       return;
     }
@@ -537,36 +655,42 @@
     for (const r of rows) {
       const memberId = String(r.member_id||"").trim();
       const year = String(r.year||"").trim();
-      const status = String(r.status||"").toUpperCase();
-      const canSend = (status === "DONE");
-
-      const key = `${memberId}|${year}`;
-      const sentAt = sentMap.get(key);
+      const canSend = isSendable(r);
+      const k = keyOf(memberId, year);
+      const checked = selected.has(k);
+      const stamp = sentMap.get(k);
 
       const tr = document.createElement("tr");
 
-      const oneCell = `
-  <div class="row" style="gap:8px; align-items:center;">
-    ${
-      sentAt
-        ? `<span class="sentBadge">Sent ${escapeHtml(sentAt)}</span>`
-        : `<button class="btn secondary" data-action="sendOne" data-mid="${escapeHtml(memberId)}" data-year="${escapeHtml(year)}" ${canSend ? "" : "disabled"}>個別送信</button>`
-    }
-    <button class="btn danger" data-action="deleteOne" data-mid="${escapeHtml(memberId)}" data-year="${escapeHtml(year)}">削除</button>
-  </div>
-`;
+      const chkCell = `
+        <input class="chk" type="checkbox"
+          data-action="toggleSelect"
+          data-mid="${escapeHtml(memberId)}"
+          data-year="${escapeHtml(year)}"
+          ${canSend ? "" : "disabled"}
+          ${checked ? "checked" : ""} />
+      `;
+
+      const sendCell = stamp
+        ? `<span class="status done">Sent ${escapeHtml(stamp)}</span>`
+        : `<button class="btn secondary" data-action="sendOne" data-mid="${escapeHtml(memberId)}" data-year="${escapeHtml(year)}" ${canSend ? "" : "disabled"}>個別送信</button>`;
+
+      const delCell = `<button class="btn danger" data-action="deleteOne" data-mid="${escapeHtml(memberId)}" data-year="${escapeHtml(year)}">削除</button>`;
+
       const pdf = r.pdf_key
         ? `<a class="pdfLink" href="/api/admin/receipt/pdf?member_id=${encodeURIComponent(memberId)}&year=${encodeURIComponent(year)}" target="_blank" rel="noopener">PDF</a>`
         : "—";
 
       tr.innerHTML = `
-        <td>${oneCell}</td>
+        <td>${chkCell}</td>
+        <td>${sendCell}</td>
+        <td>${delCell}</td>
         <td class="mono">${escapeHtml(memberId || "—")}</td>
         <td>${escapeHtml(String(r.name||"—"))}</td>
         <td>${escapeHtml(String(r.branch||"—"))}</td>
         <td class="mono">${escapeHtml(String(r.year||"—"))}</td>
         <td>${escapeHtml(fmtMoneyFromCents(r.amount_cents))}</td>
-        <td>${statusBadge(r.status)}</td>
+        <td>${statusBadge(r)}</td>
         <td>${pdf}</td>
       `;
 
@@ -574,19 +698,140 @@
     }
   }
 
+  // ========= API actions =========
+  async function loadVersion(){
+    try{
+      const v = await apiFetch(EP.version, { method:"GET" });
+      buildTagEl.textContent = v?.build ? String(v.build) : "—";
+    }catch{
+      buildTagEl.textContent = "—";
+    }
+  }
+
   async function loadDashboard(){
     const y = Number(yearEl.value);
     if (!y || isNaN(y)) throw new Error("年度が不正です");
-    const data = await apiFetch(`/dashboard?year=${encodeURIComponent(y)}`, { method:"GET" });
+
+    const data = await apiFetch(`${EP.dashboard}?year=${encodeURIComponent(y)}`, { method:"GET" });
     allRows = Array.isArray(data?.rows) ? data.rows : [];
-    buildTabs(allRows);
+
+    // default selection
+    rebuildSelectionDefaults();
+
+    // update tabs (missing count is loaded lazily; show 0 first)
+    buildTabs(allRows, 0);
     render();
   }
 
-  // VALIDATE
-  function buildValidateHtml(errors){
+  async function validateCsv(csvText){
+    return await apiFetch(EP.validate, {
+      method:"POST",
+      headers:{ "Content-Type":"text/csv" },
+      body: csvText
+    });
+  }
+
+  async function importCsv(csvText){
+    return await apiFetch(EP.import, {
+      method:"POST",
+      headers:{ "Content-Type":"text/csv" },
+      body: csvText
+    });
+  }
+
+  async function continueImport(jobId, batch=50){
+    return await apiFetch(`${EP.cont}?job_id=${encodeURIComponent(jobId)}&batch=${encodeURIComponent(batch)}`, {
+      method:"POST"
+    });
+  }
+
+  async function sendOne(member_id, year){
+    return await apiFetch(EP.sendOne, {
+      method:"POST",
+      headers:{ "Content-Type":"application/json" },
+      body: JSON.stringify({ member_id, year: Number(year) })
+    });
+  }
+
+  async function sendSelected(selections){
+    return await apiFetch(EP.sendSelected, {
+      method:"POST",
+      headers:{ "Content-Type":"application/json" },
+      body: JSON.stringify({ selections })
+    });
+  }
+
+  async function deleteSelected(selections){
+    return await apiFetch(EP.deleteSelected, {
+      method:"POST",
+      headers:{ "Content-Type":"application/json" },
+      body: JSON.stringify({ selections })
+    });
+  }
+
+  async function bulkDeleteYear(year, confirmText){
+    return await apiFetch(EP.bulkDeleteYear, {
+      method:"POST",
+      headers:{ "Content-Type":"application/json" },
+      body: JSON.stringify({ year: Number(year), confirm: confirmText })
+    });
+  }
+
+  async function setEmail(member_id, year, email){
+    return await apiFetch(EP.setEmail, {
+      method:"POST",
+      headers:{ "Content-Type":"application/json" },
+      body: JSON.stringify({ member_id, year: Number(year), email })
+    });
+  }
+
+  async function loadMissingEmail(){
+    const y = Number(yearEl.value);
+    const branch = selectedBranch || "ALL";
+    const data = await apiFetch(`${EP.missingEmail}?year=${encodeURIComponent(y)}&branch=${encodeURIComponent(branch)}`, { method:"GET" });
+    const rows = Array.isArray(data?.rows) ? data.rows : [];
+
+    // update tab label with count
+    buildTabs(allRows, rows.length);
+
+    missingTbody.innerHTML = "";
+    if (!rows.length) {
+      const tr = document.createElement("tr");
+      tr.innerHTML = `<td colspan="7" class="mutedSmall" style="padding:12px;">Email Missing はありません</td>`;
+      missingTbody.appendChild(tr);
+      return;
+    }
+
+    for (const r of rows) {
+      const memberId = String(r.member_id||"").trim();
+      const year = String(r.year||"").trim();
+      const branch = String(r.branch||"").trim();
+      const name = String(r.name||"").trim();
+      const cents = r.amount_cents;
+
+      const tr = document.createElement("tr");
+      tr.innerHTML = `
+        <td class="mono">${escapeHtml(memberId)}</td>
+        <td>${escapeHtml(name)}</td>
+        <td>${escapeHtml(branch)}</td>
+        <td class="mono">${escapeHtml(year)}</td>
+        <td>${escapeHtml(fmtMoneyFromCents(cents))}</td>
+        <td>
+          <input class="smallInput" type="email" placeholder="example@worlddivinelight.org"
+            data-mid="${escapeHtml(memberId)}" data-year="${escapeHtml(year)}" />
+          <div class="mutedSmall">現状: Email が空 / not available</div>
+        </td>
+        <td>
+          <button class="btn" data-action="saveEmail" data-mid="${escapeHtml(memberId)}" data-year="${escapeHtml(year)}">保存</button>
+        </td>
+      `;
+      missingTbody.appendChild(tr);
+    }
+  }
+
+  function buildValidateHtml(errors, warnings){
     const groups = {};
-    for (const e of errors) (groups[e.type] ||= []).push(e);
+    for (const e of (errors||[])) (groups[e.type] ||= []).push(e);
 
     let html = `<b>CSVをアップロードできません（事前チェックで問題が見つかりました）</b><br><br>`;
 
@@ -597,11 +842,6 @@
     if (groups.HUBSPOT_NOT_FOUND) {
       html += `<b>HubSpotに会員が存在しません</b><br>`;
       html += groups.HUBSPOT_NOT_FOUND.map(e => `・${e.row}行目：ID <code>${escapeHtml(e.member_id||"")}</code> が見つかりません`).join("<br>") + "<br><br>";
-    }
-    if (groups.MISSING_EMAIL) {
-      html += `<b>HubSpotにメールアドレスが登録されていません</b><br>`;
-      html += groups.MISSING_EMAIL.map(e => `・${e.row}行目：ID <code>${escapeHtml(e.member_id||"")}</code>（${escapeHtml(e.name||"") }）`).join("<br>");
-      html += `<br><br>→ HubSpotで該当コンタクトに email を入力してください<br><br>`;
     }
     if (groups.MISSING_MEMBER_ID) {
       html += `<b>会員ID（member_id）が未入力</b><br>`;
@@ -616,15 +856,13 @@
       html += groups.INVALID_YEAR.map(e => `・${e.row}行目：ID <code>${escapeHtml(e.member_id||"")}</code> の year を確認してください`).join("<br>") + "<br><br>";
     }
 
+    // warnings (email missing) are allowed
+    if ((warnings||[]).length) {
+      html += `<b>警告（処理は続行できます）</b><br>`;
+      html += (warnings||[]).map(w => `・${escapeHtml(w.type)}：ID <code>${escapeHtml(w.member_id||"")}</code> ${escapeHtml(w.name||"")}`).join("<br>");
+      html += `<br><br><span class="mutedSmall">※ Email未登録の行は NEEDS_EMAIL として保存され、後から email を入力して送信できます</span>`;
+    }
     return html;
-  }
-
-  async function validateCsv(csvText){
-    return await apiFetch(API_VALIDATE, {
-      method:"POST",
-      headers:{ "Content-Type":"text/csv" },
-      body: csvText
-    });
   }
 
   async function importAndAutoRun(csvText){
@@ -632,14 +870,10 @@
     barFillEl.style.width = "0%";
     progressTextEl.textContent = "アップロード中…";
 
-    const importData = await apiFetch(`/import`, {
-      method:"POST",
-      headers:{ "Content-Type":"text/csv" },
-      body: csvText
-    });
-
+    const importData = await importCsv(csvText);
     const jobId = importData?.job_id;
     const year = importData?.year;
+
     if (!jobId) throw new Error("import_failed: job_id_not_returned");
 
     let safety = 0;
@@ -647,12 +881,15 @@
       safety++;
       if (safety > 500) throw new Error("auto_continue_safety_stop");
 
-      const cont = await apiFetch(`/import/continue?job_id=${encodeURIComponent(jobId)}&batch=50`, { method:"POST" });
+      const cont = await continueImport(jobId, 50);
       const job = cont?.job;
       if (job) updateProgress(job);
 
       const status = String(job?.status || "").toUpperCase();
-      if (status === "ERROR") { toast("取込中にエラーが発生しました。", "bad", 9000); break; }
+      if (status === "ERROR") {
+        toast("取込中にエラーが発生しました。", "bad", 9000);
+        break;
+      }
       if (status === "DONE" || cont?.done === true) {
         toast("自動生成が完了しました。一覧を更新します。", "ok", 7000);
         if (year) yearEl.value = String(year);
@@ -664,39 +901,212 @@
     }
   }
 
-  // MAIL
-  async function sendOne(memberId, year){
-    return await apiFetch(API_SEND_ONE, {
-      method:"POST",
-      headers:{ "Content-Type":"application/json" },
-      body: JSON.stringify({ member_id: memberId, year: Number(year) })
-    });
-  }
-  async function deleteOne(memberId, year) {
-  return await apiFetch(`/delete`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ member_id: String(memberId), year: Number(year) })
-  });
-}
-  async function sendBulk(year, branch){
-    return await apiFetch(API_SEND_BULK, {
-      method:"POST",
-      headers:{ "Content-Type":"application/json" },
-      body: JSON.stringify({ year: Number(year), branch: branch || "ALL" })
-    });
+  function getSelectedSelectionsFromVisible(){
+    // select rows from current filtered rows only
+    const rows = applyFilter(allRows);
+    const out = [];
+    for (const r of rows) {
+      const mid = String(r.member_id||"").trim();
+      const y = Number(r.year);
+      if (!mid || !y) continue;
+      const k = keyOf(mid, y);
+      if (selected.has(k)) out.push({ member_id: mid, year: y });
+    }
+    return out;
   }
 
-  // Events
-  reloadBtn.onclick = async () => {
-    try{ await loadDashboard(); toast("一覧を更新しました。", "ok"); }
-    catch(e){ toast(`更新に失敗しました：${e.message}`, "bad", 9000); }
-  };
-
+  // ========= events =========
   qEl.oninput = () => render();
 
-  allBranchBtn.onclick = () => { selectedBranch = "ALL"; buildTabs(allRows); render(); };
+  reloadBtn.onclick = async () => {
+    try{
+      await loadDashboard();
+      toast("一覧を更新しました。", "ok");
+    }catch(e){
+      toast(`更新に失敗しました：${e.message}`, "bad", 9000);
+    }
+  };
 
+  allBranchBtn.onclick = () => {
+    selectedBranch = "ALL";
+    render();
+  };
+
+  selAllBtn.onclick = () => {
+    // select all sendable in current filter
+    const rows = applyFilter(allRows);
+    for (const r of rows) {
+      if (!isSendable(r)) continue;
+      selected.add(keyOf(r.member_id, r.year));
+    }
+    updateSelectionUI();
+    render();
+  };
+
+  selNoneBtn.onclick = () => {
+    // clear selection only for current filter
+    const rows = applyFilter(allRows);
+    for (const r of rows) {
+      selected.delete(keyOf(r.member_id, r.year));
+    }
+    updateSelectionUI();
+    render();
+  };
+
+  sendSelectedBtn.onclick = async () => {
+    const selections = getSelectedSelectionsFromVisible();
+    if (!selections.length) { toast("送信対象が選択されていません。", "warn"); return; }
+
+    const exclude = applyFilter(allRows).filter(r => isSendable(r)).length - selections.length;
+    if (!confirm(`選択送信しますか？\n\nTargets: ${selections.length}\nExcluded: ${exclude}\nYear: ${yearEl.value}\nBranch: ${selectedBranch}`)) return;
+
+    setBusy(sendSelectedBtn, true, "送信中…");
+    try{
+      const res = await sendSelected(selections);
+      const stamp = new Date().toLocaleTimeString("ja-JP",{hour:"2-digit",minute:"2-digit"});
+      for (const s of selections) sentMap.set(keyOf(s.member_id, s.year), stamp);
+      toast(`選択送信 完了\nTargets: ${res?.targets ?? selections.length}\ncan_send: ${res?.sent_ok ?? res?.can_send ?? "—"} / cannot: ${res?.sent_ng ?? res?.cannot_send ?? "—"}`, "ok", 12000);
+      render();
+    }catch(e){
+      toast(`選択送信 失敗\n${e.message}`, "bad", 12000);
+    }finally{
+      setBusy(sendSelectedBtn, false);
+    }
+  };
+
+  deleteSelectedBtn.onclick = async () => {
+    const selections = getSelectedSelectionsFromVisible();
+    if (!selections.length) { toast("削除対象が選択されていません。", "warn"); return; }
+
+    if (!confirm(`選択削除しますか？\n\nTargets: ${selections.length}\nYear: ${yearEl.value}\nBranch: ${selectedBranch}\n\n※ D1行 + R2 PDF も削除します`)) return;
+
+    setBusy(deleteSelectedBtn, true, "削除中…");
+    try{
+      const res = await deleteSelected(selections);
+      toast(`選択削除 完了\nok: ${res?.deleted_ok ?? "—"} / ng: ${res?.deleted_ng ?? "—"}`, "ok", 9000);
+      await loadDashboard();
+    }catch(e){
+      toast(`選択削除 失敗\n${e.message}`, "bad", 12000);
+    }finally{
+      setBusy(deleteSelectedBtn, false);
+    }
+  };
+
+  bulkDeleteBtn.onclick = async () => {
+    const y = Number(yearEl.value);
+    const allowedYear = (new Date()).getFullYear() - 1;
+
+    if (y !== allowedYear) {
+      alert(`前年のみ全削除できます。\nAllowed year: ${allowedYear}\nCurrent: ${y}`);
+      return;
+    }
+
+    const typed = prompt(`前年（${allowedYear}年）の全レコードを削除します。\n\n本当に実行する場合は次を入力：\nDELETE ${allowedYear}`);
+    if (!typed) return;
+
+    setBusy(bulkDeleteBtn, true, "削除中…");
+    try{
+      const res = await bulkDeleteYear(allowedYear, typed);
+      toast(`前年全削除 完了\nrows: ${res?.deleted_rows ?? "—"} / pdf: ${res?.deleted_pdf ?? "—"}`, "ok", 12000);
+      await loadDashboard();
+    }catch(e){
+      toast(`前年全削除 失敗\n${e.message}`, "bad", 12000);
+    }finally{
+      setBusy(bulkDeleteBtn, false);
+    }
+  };
+
+  reloadMissingBtn.onclick = async () => {
+    try{
+      await loadMissingEmail();
+      toast("Email Missing を更新しました。", "ok");
+    }catch(e){
+      toast(`Email Missing 更新失敗：${e.message}`, "bad", 9000);
+    }
+  };
+
+  // table click handlers
+  tbodyEl.addEventListener("click", async (e) => {
+    const btn = e.target.closest("button[data-action]");
+    if (!btn) return;
+
+    const action = btn.dataset.action;
+    const memberId = btn.dataset.mid;
+    const year = btn.dataset.year;
+
+    if (action === "sendOne") {
+      setBusy(btn, true, "送信中…");
+      try{
+        const res = await sendOne(memberId, year);
+        const stamp = new Date().toLocaleTimeString("ja-JP",{hour:"2-digit",minute:"2-digit"});
+        sentMap.set(keyOf(memberId, year), stamp);
+        toast(`個別送信 完了：${memberId} (${year})\nTo: ${res?.to || "—"}`, "ok", 9000);
+        render();
+      }catch(err){
+        toast(`個別送信 失敗：${memberId}\n${err.message}`, "bad", 12000);
+      }finally{
+        setBusy(btn, false);
+      }
+      return;
+    }
+
+    if (action === "deleteOne") {
+      if (!confirm(`この行を削除しますか？\n\nmember_id: ${memberId}\nyear: ${year}\n\n※ D1行 + R2 PDF も削除します`)) return;
+      setBusy(btn, true, "削除中…");
+      try{
+        const res = await deleteSelected([{ member_id: memberId, year: Number(year) }]);
+        toast(`削除 完了：${memberId} (${year})\n${res?.deleted_ok ? "OK" : "NG"}`, "ok", 9000);
+        await loadDashboard();
+      }catch(err){
+        toast(`削除 失敗：${memberId}\n${err.message}`, "bad", 12000);
+      }finally{
+        setBusy(btn, false);
+      }
+      return;
+    }
+  });
+
+  // checkbox handler
+  tbodyEl.addEventListener("change", (e) => {
+    const chk = e.target.closest("input[data-action='toggleSelect']");
+    if (!chk) return;
+    const mid = chk.dataset.mid;
+    const year = chk.dataset.year;
+    const k = keyOf(mid, year);
+    if (chk.checked) selected.add(k);
+    else selected.delete(k);
+    updateSelectionUI();
+  });
+
+  // missing table save email
+  missingTbody.addEventListener("click", async (e) => {
+    const btn = e.target.closest("button[data-action='saveEmail']");
+    if (!btn) return;
+    const mid = btn.dataset.mid;
+    const year = Number(btn.dataset.year);
+
+    const input = missingTbody.querySelector(`input[data-mid="${CSS.escape(mid)}"][data-year="${CSS.escape(String(year))}"]`);
+    const email = String(input?.value || "").trim().toLowerCase();
+
+    if (!email) { toast("Emailを入力してください。", "warn"); return; }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { toast("Email形式が不正です。", "warn"); return; }
+
+    setBusy(btn, true, "保存中…");
+    try{
+      const res = await setEmail(mid, year, email);
+      toast(`保存しました：${mid} (${year})\n${res?.hubspot_updated ? "HubSpot: updated" : "HubSpot: skipped/failed"}`, "ok", 9000);
+      // reload both lists
+      await loadDashboard();
+      await loadMissingEmail();
+      render();
+    }catch(err){
+      toast(`保存失敗：${mid}\n${err.message}`, "bad", 12000);
+    }finally{
+      setBusy(btn, false);
+    }
+  });
+
+  // file upload
   fileEl.onchange = () => {
     selectedFile = (fileEl.files && fileEl.files[0]) ? fileEl.files[0] : null;
     uploadBtn.disabled = !selectedFile;
@@ -706,6 +1116,7 @@
 
   uploadBtn.onclick = async () => {
     if (!selectedFile) return;
+
     clearErrors();
     setBusy(uploadBtn, true, "事前チェック中…");
 
@@ -714,12 +1125,18 @@
 
       const v = await validateCsv(csvText);
       if (v.ok !== true) {
-        showErrors(buildValidateHtml(v.errors || []));
+        showErrors(buildValidateHtml(v.errors || [], v.warnings || []));
         toast("アップロードできません（事前チェックNG）", "bad", 12000);
         return;
       }
 
-      toast("事前チェックOK。自動生成を開始します。", "ok");
+      // warnings allowed
+      if ((v.warnings || []).length) {
+        toast("警告あり（続行します）: Email未登録行は NEEDS_EMAIL になります", "warn", 9000);
+      } else {
+        toast("事前チェックOK。自動生成を開始します。", "ok", 7000);
+      }
+
       setBusy(uploadBtn, true, "生成中…");
       await importAndAutoRun(csvText);
 
@@ -731,87 +1148,18 @@
     }
   };
 
-// Row actions (send / delete)
-tbodyEl.addEventListener("click", async (e) => {
-  const btn = e.target.closest("button[data-action]");
-  if (!btn) return;
-
-  const action = btn.dataset.action;
-  const memberId = btn.dataset.mid;
-  const year = btn.dataset.year;
-
-  // ========= 個別送信 =========
-  if (action === "sendOne") {
-    setBusy(btn, true, "送信中...");
-    try {
-      const res = await sendOne(memberId, year);
-      const stamp = new Date().toLocaleTimeString("ja-JP", {
-        hour: "2-digit",
-        minute: "2-digit",
-      });
-      sentMap.set(`${memberId}|${year}`, stamp);
-      toast(`個別送信 完了：${memberId} (${year})\nTo: ${res?.to || "-"}`, "ok", 9000);
-      render();
-    } catch (err) {
-      toast(`個別送信 失敗：${memberId}\n${err.message}`, "bad", 12000);
-      console.error(err);
-    } finally {
-      setBusy(btn, false);
-    }
-    return;
-  }
-
-  // ========= 削除 =========
-  if (action === "deleteOne") {
-    if (!confirm(
-      `この行を完全に削除します。\n\nmember_id: ${memberId}\nyear: ${year}\n\n※ D1の行とPDFが削除されます`
-    )) return;
-
-    setBusy(btn, true, "削除中...");
-    try {
-      await deleteOne(memberId, year);
-      toast(`削除しました：${memberId} (${year})`, "ok", 9000);
-      await loadDashboard(); // 一覧を再読込
-    } catch (err) {
-      toast(`削除失敗：${memberId}\n${err.message}`, "bad", 12000);
-      console.error(err);
-    } finally {
-      setBusy(btn, false);
-    }
-    return;
-  }
-});
-
-  // Bulk send
-  sendBulkBtn.onclick = async () => {
-    const y = Number(yearEl.value);
-    const branch = selectedBranch;
-    const targets = doneRowsCurrentScope();
-    if (!targets.length) { toast("DONEの対象がありません。", "warn"); return; }
-
-    if (!confirm(`メール一括送信しますか？\n\nYear: ${y}\nBranch: ${branch}\nTargets (DONE only): ${targets.length}`)) return;
-
-    setBusy(sendBulkBtn, true, "送信中…");
-    try{
-      const res = await sendBulk(y, branch);
-      const stamp = new Date().toLocaleTimeString("ja-JP",{hour:"2-digit",minute:"2-digit"});
-      for (const r of targets) sentMap.set(`${r.member_id}|${r.year}`, stamp);
-      toast(`一括送信 完了\nOK: ${res?.sent_ok ?? "—"} / NG: ${res?.sent_ng ?? "—"}\nTargets: ${res?.targets ?? targets.length}`, "ok", 12000);
-      render();
-    }catch(err){
-      toast(`一括送信 失敗\n${err.message}`, "bad", 12000);
-      console.error(err);
-    }finally{
-      setBusy(sendBulkBtn, false);
-    }
-  };
-
-  // Boot
+  // init
   (async function init(){
     const now = new Date();
     yearEl.value = String(now.getFullYear() - 1);
-    try{ await loadDashboard(); }
-    catch(e){ toast("一覧の読み込みに失敗しました。Accessログイン後、再読込してください。", "warn", 9000); }
+
+    await loadVersion();
+
+    try{
+      await loadDashboard();
+    }catch(e){
+      toast("一覧の読み込みに失敗しました。Accessログイン後、再読込してください。", "warn", 9000);
+    }
   })();
 
 })();
