@@ -542,10 +542,16 @@
 
       const tr = document.createElement("tr");
 
-      const oneCell = sentAt
+      const oneCell = `
+  <div class="row" style="gap:8px; align-items:center;">
+    ${
+      sentAt
         ? `<span class="sentBadge">Sent ${escapeHtml(sentAt)}</span>`
-        : `<button class="btn secondary" data-action="sendOne" data-mid="${escapeHtml(memberId)}" data-year="${escapeHtml(year)}" ${canSend ? "" : "disabled"}>個別送信</button>`;
-
+        : `<button class="btn secondary" data-action="sendOne" data-mid="${escapeHtml(memberId)}" data-year="${escapeHtml(year)}" ${canSend ? "" : "disabled"}>個別送信</button>`
+    }
+    <button class="btn danger" data-action="deleteOne" data-mid="${escapeHtml(memberId)}" data-year="${escapeHtml(year)}">削除</button>
+  </div>
+`;
       const pdf = r.pdf_key
         ? `<a class="pdfLink" href="/api/admin/receipt/pdf?member_id=${encodeURIComponent(memberId)}&year=${encodeURIComponent(year)}" target="_blank" rel="noopener">PDF</a>`
         : "—";
