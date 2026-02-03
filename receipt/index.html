@@ -617,32 +617,171 @@
   }
 
   // ========== events ==========
-  qEl.oninput = () => render();
 
-  reloadBtn.onclick = async () => {
-    try { await loadDashboard(); toast("一覧を更新しました。","ok"); }
-    catch(e){ toast(`更新失敗：${e.message}`,"bad",12000); }
-  };
+// 検索
+qEl.addEventListener("input", () => render());
 
-  selAllBtn.onclick = () => {
-    for (const r of allRows) {
-      if (String(r.status||"").toUpperCase() === "DONE") selected.add(keyOf(r.member_id, r.year));
-    }
-    updateSelectionUI(); render();
-  };
+// 一覧再読込
+reloadBtn.addEventListener("click", async () => {
+  try {
+    await loadDashboard();
+    toast("一覧を更新しました。", "ok");
+  } catch (e) {
+    toast(`更新失敗：${e.message}`, "bad", 12000);
+  }
+});
 
-  selNoneBtn.onclick = () => {
-    selected.clear();
-    updateSelectionUI(); render();
-  };
-
-  tbodyEl.addEventListener("change", (e) => {
-    const chk = e.target.closest("input.chk");
-    if (!chk) return;
-    const k = keyOf(chk.dataset.mid, chk.dataset.year);
-    if (chk.checked) selected.add(k); else selected.delete(k);
-    updateSelectionUI();
+// 全Branch
+if (typeof allBranchBtn !== "undefined" && allBranchBtn) {
+  allBranchBtn.addEventListener("click", () => {
+    selectedBranch = "ALL";
+    render();
   });
+}
+
+// 全選択（DONEのみ）
+selAllBtn.addEventListener("click", () => {
+  const rows = applyFilter(allRows); // 現在表示条件に合わせる（Branch/検索）
+  for (const r of rows) {
+    if (String(r.status || "").toUpperCase() === "DONE") {
+      selected.add(keyOf(r.member_id, r.year));
+    }
+  }
+  updateSelectionUI();
+  render();
+});
+
+// 全解除（現在表示条件の分だけ解除）
+selNoneBtn.addEventListener("click", () => {
+  const rows = applyFilter(allRows);
+  for (const r of rows) selected.delete(keyOf(r.member_id, r.year));
+  updateSelectionUI();
+  render();
+});
+
+// ✅ 選択送信
+sendSelectedBtn.addEventListener("click", async () => {
+  const selections = getSelectedSelectionsFromVisible();
+  if (!selections.length) {
+    toast("送信対象が選択されていません。", "warn");
+    return;
+  }
+
+  if (!confirm(`選択送信しますか？\nTargets: ${selections.length}\nYear: ${yearEl.value}\nBranch: ${selectedBranch}`)) return;
+
+  setBusy(sendSelectedBtn, true, "送信中…");
+  try {
+    const res = await sendSelected(selections);
+    const stamp = new Date().toLocaleTimeString("ja-JP", { hour: "2-digit", minute: "2-digit" });
+    for (const s of selections) sentMap.set(keyOf(s.member_id, s.year), stamp);
+
+    toast(`選択送信 完了\nsent_ok: ${res?.sent_ok ?? "—"} / sent_ng: ${res?.sent_ng ?? "—"}`, "ok", 12000);
+    render();
+  } catch (e) {
+    toast(`選択送信 失敗\n${e.message}`, "bad", 12000);
+  } finally {
+    setBusy(sendSelectedBtn, false);
+  }
+});
+
+// ✅ 選択削除（D1 + R2）
+deleteSelectedBtn.addEventListener("click", async () => {
+  const selections = getSelectedSelectionsFromVisible();
+  if (!selections.length) {
+    toast("削除対象が選択されていません。", "warn");
+    return;
+  }
+
+  if (!confirm(`選択削除しますか？\nTargets: ${selections.length}\nYear: ${yearEl.value}\nBranch: ${selectedBranch}\n\n※ D1行 + R2 PDF も削除します`)) return;
+
+  setBusy(deleteSelectedBtn, true, "削除中…");
+  try {
+    const res = await deleteSelected(selections);
+    toast(`選択削除 完了\nok: ${res?.deleted_ok ?? "—"} / ng: ${res?.deleted_ng ?? "—"}`, "ok", 12000);
+    await loadDashboard();
+  } catch (e) {
+    toast(`選択削除 失敗\n${e.message}`, "bad", 12000);
+  } finally {
+    setBusy(deleteSelectedBtn, false);
+  }
+});
+
+// ✅ 前年全削除
+bulkDeleteBtn.addEventListener("click", async () => {
+  const allowedYear = (new Date()).getFullYear() - 1;
+  const y = Number(yearEl.value);
+
+  if (y !== allowedYear) {
+    alert(`前年のみ全削除できます。\nAllowed year: ${allowedYear}\nCurrent: ${y}`);
+    return;
+  }
+
+  const typed = prompt(`前年（${allowedYear}年）の全レコードを削除します。\n\n本当に実行する場合は次を入力：\nDELETE ${allowedYear}`);
+  if (!typed) return;
+
+  setBusy(bulkDeleteBtn, true, "削除中…");
+  try {
+    const res = await bulkDeleteYear(allowedYear, typed);
+    toast(`前年全削除 完了\nrows: ${res?.deleted_rows ?? "—"} / pdf: ${res?.deleted_pdf ?? "—"}`, "ok", 12000);
+    await loadDashboard();
+  } catch (e) {
+    toast(`前年全削除 失敗\n${e.message}`, "bad", 12000);
+  } finally {
+    setBusy(bulkDeleteBtn, false);
+  }
+});
+
+// ✅ tbody：チェック（change）
+tbodyEl.addEventListener("change", (e) => {
+  const chk = e.target.closest("input.chk");
+  if (!chk) return;
+  const k = keyOf(chk.dataset.mid, chk.dataset.year);
+  if (chk.checked) selected.add(k);
+  else selected.delete(k);
+  updateSelectionUI();
+});
+
+// ✅ tbody：行内ボタン（個別送信／削除）（click）
+tbodyEl.addEventListener("click", async (e) => {
+  const btn = e.target.closest("button[data-action]");
+  if (!btn) return;
+
+  const action = btn.dataset.action;
+  const memberId = btn.dataset.mid;
+  const year = btn.dataset.year;
+
+  if (action === "sendOne") {
+    setBusy(btn, true, "送信中…");
+    try {
+      const res = await sendOne(memberId, year);
+      const stamp = new Date().toLocaleTimeString("ja-JP", { hour: "2-digit", minute: "2-digit" });
+      sentMap.set(keyOf(memberId, year), stamp);
+      toast(`個別送信 完了：${memberId} (${year})\nTo: ${res?.to || "—"}`, "ok", 9000);
+      render();
+    } catch (err) {
+      toast(`個別送信 失敗：${memberId}\n${err.message}`, "bad", 12000);
+    } finally {
+      setBusy(btn, false);
+    }
+    return;
+  }
+
+  if (action === "deleteOne") {
+    if (!confirm(`この行を削除しますか？\n\nmember_id: ${memberId}\nyear: ${year}\n\n※ D1行 + R2 PDF も削除します`)) return;
+
+    setBusy(btn, true, "削除中…");
+    try {
+      await deleteSelected([{ member_id: memberId, year: Number(year) }]);
+      toast(`削除 完了：${memberId} (${year})`, "ok", 9000);
+      await loadDashboard();
+    } catch (err) {
+      toast(`削除 失敗：${memberId}\n${err.message}`, "bad", 12000);
+    } finally {
+      setBusy(btn, false);
+    }
+    return;
+  }
+});
 
   // file upload
   fileEl.onchange = () => {
