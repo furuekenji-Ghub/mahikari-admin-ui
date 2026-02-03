@@ -468,6 +468,42 @@
     return body;
   }
 
+    // ========= required API wrappers (must exist in this scope) =========
+  async function sendOne(member_id, year) {
+    return await apiFetch(EP.sendOne, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ member_id: String(member_id), year: Number(year) })
+    });
+  }
+
+  async function sendSelected(selections) {
+    return await apiFetch(EP.sendSelected, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ selections })
+    });
+  }
+
+  async function deleteSelected(selections) {
+    return await apiFetch(EP.deleteSelected, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ selections })
+    });
+  }
+
+  async function bulkDeleteYear(year, confirmText) {
+    return await apiFetch(EP.bulkDeleteYear, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ year: Number(year), confirm: String(confirmText || "") })
+    });
+  }
+
+  // optional: debug surface (safe)
+  window.__receiptAdmin = { sendOne, sendSelected, deleteSelected, bulkDeleteYear };
+
   async function loadVersion(){
     try{
       const v = await apiFetch(EP.version, { method:"GET" });
