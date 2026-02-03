@@ -903,80 +903,81 @@
   return html;
 }
 
-  async function importAndAutoRun(csvText){
-  showProgress(true);
-  barFillEl.style.width = "0%";
-  progressTextEl.textContent = "アップロード中…";
+  let _autoRunning = false;
 
-  const importData = await importCsv(csvText);
-  const jobId = importData?.job_id;
-  const year = importData?.year;
-  if (!jobId) throw new Error("import_failed: job_id_not_returned");
+async function importAndAutoRun(csvText){
+  if (_autoRunning) return;
+  _autoRunning = true;
 
-  // ★ここが重要：batchを小さく（まずは2）
-  const BATCH = 2;
+  try {
+    showProgress(true);
+    barFillEl.style.width = "0%";
+    progressTextEl.textContent = "アップロード中…";
 
-  let safety = 0;
-  let retry503 = 0;
+    const importData = await importCsv(csvText);
+    const jobId = importData?.job_id;
+    const year = importData?.year;
+    if (!jobId) throw new Error("import_failed: job_id_not_returned");
 
-  while (true) {
-    safety++;
-    if (safety > 2000) throw new Error("auto_continue_safety_stop");
+    const BATCH = 2;
+    let safety = 0;
+    let retry = 0;
 
-    try {
-      const cont = await continueImport(jobId, BATCH);
-      retry503 = 0; // 成功したらリトライカウンタを戻す
+    while (true) {
+      safety++;
+      if (safety > 4000) throw new Error("auto_continue_safety_stop");
 
-      const job = cont?.job;
-      if (job) updateProgress(job);
+      try {
+        const cont = await continueImport(jobId, BATCH);
+        retry = 0;
 
-      const status = String(job?.status || "").toUpperCase();
+        const job = cont?.job;
+        if (job) updateProgress(job);
 
-      if (status === "ERROR") {
-        toast("取込中にエラーが発生しました。", "bad", 9000);
-        break;
+        const status = String(job?.status || "").toUpperCase();
+        if (status === "ERROR") {
+          toast("取込中にエラーが発生しました。", "bad", 12000);
+          break;
+        }
+
+        if (status === "DONE" || cont?.done === true) {
+          toast("自動生成が完了しました。一覧を更新します。", "ok", 9000);
+          if (year) yearEl.value = String(year);
+          await loadDashboard();
+          showProgress(false);
+          break;
+        }
+
+        await new Promise(r => setTimeout(r, 300));
+
+      } catch (e) {
+        const msg = String(e?.message || e);
+        const retryable =
+          msg.includes("HTTP 503") ||
+          msg.includes("HTTP 502") ||
+          msg.includes("HTTP 504") ||
+          msg.includes("HTTP 500") ||              // ← 500も一時扱いにする
+          msg.includes("exceeded resource limits") ||
+          msg.includes("NetworkError") ||
+          msg.includes("Failed to fetch");
+
+        if (!retryable) throw e;
+
+        retry++;
+        if (retry > 10) {
+          toast(`一時エラーが続いたため停止しました（${retry}回）\n${msg}`, "bad", 12000);
+          throw e;
+        }
+
+        const wait = Math.min(20000, 2000 * retry); // 2s,4s,6s...最大20s
+        progressTextEl.textContent = `一時エラーで再試行します… (${retry}/10)\n${msg}\n${Math.round(wait)}ms 待機`;
+        await new Promise(r => setTimeout(r, wait));
+        continue;
       }
-
-      if (status === "DONE" || cont?.done === true) {
-        toast("自動生成が完了しました。一覧を更新します。", "ok", 7000);
-        if (year) yearEl.value = String(year);
-        await loadDashboard();
-        showProgress(false);
-        break;
-      }
-
-      // 次のcontinueまで少し待つ（過負荷防止）
-      await new Promise(r => setTimeout(r, 250));
-
-    } catch (e) {
-      const msg = String(e?.message || e);
-
-      // 503/1102/一時的な失敗はリトライ
-      const isRetryable =
-        msg.includes("HTTP 503") ||
-        msg.includes("HTTP 502") ||
-        msg.includes("HTTP 504") ||
-        msg.includes("exceeded resource limits") ||
-        msg.includes("NetworkError") ||
-        msg.includes("Failed to fetch");
-
-      if (!isRetryable) {
-        toast(`取込中に停止しました：${msg}`, "bad", 12000);
-        throw e;
-      }
-
-      retry503++;
-      if (retry503 > 20) {
-        toast(`一時エラーが続いたため停止しました（${retry503}回）\n${msg}`, "bad", 12000);
-        throw e;
-      }
-
-      // 指数バックオフ（待ってから再試行）
-      const waitMs = Math.min(8000, 300 * Math.pow(1.4, retry503));
-      progressTextEl.textContent = `一時エラーのため再試行します… (${retry503}/20)\n${msg}\nwait ${Math.round(waitMs)}ms`;
-      await new Promise(r => setTimeout(r, waitMs));
-      continue;
     }
+
+  } finally {
+    _autoRunning = false;
   }
 }
 
