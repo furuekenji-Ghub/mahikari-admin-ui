@@ -380,6 +380,9 @@
   let allRows = [];
   const selected = new Set(); // `${member_id}|${year}`
 
+  // sent label memory（送信済み表示用）
+const sentMap = new Map();
+
   let _autoRunning = false;
 
   function toast(msg, type="info", ttl=5200){
