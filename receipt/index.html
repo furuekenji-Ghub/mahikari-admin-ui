@@ -717,12 +717,20 @@ bulkDeleteBtn.addEventListener("click", async () => {
     return;
   }
 
-  const typed = prompt(`前年（${allowedYear}年）の全レコードを削除します。\n\n本当に実行する場合は次を入力：\nDELETE ${allowedYear}`);
+  const typed = prompt(
+    `前年（${allowedYear}年）の全レコードを削除します。\n\n本当に実行する場合は次を入力：\nDELETE ${allowedYear}`
+  );
   if (!typed) return;
 
   setBusy(bulkDeleteBtn, true, "削除中…");
   try {
-    const res = await bulkDeleteYear(allowedYear, typed);
+    // ★ここが確実にNetworkへ行く（中間関数なし）
+    const res = await apiFetch(EP.bulkDeleteYear, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ year: allowedYear, confirm: typed })
+    });
+
     toast(`前年全削除 完了\nrows: ${res?.deleted_rows ?? "—"} / pdf: ${res?.deleted_pdf ?? "—"}`, "ok", 12000);
     await loadDashboard();
   } catch (e) {
