@@ -830,40 +830,78 @@
   }
 
   function buildValidateHtml(errors, warnings){
-    const groups = {};
-    for (const e of (errors||[])) (groups[e.type] ||= []).push(e);
+  errors = Array.isArray(errors) ? errors : [];
+  warnings = Array.isArray(warnings) ? warnings : [];
 
-    let html = `<b>CSVをアップロードできません（事前チェックで問題が見つかりました）</b><br><br>`;
+  const groups = {};
+  for (const e of errors) (groups[e.type] ||= []).push(e);
 
-    if (groups.INVALID_AMOUNT) {
-      html += `<b>金額（amount）が不正</b><br>`;
-      html += groups.INVALID_AMOUNT.map(e => `・${e.row}行目：ID <code>${escapeHtml(e.member_id||"")}</code> の amount を確認してください`).join("<br>") + "<br><br>";
-    }
-    if (groups.HUBSPOT_NOT_FOUND) {
-      html += `<b>HubSpotに会員が存在しません</b><br>`;
-      html += groups.HUBSPOT_NOT_FOUND.map(e => `・${e.row}行目：ID <code>${escapeHtml(e.member_id||"")}</code> が見つかりません`).join("<br>") + "<br><br>";
-    }
-    if (groups.MISSING_MEMBER_ID) {
-      html += `<b>会員ID（member_id）が未入力</b><br>`;
-      html += groups.MISSING_MEMBER_ID.map(e => `・${e.row}行目：member_id が空です`).join("<br>") + "<br><br>";
-    }
-    if (groups.MISSING_BRANCH) {
-      html += `<b>Branchが未入力</b><br>`;
-      html += groups.MISSING_BRANCH.map(e => `・${e.row}行目：ID <code>${escapeHtml(e.member_id||"")}</code> の branch が空です`).join("<br>") + "<br><br>";
-    }
-    if (groups.INVALID_YEAR) {
-      html += `<b>年度（year）が不正</b><br>`;
-      html += groups.INVALID_YEAR.map(e => `・${e.row}行目：ID <code>${escapeHtml(e.member_id||"")}</code> の year を確認してください`).join("<br>") + "<br><br>";
-    }
-
-    // warnings (email missing) are allowed
-    if ((warnings||[]).length) {
-      html += `<b>警告（処理は続行できます）</b><br>`;
-      html += (warnings||[]).map(w => `・${escapeHtml(w.type)}：ID <code>${escapeHtml(w.member_id||"")}</code> ${escapeHtml(w.name||"")}`).join("<br>");
-      html += `<br><br><span class="mutedSmall">※ Email未登録の行は NEEDS_EMAIL として保存され、後から email を入力して送信できます</span>`;
-    }
-    return html;
+  // ✅ タイトル：errors が無ければ「続行できます」にする
+  let html = "";
+  if (errors.length) {
+    html += `<b>CSVをアップロードできません（事前チェックで問題が見つかりました）</b><br><br>`;
+  } else {
+    html += `<b>事前チェック：警告あり（処理は続行できます）</b><br><br>`;
   }
+
+  // --- errors ---
+  if (groups.INVALID_AMOUNT) {
+    html += `<b>金額（amount）が不正</b><br>`;
+    html += groups.INVALID_AMOUNT.slice(0, 20).map(e =>
+      `・${e.row}行目：ID <code>${escapeHtml(e.member_id||"")}</code> の amount を確認してください`
+    ).join("<br>") + "<br><br>";
+    if (groups.INVALID_AMOUNT.length > 20) html += `…他 ${groups.INVALID_AMOUNT.length - 20} 件<br><br>`;
+  }
+
+  if (groups.HUBSPOT_NOT_FOUND) {
+    html += `<b>HubSpotに会員が存在しません</b><br>`;
+    html += groups.HUBSPOT_NOT_FOUND.slice(0, 20).map(e =>
+      `・${e.row}行目：ID <code>${escapeHtml(e.member_id||"")}</code> が見つかりません`
+    ).join("<br>") + "<br><br>";
+    if (groups.HUBSPOT_NOT_FOUND.length > 20) html += `…他 ${groups.HUBSPOT_NOT_FOUND.length - 20} 件<br><br>`;
+  }
+
+  if (groups.MISSING_MEMBER_ID) {
+    html += `<b>会員ID（member_id）が未入力</b><br>`;
+    html += groups.MISSING_MEMBER_ID.slice(0, 20).map(e =>
+      `・${e.row}行目：member_id が空です`
+    ).join("<br>") + "<br><br>";
+    if (groups.MISSING_MEMBER_ID.length > 20) html += `…他 ${groups.MISSING_MEMBER_ID.length - 20} 件<br><br>`;
+  }
+
+  if (groups.MISSING_BRANCH) {
+    html += `<b>Branchが未入力</b><br>`;
+    html += groups.MISSING_BRANCH.slice(0, 20).map(e =>
+      `・${e.row}行目：ID <code>${escapeHtml(e.member_id||"")}</code> の branch が空です`
+    ).join("<br>") + "<br><br>";
+    if (groups.MISSING_BRANCH.length > 20) html += `…他 ${groups.MISSING_BRANCH.length - 20} 件<br><br>`;
+  }
+
+  if (groups.INVALID_YEAR) {
+    html += `<b>年度（year）が不正</b><br>`;
+    html += groups.INVALID_YEAR.slice(0, 20).map(e =>
+      `・${e.row}行目：ID <code>${escapeHtml(e.member_id||"")}</code> の year を確認してください`
+    ).join("<br>") + "<br><br>";
+    if (groups.INVALID_YEAR.length > 20) html += `…他 ${groups.INVALID_YEAR.length - 20} 件<br><br>`;
+  }
+
+  // --- warnings (続行OK) ---
+  if (warnings.length) {
+    html += `<b>警告（処理は続行できます）</b><br>`;
+    const show = warnings.slice(0, 20).map(w =>
+      `・${escapeHtml(w.type)}：ID <code>${escapeHtml(w.member_id||"")}</code>`
+    ).join("<br>");
+    html += show;
+
+    if (warnings.length > 20) {
+      html += `<br>…他 ${warnings.length - 20} 件`;
+    }
+
+    html += `<br><br><span class="mutedSmall">※ Email未登録の行は NEEDS_EMAIL として保存され、後から email を入力して送信できます</span>`;
+  }
+
+  return html;
+}
 
   async function importAndAutoRun(csvText){
     showProgress(true);
@@ -1124,11 +1162,29 @@
       const csvText = await selectedFile.text();
 
       const v = await validateCsv(csvText);
-      if (v.ok !== true) {
-        showErrors(buildValidateHtml(v.errors || [], v.warnings || []));
-        toast("アップロードできません（事前チェックNG）", "bad", 12000);
-        return;
-      }
+
+// ✅ errors がある時だけ止める（warnings は止めない）
+const errs = Array.isArray(v?.errors) ? v.errors : [];
+const warns = Array.isArray(v?.warnings) ? v.warnings : [];
+
+if (errs.length > 0) {
+  showErrors(buildValidateHtml(errs, warns));
+  toast("アップロードできません（事前チェックNG）", "bad", 12000);
+  return;
+}
+
+// warnings は表示するが続行する（以前の運用に戻す）
+if (warns.length > 0) {
+  showErrors(buildValidateHtml([], warns));
+  toast("警告あり（続行します）: 未登録行は NEEDS_EMAIL になります", "warn", 9000);
+} else {
+  clearErrors();
+  toast("事前チェックOK。自動生成を開始します。", "ok", 7000);
+}
+
+// import → continueへ
+setBusy(uploadBtn, true, "生成中…");
+await importAndAutoRun(csvText);
 
       // warnings allowed
       if ((v.warnings || []).length) {
