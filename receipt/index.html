@@ -121,9 +121,8 @@
       line-height:1.5;
       margin-top:10px;
       display:none;
+      white-space:pre-wrap;
     }
-    .errorBox b{ color:#7f1d1d; }
-    .errorBox code{ font-family:var(--mono); }
 
     .progressWrap{ display:none; margin-top:10px; }
     .bar{ height:10px; border-radius:999px; background:#eef2f7; overflow:hidden; border:1px solid var(--line); }
@@ -189,27 +188,6 @@
     .pdfLink{ color:var(--accent); font-weight:900; text-decoration:underline; cursor:pointer; white-space:nowrap; }
     .mutedSmall{ color:var(--muted); font-size:12px; }
     .smallInput{ min-width:220px; }
-    .rowLine{ display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
-
-    .tabsWrap{ margin-top:12px; border-top:1px solid var(--line2); padding-top:10px; }
-    .tabs{ display:flex; gap:8px; flex-wrap:wrap; align-items:center; }
-    .tab{
-      padding:8px 10px;
-      border-radius:999px;
-      border:1px solid var(--line);
-      background:#fff;
-      cursor:pointer;
-      font-size:13px;
-      font-weight:900;
-      color:#334155;
-      user-select:none;
-      white-space:nowrap;
-    }
-    .tab.active{
-      border-color: rgba(11,187,85,.55);
-      box-shadow: 0 0 0 4px rgba(11,187,85,.10);
-      color:#0a7a3f;
-    }
 
     .toast{
       position:fixed;
@@ -254,8 +232,8 @@
     <div class="header">
       <h1>レシート管理</h1>
       <div class="sub">
-        CSVをアップロードすると、まず <b>事前チェック（会員ID/HubSpot/メール）</b> を行います<br>
-        問題がなければ、自動でPDF生成まで進み、完了後に一覧が再表示されます
+        CSVをアップロードすると、まず <b>事前チェック（形式のみ）</b> を行い、<br>
+        その後は <b>Queue（バックグラウンド処理）</b> が最後まで自動で処理します（UIが止まっても継続）
       </div>
       <a class="back" href="/">← ダッシュボードへ戻る</a>
     </div>
@@ -265,7 +243,7 @@
       <div class="cardHead">
         <h2>CSVアップロード</h2>
         <div class="row">
-          <button class="btn solid" id="uploadBtn" disabled>アップロード → 事前チェック → 自動生成</button>
+          <button class="btn solid" id="uploadBtn" disabled>アップロード → Queueで自動生成</button>
         </div>
       </div>
       <div class="cardBody">
@@ -299,7 +277,6 @@
             <input type="text" id="q" placeholder="例）5580 / Kimura">
           </label>
           <button class="btn secondary" id="reloadBtn">一覧を再読込</button>
-          <button class="btn secondary" id="allBranchBtn">全Branch</button>
 
           <span class="pill">選択 <span class="mono" id="selCount">0</span></span>
           <button class="btn secondary" id="selAllBtn">全選択</button>
@@ -307,7 +284,6 @@
 
           <button class="btn" id="sendSelectedBtn" disabled>選択送信</button>
           <button class="btn danger" id="deleteSelectedBtn" disabled>選択削除</button>
-
           <button class="btn danger" id="bulkDeleteBtn">前年を全削除（要入力）</button>
         </div>
         <div class="note">※ 表示対象は選択した年度のレシートです（送信対象は DONE のみ）</div>
@@ -346,45 +322,6 @@
             <tbody id="tbody"></tbody>
           </table>
         </div>
-
-        <div class="tabsWrap">
-          <div class="mutedSmall" style="margin-bottom:6px;">Branchタブ：</div>
-          <div class="tabs" id="tabs"></div>
-        </div>
-
-        <!-- Email Missing List -->
-        <div class="card" id="missingCard" style="margin-top:14px; display:none;">
-          <div class="cardHead">
-            <h2>Email Missing List（未登録）</h2>
-            <div class="row">
-              <button class="btn secondary" id="reloadMissingBtn">再読込</button>
-            </div>
-          </div>
-          <div class="cardBody">
-            <div class="note">
-              ここに出る人は <b>送信対象のチェックができません</b>（Email未登録のため）<br>
-              Emailを入力して保存すると、次回リロードで通常一覧に移動し送信可能になります
-            </div>
-
-            <div style="overflow:auto; border:1px solid var(--line2); border-radius:12px; max-height:420px; margin-top:10px;">
-              <table>
-                <thead>
-                  <tr>
-                    <th style="width:14%;">Member ID</th>
-                    <th style="width:20%;">Name</th>
-                    <th style="width:10%;">Branch</th>
-                    <th style="width:8%;">Year</th>
-                    <th style="width:12%;">Amount</th>
-                    <th style="width:18%;">Email（入力）</th>
-                    <th style="width:18%;">Action</th>
-                  </tr>
-                </thead>
-                <tbody id="missingTbody"></tbody>
-              </table>
-            </div>
-          </div>
-        </div>
-
       </div>
     </div>
 
@@ -394,40 +331,26 @@
 
 <script>
 (() => {
-  // ========= API base =========
   const API = "/api/admin/receipt";
 
-  // endpoints
+  // ✅ Queues版 endpoints（旧 import/continue は使わない）
   const EP = {
-  version: "/_version",
-  dashboard: "/dashboard",
+    version: "/_version",
+    dashboard: "/dashboard",
+    validate: "/import/validate",      // 形式チェックのみ（軽量）
+    importStart: "/import/start",      // ★Queues Start
+    importStatus: "/import/status",    // ★Queues Status
+    sendOne: "/email/send-one",
+    sendSelected: "/email/send-selected",
+    deleteSelected: "/delete-selected",
+    bulkDeleteYear: "/bulk-delete-year",
+  };
 
-  // validate は軽量版でOK（警告出しても続行）
-  validate: "/import/validate",
-
-  // ★Queues版：start/status を使う
-  importStart: "/import/start",
-  importStatus: "/import/status",
-
-  // 旧contは使わない（残してもOKだが呼ばない）
-  // cont: "/import/continue",
-
-  sendOne: "/email/send-one",
-  sendBulk: "/email/send-bulk",
-  sendSelected: "/email/send-selected",
-  deleteSelected: "/delete-selected",
-  bulkDeleteYear: "/bulk-delete-year",
-  setEmail: "/set-email",
-  missingEmail: "/missing-email",
-};
-
-  // ========= elements =========
   const el = (id) => document.getElementById(id);
 
   const yearEl = el("year");
   const qEl = el("q");
   const reloadBtn = el("reloadBtn");
-  const allBranchBtn = el("allBranchBtn");
 
   const selCountEl = el("selCount");
   const selAllBtn = el("selAllBtn");
@@ -445,7 +368,6 @@
   const progressTextEl = el("progressText");
 
   const tbodyEl = el("tbody");
-  const tabsEl = el("tabs");
 
   const kpiRowsEl = el("kpiRows");
   const kpiDoneEl = el("kpiDone");
@@ -454,22 +376,12 @@
   const kpiAmountEl = el("kpiAmount");
   const buildTagEl = el("buildTag");
 
-  const missingCard = el("missingCard");
-  const reloadMissingBtn = el("reloadMissingBtn");
-  const missingTbody = el("missingTbody");
-
-  // ========= state =========
   let selectedFile = null;
   let allRows = [];
-  let selectedBranch = "ALL";
+  const selected = new Set(); // `${member_id}|${year}`
 
-  // selection set: key = `${member_id}|${year}`
-  const selected = new Set();
+  let _autoRunning = false;
 
-  // sent label memory
-  const sentMap = new Map();
-
-  // ========= utils =========
   function toast(msg, type="info", ttl=5200){
     const t = document.getElementById("toast");
     const item = document.createElement("div");
@@ -500,13 +412,13 @@
     if (!busy && btn.dataset._label) { btn.textContent = btn.dataset._label; delete btn.dataset._label; }
   }
 
-  function showErrors(html){
+  function showErrors(text){
     errorsEl.style.display = "block";
-    errorsEl.innerHTML = html;
+    errorsEl.textContent = text;
   }
   function clearErrors(){
     errorsEl.style.display = "none";
-    errorsEl.innerHTML = "";
+    errorsEl.textContent = "";
   }
 
   function showProgress(show){
@@ -519,23 +431,10 @@
     const ok = Number(job?.ok_rows ?? 0);
     const ng = Number(job?.ng_rows ?? 0);
     const status = String(job?.status ?? "—");
+    const phase = String(job?.phase ?? "—");
     const pct = total > 0 ? Math.min(100, Math.round((processed/total)*100)) : 0;
     barFillEl.style.width = pct + "%";
-    progressTextEl.textContent = `処理中：${processed}/${total}（OK:${ok} / NG:${ng}） 状態:${status}`;
-  }
-
-  function escapeHtml(str){
-    return String(str ?? "")
-      .replaceAll("&","&amp;")
-      .replaceAll("<","&lt;")
-      .replaceAll(">","&gt;")
-      .replaceAll('"',"&quot;")
-      .replaceAll("'","&#039;");
-  }
-
-  function fmtInt(n){
-    if (n == null || isNaN(Number(n))) return "—";
-    return Number(n).toLocaleString("en-US");
+    progressTextEl.textContent = `処理中：${processed}/${total}（OK:${ok} / NG:${ng}） 状態:${status} / phase:${phase}`;
   }
 
   function fmtMoneyFromCents(cents){
@@ -546,16 +445,10 @@
 
   function keyOf(memberId, year){ return `${String(memberId||"").trim()}|${String(year||"").trim()}`; }
 
-  function statusBadge(row){
-    const up = String(row.status||"").toUpperCase();
-    if (up === "DONE") return `<span class="status done">DONE</span>`;
-    if (up === "NEEDS_EMAIL") return `<span class="status needs">NEEDS_EMAIL</span>`;
-    if (up === "ERROR") return `<span class="status err">ERROR</span>`;
-    return `<span class="status pending">${escapeHtml(up || "PENDING")}</span>`;
-  }
-
-  function isSendable(row){
-    return String(row.status||"").toUpperCase() === "DONE";
+  function updateSelectionUI(){
+    selCountEl.textContent = String(selected.size);
+    sendSelectedBtn.disabled = (selected.size === 0);
+    deleteSelectedBtn.disabled = (selected.size === 0);
   }
 
   async function apiFetch(path, opts={}){
@@ -575,137 +468,6 @@
     return body;
   }
 
-  function applyFilter(rows){
-    const q = qEl.value.trim().toLowerCase();
-    let out = rows;
-    if (selectedBranch !== "ALL") out = out.filter(r => String(r.branch||"") === selectedBranch);
-    if (q) out = out.filter(r =>
-      String(r.member_id||"").toLowerCase().includes(q) ||
-      String(r.name||"").toLowerCase().includes(q)
-    );
-    return out;
-  }
-
-  function computeKpi(rows){
-    let done=0, pending=0, err=0, sum=0;
-    for (const r of rows) {
-      const s = String(r.status||"").toUpperCase();
-      if (s === "DONE") done++;
-      else if (s === "ERROR") err++;
-      else pending++;
-      if (!isNaN(Number(r.amount_cents))) sum += Number(r.amount_cents);
-    }
-    kpiRowsEl.textContent = fmtInt(rows.length);
-    kpiDoneEl.textContent = fmtInt(done);
-    kpiPendingEl.textContent = fmtInt(pending);
-    kpiErrorEl.textContent = fmtInt(err);
-    kpiAmountEl.textContent = fmtMoneyFromCents(sum);
-  }
-
-  function rebuildSelectionDefaults(){
-    // default: select all sendable rows
-    selected.clear();
-    for (const r of allRows) {
-      if (isSendable(r)) selected.add(keyOf(r.member_id, r.year));
-    }
-    updateSelectionUI();
-  }
-
-  function updateSelectionUI(){
-    selCountEl.textContent = String(selected.size);
-    sendSelectedBtn.disabled = (selected.size === 0);
-    deleteSelectedBtn.disabled = (selected.size === 0);
-  }
-
-  function buildTabs(rows, missingCount){
-    const branches = Array.from(new Set(rows.map(r => String(r.branch||"UNKNOWN"))))
-      .sort((a,b)=>a.localeCompare(b));
-    tabsEl.innerHTML = "";
-
-    const makeTab = (label, value) => {
-      const btn = document.createElement("button");
-      btn.className = "tab" + (selectedBranch === value ? " active" : "");
-      btn.textContent = label;
-      btn.onclick = () => { selectedBranch = value; render(); };
-      return btn;
-    };
-
-    tabsEl.appendChild(makeTab("All", "ALL"));
-    for (const b of branches) tabsEl.appendChild(makeTab(b, b));
-
-    // Email Missing tab (visual only, does not affect main list filter)
-    const missLabel = missingCount > 0 ? `Email Missing (${missingCount})` : "Email Missing";
-    const missBtn = document.createElement("button");
-    missBtn.className = "tab";
-    missBtn.textContent = missLabel;
-    missBtn.onclick = async () => {
-      await loadMissingEmail();
-      missingCard.style.display = "block";
-      missingCard.scrollIntoView({ behavior:"smooth", block:"start" });
-    };
-    tabsEl.appendChild(missBtn);
-  }
-
-  function render(){
-    const rows = applyFilter(allRows);
-    computeKpi(rows);
-    updateSelectionUI();
-
-    tbodyEl.innerHTML = "";
-    if (rows.length === 0) {
-      const tr = document.createElement("tr");
-      tr.innerHTML = `<td colspan="10" class="mutedSmall" style="padding:14px;">表示するデータがありません</td>`;
-      tbodyEl.appendChild(tr);
-      return;
-    }
-
-    for (const r of rows) {
-      const memberId = String(r.member_id||"").trim();
-      const year = String(r.year||"").trim();
-      const canSend = isSendable(r);
-      const k = keyOf(memberId, year);
-      const checked = selected.has(k);
-      const stamp = sentMap.get(k);
-
-      const tr = document.createElement("tr");
-
-      const chkCell = `
-        <input class="chk" type="checkbox"
-          data-action="toggleSelect"
-          data-mid="${escapeHtml(memberId)}"
-          data-year="${escapeHtml(year)}"
-          ${canSend ? "" : "disabled"}
-          ${checked ? "checked" : ""} />
-      `;
-
-      const sendCell = stamp
-        ? `<span class="status done">Sent ${escapeHtml(stamp)}</span>`
-        : `<button class="btn secondary" data-action="sendOne" data-mid="${escapeHtml(memberId)}" data-year="${escapeHtml(year)}" ${canSend ? "" : "disabled"}>個別送信</button>`;
-
-      const delCell = `<button class="btn danger" data-action="deleteOne" data-mid="${escapeHtml(memberId)}" data-year="${escapeHtml(year)}">削除</button>`;
-
-      const pdf = r.pdf_key
-        ? `<a class="pdfLink" href="/api/admin/receipt/pdf?member_id=${encodeURIComponent(memberId)}&year=${encodeURIComponent(year)}" target="_blank" rel="noopener">PDF</a>`
-        : "—";
-
-      tr.innerHTML = `
-        <td>${chkCell}</td>
-        <td>${sendCell}</td>
-        <td>${delCell}</td>
-        <td class="mono">${escapeHtml(memberId || "—")}</td>
-        <td>${escapeHtml(String(r.name||"—"))}</td>
-        <td>${escapeHtml(String(r.branch||"—"))}</td>
-        <td class="mono">${escapeHtml(String(r.year||"—"))}</td>
-        <td>${escapeHtml(fmtMoneyFromCents(r.amount_cents))}</td>
-        <td>${statusBadge(r)}</td>
-        <td>${pdf}</td>
-      `;
-
-      tbodyEl.appendChild(tr);
-    }
-  }
-
-  // ========= API actions =========
   async function loadVersion(){
     try{
       const v = await apiFetch(EP.version, { method:"GET" });
@@ -722,12 +484,71 @@
     const data = await apiFetch(`${EP.dashboard}?year=${encodeURIComponent(y)}`, { method:"GET" });
     allRows = Array.isArray(data?.rows) ? data.rows : [];
 
-    // default selection
-    rebuildSelectionDefaults();
-
-    // update tabs (missing count is loaded lazily; show 0 first)
-    buildTabs(allRows, 0);
+    // DONEだけデフォルト選択
+    selected.clear();
+    for (const r of allRows) {
+      if (String(r.status||"").toUpperCase() === "DONE") selected.add(keyOf(r.member_id, r.year));
+    }
+    updateSelectionUI();
     render();
+  }
+
+  function computeKpi(rows){
+    let done=0, pending=0, err=0, sum=0;
+    for (const r of rows) {
+      const s = String(r.status||"").toUpperCase();
+      if (s === "DONE") done++;
+      else if (s === "ERROR") err++;
+      else pending++;
+      if (!isNaN(Number(r.amount_cents))) sum += Number(r.amount_cents);
+    }
+    kpiRowsEl.textContent = String(rows.length);
+    kpiDoneEl.textContent = String(done);
+    kpiPendingEl.textContent = String(pending);
+    kpiErrorEl.textContent = String(err);
+    kpiAmountEl.textContent = fmtMoneyFromCents(sum);
+  }
+
+  function render(){
+    const q = qEl.value.trim().toLowerCase();
+    const rows = q ? allRows.filter(r =>
+      String(r.member_id||"").toLowerCase().includes(q) ||
+      String(r.name||"").toLowerCase().includes(q)
+    ) : allRows;
+
+    computeKpi(rows);
+    updateSelectionUI();
+
+    tbodyEl.innerHTML = "";
+    if (!rows.length) {
+      const tr = document.createElement("tr");
+      tr.innerHTML = `<td colspan="10" class="mutedSmall" style="padding:14px;">表示するデータがありません</td>`;
+      tbodyEl.appendChild(tr);
+      return;
+    }
+
+    for (const r of rows) {
+      const memberId = String(r.member_id||"").trim();
+      const year = String(r.year||"").trim();
+      const canSend = String(r.status||"").toUpperCase() === "DONE";
+      const k = keyOf(memberId, year);
+      const checked = selected.has(k);
+
+      const tr = document.createElement("tr");
+      tr.innerHTML = `
+        <td><input class="chk" type="checkbox" data-mid="${memberId}" data-year="${year}" ${canSend ? "" : "disabled"} ${checked ? "checked" : ""}></td>
+        <td><button class="btn secondary" data-action="sendOne" data-mid="${memberId}" data-year="${year}" ${canSend ? "" : "disabled"}>個別送信</button></td>
+        <td><button class="btn danger" data-action="deleteOne" data-mid="${memberId}" data-year="${year}">削除</button></td>
+        <td class="mono">${memberId}</td>
+        <td>${String(r.name||"—")}</td>
+        <td>${String(r.branch||"—")}</td>
+        <td class="mono">${year}</td>
+        <td>${fmtMoneyFromCents(r.amount_cents)}</td>
+        <td><span class="status ${canSend ? "done" : "pending"}">${String(r.status||"")}</span></td>
+        <td>${r.pdf_key ? `<a class="pdfLink" target="_blank" rel="noopener" href="/api/admin/receipt/pdf?member_id=${encodeURIComponent(memberId)}&year=${encodeURIComponent(year)}">PDF</a>` : "—"}</td>
+      `;
+      tbodyEl.appendChild(tr);
+    }
   }
 
   async function validateCsv(csvText){
@@ -739,209 +560,19 @@
   }
 
   async function importStartCsv(csvText){
-  return await apiFetch(EP.importStart, {
-    method:"POST",
-    headers:{ "Content-Type":"text/csv" },
-    body: csvText
-  });
-}
-
-  async function continueImport(jobId, batch=2){
-    return await apiFetch(`${EP.cont}?job_id=${encodeURIComponent(jobId)}&batch=${encodeURIComponent(batch)}`, {
-      method:"POST"
-    });
-  }
-
-  async function sendOne(member_id, year){
-    return await apiFetch(EP.sendOne, {
+    return await apiFetch(EP.importStart, {
       method:"POST",
-      headers:{ "Content-Type":"application/json" },
-      body: JSON.stringify({ member_id, year: Number(year) })
+      headers:{ "Content-Type":"text/csv" },
+      body: csvText
     });
   }
 
-  async function sendSelected(selections){
-    return await apiFetch(EP.sendSelected, {
-      method:"POST",
-      headers:{ "Content-Type":"application/json" },
-      body: JSON.stringify({ selections })
-    });
-  }
-
-  async function deleteSelected(selections){
-    return await apiFetch(EP.deleteSelected, {
-      method:"POST",
-      headers:{ "Content-Type":"application/json" },
-      body: JSON.stringify({ selections })
-    });
-  }
-
-  async function bulkDeleteYear(year, confirmText){
-    return await apiFetch(EP.bulkDeleteYear, {
-      method:"POST",
-      headers:{ "Content-Type":"application/json" },
-      body: JSON.stringify({ year: Number(year), confirm: confirmText })
-    });
-  }
-
-  async function setEmail(member_id, year, email){
-    return await apiFetch(EP.setEmail, {
-      method:"POST",
-      headers:{ "Content-Type":"application/json" },
-      body: JSON.stringify({ member_id, year: Number(year), email })
-    });
-  }
-
-  async function loadMissingEmail(){
-    const y = Number(yearEl.value);
-    const branch = selectedBranch || "ALL";
-    const data = await apiFetch(`${EP.missingEmail}?year=${encodeURIComponent(y)}&branch=${encodeURIComponent(branch)}`, { method:"GET" });
-    const rows = Array.isArray(data?.rows) ? data.rows : [];
-
-    // update tab label with count
-    buildTabs(allRows, rows.length);
-
-    missingTbody.innerHTML = "";
-    if (!rows.length) {
-      const tr = document.createElement("tr");
-      tr.innerHTML = `<td colspan="7" class="mutedSmall" style="padding:12px;">Email Missing はありません</td>`;
-      missingTbody.appendChild(tr);
-      return;
-    }
-
-    for (const r of rows) {
-      const memberId = String(r.member_id||"").trim();
-      const year = String(r.year||"").trim();
-      const branch = String(r.branch||"").trim();
-      const name = String(r.name||"").trim();
-      const cents = r.amount_cents;
-
-      const tr = document.createElement("tr");
-      tr.innerHTML = `
-        <td class="mono">${escapeHtml(memberId)}</td>
-        <td>${escapeHtml(name)}</td>
-        <td>${escapeHtml(branch)}</td>
-        <td class="mono">${escapeHtml(year)}</td>
-        <td>${escapeHtml(fmtMoneyFromCents(cents))}</td>
-        <td>
-          <input class="smallInput" type="email" placeholder="example@worlddivinelight.org"
-            data-mid="${escapeHtml(memberId)}" data-year="${escapeHtml(year)}" />
-          <div class="mutedSmall">現状: Email が空 / not available</div>
-        </td>
-        <td>
-          <button class="btn" data-action="saveEmail" data-mid="${escapeHtml(memberId)}" data-year="${escapeHtml(year)}">保存</button>
-        </td>
-      `;
-      missingTbody.appendChild(tr);
-    }
-  }
-
-  function buildValidateHtml(errors, warnings){
-  errors = Array.isArray(errors) ? errors : [];
-  warnings = Array.isArray(warnings) ? warnings : [];
-
-  const groups = {};
-  for (const e of errors) (groups[e.type] ||= []).push(e);
-
-  // ✅ タイトル：errors が無ければ「続行できます」にする
-  let html = "";
-  if (errors.length) {
-    html += `<b>CSVをアップロードできません（事前チェックで問題が見つかりました）</b><br><br>`;
-  } else {
-    html += `<b>事前チェック：警告あり（処理は続行できます）</b><br><br>`;
-  }
-
-  // --- errors ---
-  if (groups.INVALID_AMOUNT) {
-    html += `<b>金額（amount）が不正</b><br>`;
-    html += groups.INVALID_AMOUNT.slice(0, 20).map(e =>
-      `・${e.row}行目：ID <code>${escapeHtml(e.member_id||"")}</code> の amount を確認してください`
-    ).join("<br>") + "<br><br>";
-    if (groups.INVALID_AMOUNT.length > 20) html += `…他 ${groups.INVALID_AMOUNT.length - 20} 件<br><br>`;
-  }
-
-  if (groups.HUBSPOT_NOT_FOUND) {
-    html += `<b>HubSpotに会員が存在しません</b><br>`;
-    html += groups.HUBSPOT_NOT_FOUND.slice(0, 20).map(e =>
-      `・${e.row}行目：ID <code>${escapeHtml(e.member_id||"")}</code> が見つかりません`
-    ).join("<br>") + "<br><br>";
-    if (groups.HUBSPOT_NOT_FOUND.length > 20) html += `…他 ${groups.HUBSPOT_NOT_FOUND.length - 20} 件<br><br>`;
-  }
-
-  if (groups.MISSING_MEMBER_ID) {
-    html += `<b>会員ID（member_id）が未入力</b><br>`;
-    html += groups.MISSING_MEMBER_ID.slice(0, 20).map(e =>
-      `・${e.row}行目：member_id が空です`
-    ).join("<br>") + "<br><br>";
-    if (groups.MISSING_MEMBER_ID.length > 20) html += `…他 ${groups.MISSING_MEMBER_ID.length - 20} 件<br><br>`;
-  }
-
-  if (groups.MISSING_BRANCH) {
-    html += `<b>Branchが未入力</b><br>`;
-    html += groups.MISSING_BRANCH.slice(0, 20).map(e =>
-      `・${e.row}行目：ID <code>${escapeHtml(e.member_id||"")}</code> の branch が空です`
-    ).join("<br>") + "<br><br>";
-    if (groups.MISSING_BRANCH.length > 20) html += `…他 ${groups.MISSING_BRANCH.length - 20} 件<br><br>`;
-  }
-
-  if (groups.INVALID_YEAR) {
-    html += `<b>年度（year）が不正</b><br>`;
-    html += groups.INVALID_YEAR.slice(0, 20).map(e =>
-      `・${e.row}行目：ID <code>${escapeHtml(e.member_id||"")}</code> の year を確認してください`
-    ).join("<br>") + "<br><br>";
-    if (groups.INVALID_YEAR.length > 20) html += `…他 ${groups.INVALID_YEAR.length - 20} 件<br><br>`;
-  }
-
-  // --- warnings (続行OK) ---
-  if (warnings.length) {
-    html += `<b>警告（処理は続行できます）</b><br>`;
-    const show = warnings.slice(0, 20).map(w =>
-      `・${escapeHtml(w.type)}：ID <code>${escapeHtml(w.member_id||"")}</code>`
-    ).join("<br>");
-    html += show;
-
-    if (warnings.length > 20) {
-      html += `<br>…他 ${warnings.length - 20} 件`;
-    }
-
-    html += `<br><br><span class="mutedSmall">※ Email未登録の行は NEEDS_EMAIL として保存され、後から email を入力して送信できます</span>`;
-  }
-
-  return html;
-}
-
-  let _autoRunning = false;
-
-async function importAndAutoRun(csvText){
-  if (_autoRunning) return;
-  _autoRunning = true;
-
-  try{
-    showProgress(true);
-    barFillEl.style.width = "0%";
-    progressTextEl.textContent = "アップロード中…";
-
-    // 1) import/start（ここでQueueへ投げるだけ。すぐ返る）
-    const startRes = await importStartCsv(csvText);
-    const jobId = startRes?.job_id;
-    const year = startRes?.year;
-
-    if (!jobId) throw new Error("import_start_failed: no_job_id");
-
-    toast(`アップロード完了。バックグラウンドで生成を開始しました。\njob_id: ${jobId}`, "ok", 9000);
-
-    // 2) statusポーリング
+  async function pollStatus(jobId, year){
     const POLL_MS = 2000;
-    const MAX_POLLS = 3600; // 2秒×3600=2時間（安全）
-    let polls = 0;
 
     while (true) {
-      polls++;
-      if (polls > MAX_POLLS) throw new Error("poll_timeout");
-
       const st = await apiFetch(`${EP.importStatus}?job_id=${encodeURIComponent(jobId)}`, { method:"GET" });
       const job = st?.job;
-
       if (job) updateProgress(job);
 
       const status = String(job?.status || "").toUpperCase();
@@ -950,227 +581,67 @@ async function importAndAutoRun(csvText){
         if (year) yearEl.value = String(year);
         await loadDashboard();
         showProgress(false);
-        break;
+        return;
       }
-
       if (status === "ERROR") {
         toast(`取込エラー：${job?.last_error || "unknown"}`, "bad", 12000);
         showProgress(false);
-        break;
+        return;
       }
-
-      // RUNNING / PARSING / PROCESSING
       await new Promise(r => setTimeout(r, POLL_MS));
     }
-
-  } finally {
-    _autoRunning = false;
   }
-}
 
-  function getSelectedSelectionsFromVisible(){
-    // select rows from current filtered rows only
-    const rows = applyFilter(allRows);
-    const out = [];
-    for (const r of rows) {
-      const mid = String(r.member_id||"").trim();
-      const y = Number(r.year);
-      if (!mid || !y) continue;
-      const k = keyOf(mid, y);
-      if (selected.has(k)) out.push({ member_id: mid, year: y });
+  async function importAndAutoRun(csvText){
+    if (_autoRunning) return;
+    _autoRunning = true;
+
+    try{
+      showProgress(true);
+      barFillEl.style.width = "0%";
+      progressTextEl.textContent = "アップロード中…";
+
+      const startRes = await importStartCsv(csvText);
+      const jobId = startRes?.job_id;
+      const year = startRes?.year;
+
+      if (!jobId) throw new Error("import_start_failed: no_job_id");
+
+      toast(`アップロード完了。バックグラウンドで生成を開始しました。\njob_id: ${jobId}`, "ok", 9000);
+
+      await pollStatus(jobId, year);
+
+    } finally {
+      _autoRunning = false;
     }
-    return out;
   }
 
-  // ========= events =========
+  // ========== events ==========
   qEl.oninput = () => render();
 
   reloadBtn.onclick = async () => {
-    try{
-      await loadDashboard();
-      toast("一覧を更新しました。", "ok");
-    }catch(e){
-      toast(`更新に失敗しました：${e.message}`, "bad", 9000);
-    }
-  };
-
-  allBranchBtn.onclick = () => {
-    selectedBranch = "ALL";
-    render();
+    try { await loadDashboard(); toast("一覧を更新しました。","ok"); }
+    catch(e){ toast(`更新失敗：${e.message}`,"bad",12000); }
   };
 
   selAllBtn.onclick = () => {
-    // select all sendable in current filter
-    const rows = applyFilter(allRows);
-    for (const r of rows) {
-      if (!isSendable(r)) continue;
-      selected.add(keyOf(r.member_id, r.year));
+    for (const r of allRows) {
+      if (String(r.status||"").toUpperCase() === "DONE") selected.add(keyOf(r.member_id, r.year));
     }
-    updateSelectionUI();
-    render();
+    updateSelectionUI(); render();
   };
 
   selNoneBtn.onclick = () => {
-    // clear selection only for current filter
-    const rows = applyFilter(allRows);
-    for (const r of rows) {
-      selected.delete(keyOf(r.member_id, r.year));
-    }
-    updateSelectionUI();
-    render();
+    selected.clear();
+    updateSelectionUI(); render();
   };
 
-  sendSelectedBtn.onclick = async () => {
-    const selections = getSelectedSelectionsFromVisible();
-    if (!selections.length) { toast("送信対象が選択されていません。", "warn"); return; }
-
-    const exclude = applyFilter(allRows).filter(r => isSendable(r)).length - selections.length;
-    if (!confirm(`選択送信しますか？\n\nTargets: ${selections.length}\nExcluded: ${exclude}\nYear: ${yearEl.value}\nBranch: ${selectedBranch}`)) return;
-
-    setBusy(sendSelectedBtn, true, "送信中…");
-    try{
-      const res = await sendSelected(selections);
-      const stamp = new Date().toLocaleTimeString("ja-JP",{hour:"2-digit",minute:"2-digit"});
-      for (const s of selections) sentMap.set(keyOf(s.member_id, s.year), stamp);
-      toast(`選択送信 完了\nTargets: ${res?.targets ?? selections.length}\ncan_send: ${res?.sent_ok ?? res?.can_send ?? "—"} / cannot: ${res?.sent_ng ?? res?.cannot_send ?? "—"}`, "ok", 12000);
-      render();
-    }catch(e){
-      toast(`選択送信 失敗\n${e.message}`, "bad", 12000);
-    }finally{
-      setBusy(sendSelectedBtn, false);
-    }
-  };
-
-  deleteSelectedBtn.onclick = async () => {
-    const selections = getSelectedSelectionsFromVisible();
-    if (!selections.length) { toast("削除対象が選択されていません。", "warn"); return; }
-
-    if (!confirm(`選択削除しますか？\n\nTargets: ${selections.length}\nYear: ${yearEl.value}\nBranch: ${selectedBranch}\n\n※ D1行 + R2 PDF も削除します`)) return;
-
-    setBusy(deleteSelectedBtn, true, "削除中…");
-    try{
-      const res = await deleteSelected(selections);
-      toast(`選択削除 完了\nok: ${res?.deleted_ok ?? "—"} / ng: ${res?.deleted_ng ?? "—"}`, "ok", 9000);
-      await loadDashboard();
-    }catch(e){
-      toast(`選択削除 失敗\n${e.message}`, "bad", 12000);
-    }finally{
-      setBusy(deleteSelectedBtn, false);
-    }
-  };
-
-  bulkDeleteBtn.onclick = async () => {
-    const y = Number(yearEl.value);
-    const allowedYear = (new Date()).getFullYear() - 1;
-
-    if (y !== allowedYear) {
-      alert(`前年のみ全削除できます。\nAllowed year: ${allowedYear}\nCurrent: ${y}`);
-      return;
-    }
-
-    const typed = prompt(`前年（${allowedYear}年）の全レコードを削除します。\n\n本当に実行する場合は次を入力：\nDELETE ${allowedYear}`);
-    if (!typed) return;
-
-    setBusy(bulkDeleteBtn, true, "削除中…");
-    try{
-      const res = await bulkDeleteYear(allowedYear, typed);
-      toast(`前年全削除 完了\nrows: ${res?.deleted_rows ?? "—"} / pdf: ${res?.deleted_pdf ?? "—"}`, "ok", 12000);
-      await loadDashboard();
-    }catch(e){
-      toast(`前年全削除 失敗\n${e.message}`, "bad", 12000);
-    }finally{
-      setBusy(bulkDeleteBtn, false);
-    }
-  };
-
-  reloadMissingBtn.onclick = async () => {
-    try{
-      await loadMissingEmail();
-      toast("Email Missing を更新しました。", "ok");
-    }catch(e){
-      toast(`Email Missing 更新失敗：${e.message}`, "bad", 9000);
-    }
-  };
-
-  // table click handlers
-  tbodyEl.addEventListener("click", async (e) => {
-    const btn = e.target.closest("button[data-action]");
-    if (!btn) return;
-
-    const action = btn.dataset.action;
-    const memberId = btn.dataset.mid;
-    const year = btn.dataset.year;
-
-    if (action === "sendOne") {
-      setBusy(btn, true, "送信中…");
-      try{
-        const res = await sendOne(memberId, year);
-        const stamp = new Date().toLocaleTimeString("ja-JP",{hour:"2-digit",minute:"2-digit"});
-        sentMap.set(keyOf(memberId, year), stamp);
-        toast(`個別送信 完了：${memberId} (${year})\nTo: ${res?.to || "—"}`, "ok", 9000);
-        render();
-      }catch(err){
-        toast(`個別送信 失敗：${memberId}\n${err.message}`, "bad", 12000);
-      }finally{
-        setBusy(btn, false);
-      }
-      return;
-    }
-
-    if (action === "deleteOne") {
-      if (!confirm(`この行を削除しますか？\n\nmember_id: ${memberId}\nyear: ${year}\n\n※ D1行 + R2 PDF も削除します`)) return;
-      setBusy(btn, true, "削除中…");
-      try{
-        const res = await deleteSelected([{ member_id: memberId, year: Number(year) }]);
-        toast(`削除 完了：${memberId} (${year})\n${res?.deleted_ok ? "OK" : "NG"}`, "ok", 9000);
-        await loadDashboard();
-      }catch(err){
-        toast(`削除 失敗：${memberId}\n${err.message}`, "bad", 12000);
-      }finally{
-        setBusy(btn, false);
-      }
-      return;
-    }
-  });
-
-  // checkbox handler
   tbodyEl.addEventListener("change", (e) => {
-    const chk = e.target.closest("input[data-action='toggleSelect']");
+    const chk = e.target.closest("input.chk");
     if (!chk) return;
-    const mid = chk.dataset.mid;
-    const year = chk.dataset.year;
-    const k = keyOf(mid, year);
-    if (chk.checked) selected.add(k);
-    else selected.delete(k);
+    const k = keyOf(chk.dataset.mid, chk.dataset.year);
+    if (chk.checked) selected.add(k); else selected.delete(k);
     updateSelectionUI();
-  });
-
-  // missing table save email
-  missingTbody.addEventListener("click", async (e) => {
-    const btn = e.target.closest("button[data-action='saveEmail']");
-    if (!btn) return;
-    const mid = btn.dataset.mid;
-    const year = Number(btn.dataset.year);
-
-    const input = missingTbody.querySelector(`input[data-mid="${CSS.escape(mid)}"][data-year="${CSS.escape(String(year))}"]`);
-    const email = String(input?.value || "").trim().toLowerCase();
-
-    if (!email) { toast("Emailを入力してください。", "warn"); return; }
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { toast("Email形式が不正です。", "warn"); return; }
-
-    setBusy(btn, true, "保存中…");
-    try{
-      const res = await setEmail(mid, year, email);
-      toast(`保存しました：${mid} (${year})\n${res?.hubspot_updated ? "HubSpot: updated" : "HubSpot: skipped/failed"}`, "ok", 9000);
-      // reload both lists
-      await loadDashboard();
-      await loadMissingEmail();
-      render();
-    }catch(err){
-      toast(`保存失敗：${mid}\n${err.message}`, "bad", 12000);
-    }finally{
-      setBusy(btn, false);
-    }
   });
 
   // file upload
@@ -1183,6 +654,7 @@ async function importAndAutoRun(csvText){
 
   uploadBtn.onclick = async () => {
     if (!selectedFile) return;
+    if (_autoRunning) { toast("処理中です。しばらくお待ちください。","warn"); return; }
 
     clearErrors();
     setBusy(uploadBtn, true, "事前チェック中…");
@@ -1191,43 +663,24 @@ async function importAndAutoRun(csvText){
       const csvText = await selectedFile.text();
 
       const v = await validateCsv(csvText);
-
-// ✅ errors がある時だけ止める（warnings は止めない）
-const errs = Array.isArray(v?.errors) ? v.errors : [];
-const warns = Array.isArray(v?.warnings) ? v.warnings : [];
-
-if (errs.length > 0) {
-  showErrors(buildValidateHtml(errs, warns));
-  toast("アップロードできません（事前チェックNG）", "bad", 12000);
-  return;
-}
-
-// warnings は表示するが続行する（以前の運用に戻す）
-if (warns.length > 0) {
-  showErrors(buildValidateHtml([], warns));
-  toast("警告あり（続行します）: 未登録行は NEEDS_EMAIL になります", "warn", 9000);
-} else {
-  clearErrors();
-  toast("事前チェックOK。自動生成を開始します。", "ok", 7000);
-}
-
-// import → continueへ
-setBusy(uploadBtn, true, "生成中…");
-await importAndAutoRun(csvText);
-
-      // warnings allowed
-      if ((v.warnings || []).length) {
-        toast("警告あり（続行します）: Email未登録行は NEEDS_EMAIL になります", "warn", 9000);
+      // validateは ok=falseでも「警告扱い」で進めたい場合があるため、errorsだけ止める
+      if (v && v.errors && v.errors.length) {
+        showErrors("事前チェックでエラーが見つかりました。CSV形式を確認してください。\n" + JSON.stringify(v.errors, null, 2));
+        toast("アップロードできません（事前チェックNG）", "bad", 12000);
+        return;
+      }
+      if (v && v.warnings && v.warnings.length) {
+        showErrors("事前チェック：警告あり（処理は続行できます）\n" + v.warnings.map(w => `${w.type} ${w.member_id||""}`).join("\n"));
+        toast("警告あり（続行します）", "warn", 9000);
       } else {
-        toast("事前チェックOK。自動生成を開始します。", "ok", 7000);
+        toast("事前チェックOK。Queueで処理を開始します。", "ok", 7000);
       }
 
-      setBusy(uploadBtn, true, "生成中…");
+      setBusy(uploadBtn, true, "生成開始…");
       await importAndAutoRun(csvText);
 
     }catch(e){
       toast(`処理に失敗しました：${e.message}`, "bad", 12000);
-      console.error(e);
     }finally{
       setBusy(uploadBtn, false);
     }
@@ -1237,14 +690,9 @@ await importAndAutoRun(csvText);
   (async function init(){
     const now = new Date();
     yearEl.value = String(now.getFullYear() - 1);
-
     await loadVersion();
-
-    try{
-      await loadDashboard();
-    }catch(e){
-      toast("一覧の読み込みに失敗しました。Accessログイン後、再読込してください。", "warn", 9000);
-    }
+    try { await loadDashboard(); }
+    catch { toast("一覧の読み込みに失敗しました。Accessログイン後、再読込してください。", "warn", 9000); }
   })();
 
 })();
