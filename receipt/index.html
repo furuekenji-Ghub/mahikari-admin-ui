@@ -739,7 +739,7 @@
     });
   }
 
-  async function continueImport(jobId, batch=50){
+  async function continueImport(jobId, batch=5){
     return await apiFetch(`${EP.cont}?job_id=${encodeURIComponent(jobId)}&batch=${encodeURIComponent(batch)}`, {
       method:"POST"
     });
@@ -919,7 +919,7 @@
       safety++;
       if (safety > 500) throw new Error("auto_continue_safety_stop");
 
-      const cont = await continueImport(jobId, 50);
+      const cont = await continueImport(jobId, 5);
       const job = cont?.job;
       if (job) updateProgress(job);
 
