@@ -618,35 +618,6 @@
 
   // ========== events ==========
 
-  bulkDeleteBtn.onclick = async () => {
-  const y = Number(yearEl.value);
-  const allowedYear = (new Date()).getFullYear() - 1;
-
-  if (y !== allowedYear) {
-    alert(`前年のみ全削除できます。\nAllowed year: ${allowedYear}\nCurrent: ${y}`);
-    return;
-  }
-
-  const typed = prompt(
-    `前年（${allowedYear}年）の全レコードを削除します。\n\n本当に実行する場合は次を入力：\nDELETE ${allowedYear}`
-  );
-  if (!typed) return;
-
-  setBusy(bulkDeleteBtn, true, "削除中…");
-  try {
-    const res = await bulkDeleteYear(allowedYear, typed);
-    toast(
-      `前年全削除 完了\nrows: ${res?.deleted_rows ?? "—"} / pdf: ${res?.deleted_pdf ?? "—"}`,
-      "ok",
-      12000
-    );
-    await loadDashboard();
-  } catch (e) {
-    toast(`前年全削除 失敗\n${e.message}`, "bad", 12000);
-  } finally {
-    setBusy(bulkDeleteBtn, false);
-  }
-};
 
 // 検索
 qEl.addEventListener("input", () => render());
