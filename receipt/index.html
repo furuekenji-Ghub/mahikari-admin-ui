@@ -1,29 +1,180 @@
 <!doctype html>
 <html lang="ja">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Receipt Admin / レシート管理</title>
-<meta name="robots" content="noindex,nofollow">
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Receipt Admin / レシート管理</title>
+  <meta name="robots" content="noindex,nofollow" />
 
-<!-- ====== CSS：元のまま（省略せずそのまま） ====== -->
-<style>
-/* ★ ここはあなたの元のCSSを一切変更していません ★ */
-</style>
+  <!-- =====================
+       STYLE（緑基調・完全復元）
+       ===================== -->
+  <style>
+    :root{
+      --bg:#f7f9fb;
+      --card:#ffffff;
+      --text:#111827;
+      --muted:#6b7280;
+      --line:#e5e7eb;
+      --line2:#eef2f7;
+      --accent:#0b5;
+      --accent2:#059669;
+      --danger:#dc2626;
+      --warn:#d97706;
+      --shadow: 0 10px 24px rgba(17,24,39,.08);
+      --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      --sans: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Noto Sans JP", sans-serif;
+    }
+    *{ box-sizing:border-box; }
+    body{ margin:0; font-family:var(--sans); background:var(--bg); color:var(--text); }
+    .wrap{ max-width:1280px; margin:0 auto; padding:18px 16px 40px; }
+
+    .header{
+      background:var(--card);
+      border:1px solid var(--line);
+      border-radius:18px;
+      box-shadow:var(--shadow);
+      padding:16px;
+      margin-bottom:14px;
+    }
+    h1{ margin:0; font-size:20px; }
+    .sub{ margin-top:6px; color:var(--muted); font-size:13px; line-height:1.4; }
+    .back{
+      display:inline-block;
+      margin-top:10px;
+      font-size:13px;
+      color:var(--accent);
+      text-decoration:none;
+      font-weight:900;
+    }
+    .back:hover{ text-decoration:underline; }
+
+    .card{
+      background:var(--card);
+      border:1px solid var(--line);
+      border-radius:18px;
+      box-shadow:var(--shadow);
+      overflow:hidden;
+      margin-bottom:14px;
+    }
+    .cardHead{
+      padding:14px;
+      border-bottom:1px solid var(--line2);
+      display:flex;
+      justify-content:space-between;
+      align-items:flex-end;
+      gap:12px;
+      flex-wrap:wrap;
+      background:linear-gradient(180deg,#fff,#fbfdff);
+    }
+    .cardHead h2{ margin:0; font-size:16px; }
+
+    .cardBody{ padding:14px; }
+
+    .row{ display:flex; gap:10px; flex-wrap:wrap; align-items:flex-end; }
+
+    label{
+      font-size:12px;
+      color:var(--muted);
+      display:flex;
+      flex-direction:column;
+      gap:6px;
+    }
+
+    input[type="number"], input[type="text"], input[type="email"]{
+      padding:9px 10px;
+      border-radius:10px;
+      border:1px solid var(--line);
+      font-size:14px;
+      background:#fff;
+      min-width:140px;
+    }
+
+    .btn{
+      padding:10px 12px;
+      border-radius:12px;
+      border:1px solid var(--accent);
+      background:#fff;
+      color:var(--accent);
+      font-weight:900;
+      font-size:13px;
+      cursor:pointer;
+      white-space:nowrap;
+    }
+    .btn:hover{ background:#f0fff8; }
+    .btn:disabled{ opacity:.55; cursor:not-allowed; }
+
+    .btn.secondary{ border-color:#c7ceda; color:#475569; }
+    .btn.danger{ border-color:rgba(220,38,38,.55); color:#b91c1c; }
+    .btn.solid{
+      background:linear-gradient(180deg, rgba(11,187,85,.95), rgba(5,150,105,.92));
+      color:white;
+      border-color:rgba(5,150,105,.35);
+    }
+
+    .pill{
+      padding:6px 10px;
+      border:1px solid var(--line);
+      border-radius:999px;
+      background:#fff;
+      font-size:12px;
+      color:var(--muted);
+    }
+
+    table{ width:100%; border-collapse:collapse; font-size:14px; }
+    th, td{ padding:10px; border-bottom:1px solid var(--line2); }
+    th{ font-size:12px; color:var(--muted); text-transform:uppercase; }
+
+    .status{
+      padding:3px 8px;
+      border-radius:999px;
+      border:1px solid var(--line);
+      font-size:12px;
+      font-weight:900;
+    }
+    .status.done{ color:#16a34a; border-color:#bbf7d0; background:#f0fdf4; }
+    .status.err{ color:#dc2626; border-color:#fecaca; background:#fef2f2; }
+
+    .pdfLink{ color:var(--accent); font-weight:900; }
+
+    .toast{
+      position:fixed;
+      right:16px;
+      bottom:16px;
+      max-width:640px;
+      display:flex;
+      flex-direction:column;
+      gap:10px;
+      z-index:9999;
+    }
+    .toastItem{
+      padding:12px;
+      border-radius:14px;
+      border:1px solid var(--line);
+      background:#fff;
+      box-shadow:var(--shadow);
+      font-size:13px;
+    }
+  </style>
 </head>
 
 <body>
 <div class="wrap">
 
-  <!-- ===== HEADER ===== -->
+  <!-- =====================
+       HEADER（復元）
+       ===================== -->
   <div class="header">
     <h1>レシート管理</h1>
     <div class="sub">
-      CSVをアップロードすると、事前チェック後、<b>Queue（バックグラウンド処理）</b>が最後まで処理します
+      CSVをアップロードすると、<b>Queue（バックグラウンド処理）</b>が最後まで処理します
     </div>
+    <a class="back" href="/">← ダッシュボードへ戻る</a>
   </div>
 
-  <!-- ===== CSV UPLOAD ===== -->
+  <!-- =====================
+       CSV UPLOAD
+       ===================== -->
   <div class="card">
     <div class="cardHead">
       <h2>CSVアップロード</h2>
@@ -32,191 +183,185 @@
       </button>
     </div>
     <div class="cardBody">
-      <input type="file" id="file" accept=".csv,text/csv">
-      <div id="errors" class="errorBox"></div>
-      <div id="progressWrap" class="progressWrap">
-        <div class="bar"><div id="barFill"></div></div>
-        <div id="progressText" class="progressText"></div>
+      <input type="file" id="file" accept=".csv">
+      <div class="pill">CSV形式: member_id,branch,amount,year</div>
+
+      <div id="progressWrap" style="display:none;margin-top:10px">
+        <div style="height:10px;background:#eef2f7;border-radius:999px;overflow:hidden">
+          <div id="barFill" style="height:100%;width:0%;background:var(--accent)"></div>
+        </div>
+        <div id="progressText" class="pill">—</div>
       </div>
     </div>
   </div>
 
-  <!-- ===== DASHBOARD ===== -->
+  <!-- =====================
+       DASHBOARD
+       ===================== -->
   <div class="card">
     <div class="cardHead">
       <h2>一覧（生成結果）</h2>
 
-      <input type="number" id="year">
-      <input type="text" id="q" placeholder="例）5580 / Kimura">
-      <button class="btn secondary" id="reloadBtn">一覧を再読込</button>
+      <div class="row">
+        <input type="number" id="year">
+        <input type="text" id="q" placeholder="5580 / Kimura">
 
-      <span class="pill">選択 <span id="selCount">0</span></span>
-      <button class="btn secondary" id="selAllBtn">全選択</button>
-      <button class="btn secondary" id="selNoneBtn">全解除</button>
+        <button class="btn secondary" id="reloadBtn">再読込</button>
 
-      <button class="btn" id="sendSelectedBtn">選択送信</button>
-      <button class="btn danger" id="deleteSelectedBtn">選択削除</button>
-      <button class="btn danger" id="bulkDeleteBtn">前年を全削除（要入力）</button>
+        <span class="pill">選択 <span id="selCount">0</span></span>
+        <button class="btn secondary" id="selAllBtn">全選択</button>
+        <button class="btn secondary" id="selNoneBtn">全解除</button>
+
+        <button class="btn" id="sendSelectedBtn" disabled>選択送信</button>
+        <button class="btn danger" id="deleteSelectedBtn" disabled>選択削除</button>
+        <button class="btn danger" id="bulkDeleteBtn">前年を全削除（要入力）</button>
+      </div>
     </div>
 
     <div class="cardBody">
       <table>
         <thead>
           <tr>
-            <th></th>
-            <th>Send</th>
-            <th>Delete</th>
-            <th>Member ID</th>
-            <th>Name</th>
-            <th>Branch</th>
-            <th>Year</th>
-            <th>Amount</th>
-            <th>Status</th>
-            <th>PDF</th>
+            <th>✔</th><th>Send</th><th>Delete</th>
+            <th>ID</th><th>Name</th><th>Branch</th>
+            <th>Year</th><th>Amount</th><th>Status</th><th>PDF</th>
           </tr>
         </thead>
         <tbody id="tbody"></tbody>
       </table>
     </div>
   </div>
+
 </div>
 
 <div class="toast" id="toast"></div>
 
-<!-- ===== JS（最新版・イベント委譲） ===== -->
+<!-- =====================
+     SCRIPT（最新版ロジック）
+     ===================== -->
 <script>
 (() => {
   const API = "/api/admin/receipt";
+  const EP = {
+    dashboard: "/dashboard",
+    importStart: "/import/start",
+    importStatus: "/import/status",
+    deleteSelected: "/delete-selected",
+    bulkDeleteYear: "/bulk-delete-year",
+    sendSelected: "/email/send-selected",
+    sendOne: "/email/send-one",
+  };
+
   const el = id => document.getElementById(id);
+  const tbody = el("tbody");
 
-  const yearEl = el("year");
-  const qEl = el("q");
-  const tbodyEl = el("tbody");
-  const selCountEl = el("selCount");
-
-  const selected = new Set();
   let allRows = [];
+  const selected = new Set();
+  let autoRunning = false;
 
-  function keyOf(r){ return r.member_id + "|" + r.year; }
-
-  async function api(path, opt={}){
-    const r = await fetch(API + path, {
-      credentials:"include",
-      ...opt,
-      headers:{ "content-type":"application/json", ...(opt.headers||{}) }
-    });
-    const j = await r.json();
-    if (!r.ok) throw new Error(j.error || r.status);
-    return j;
+  function toast(msg){
+    const t = el("toast");
+    const d = document.createElement("div");
+    d.className = "toastItem";
+    d.textContent = msg;
+    t.appendChild(d);
+    setTimeout(()=>d.remove(),5000);
   }
 
-  async function loadDashboard(){
-    const y = Number(yearEl.value);
-    const res = await api(`/dashboard?year=${y}`);
-    allRows = res.rows || [];
+  function keyOf(id,y){ return id+"|"+y; }
+
+  async function api(path, opts={}){
+    const r = await fetch(API+path,{credentials:"include",...opts});
+    if(!r.ok) throw new Error("HTTP "+r.status);
+    return r.json();
+  }
+
+  async function load(){
+    const y = el("year").value;
+    const data = await api(`/dashboard?year=${y}`);
+    allRows = data.rows||[];
     selected.clear();
-    for (const r of allRows) if (r.status === "DONE") selected.add(keyOf(r));
     render();
   }
 
   function render(){
-    const q = qEl.value.trim().toLowerCase();
-    tbodyEl.innerHTML = "";
-
-    const rows = q
-      ? allRows.filter(r =>
-          String(r.member_id).includes(q) ||
-          String(r.name||"").toLowerCase().includes(q))
-      : allRows;
-
-    for (const r of rows) {
-      const k = keyOf(r);
-      const canSend = r.status === "DONE";
-
+    tbody.innerHTML="";
+    for(const r of allRows){
+      const k = keyOf(r.member_id,r.year);
       const tr = document.createElement("tr");
       tr.innerHTML = `
-        <td>
-          <input type="checkbox" data-k="${k}" ${canSend?"":"disabled"} ${selected.has(k)?"checked":""}>
-        </td>
-        <td>
-          <button class="btn secondary" data-action="send-one" data-k="${k}" ${canSend?"":"disabled"}>個別送信</button>
-        </td>
-        <td>
-          <button class="btn danger" data-action="delete-one" data-k="${k}">削除</button>
-        </td>
+        <td><input type="checkbox" data-mid="${r.member_id}" data-year="${r.year}" ${r.status==="DONE"?"":"disabled"}></td>
+        <td><button data-act="sendOne" data-mid="${r.member_id}" data-year="${r.year}">個別送信</button></td>
+        <td><button data-act="deleteOne" data-mid="${r.member_id}" data-year="${r.year}">削除</button></td>
         <td>${r.member_id}</td>
-        <td>${r.name||""}</td>
+        <td>${r.name}</td>
         <td>${r.branch}</td>
         <td>${r.year}</td>
         <td>$${(r.amount_cents/100).toFixed(2)}</td>
-        <td>${r.status}</td>
-        <td>${r.pdf_key ? `<a href="${API}/pdf?member_id=${r.member_id}&year=${r.year}" target="_blank">PDF</a>` : ""}</td>
+        <td class="status ${r.status==="DONE"?"done":"err"}">${r.status}</td>
+        <td>${r.pdf_key?`<a href="/api/admin/receipt/pdf?member_id=${r.member_id}&year=${r.year}" target="_blank">PDF</a>`:"—"}</td>
       `;
-      tbodyEl.appendChild(tr);
+      tbody.appendChild(tr);
     }
-
-    selCountEl.textContent = selected.size;
+    el("selCount").textContent = selected.size;
+    el("sendSelectedBtn").disabled = selected.size===0;
+    el("deleteSelectedBtn").disabled = selected.size===0;
   }
 
-  /* ===== イベント委譲（壊れない） ===== */
-  document.addEventListener("click", async (e) => {
+  // ===== イベント委譲（重要）=====
+  document.addEventListener("click", async e=>{
     const btn = e.target.closest("button");
-    if (!btn) return;
+    if(!btn) return;
 
-    try {
-      if (btn.id === "bulkDeleteBtn") {
-        const y = Number(yearEl.value);
-        const t = prompt(`DELETE ${y} と入力してください`);
-        if (!t) return;
-        await api("/bulk-delete-year",{method:"POST",body:JSON.stringify({year:y,confirm:t})});
-        await loadDashboard();
-      }
+    if(btn.id==="bulkDeleteBtn"){
+      const y = Number(el("year").value);
+      const ok = prompt(`DELETE ${y}`);
+      if(!ok) return;
+      await api("/bulk-delete-year",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({year:y,confirm:ok})});
+      toast("前年を全削除しました");
+      await load();
+    }
 
-      if (btn.id === "deleteSelectedBtn") {
-        const items = [...selected].map(k=>{
-          const [member_id,year]=k.split("|");
-          return {member_id,year:Number(year)};
-        });
-        await api("/delete-selected",{method:"POST",body:JSON.stringify({selections:items})});
-        await loadDashboard();
-      }
+    if(btn.id==="deleteSelectedBtn"){
+      const arr=[...selected].map(k=>{const[a,b]=k.split("|");return{member_id:a,year:+b}});
+      await api("/delete-selected",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({selections:arr})});
+      toast("削除しました");
+      await load();
+    }
 
-      if (btn.id === "sendSelectedBtn") {
-        const items = [...selected].map(k=>{
-          const [member_id,year]=k.split("|");
-          return {member_id,year:Number(year)};
-        });
-        await api("/email/send-selected",{method:"POST",body:JSON.stringify({selections:items})});
-        alert("送信完了");
-      }
+    if(btn.id==="sendSelectedBtn"){
+      const arr=[...selected].map(k=>{const[a,b]=k.split("|");return{member_id:a,year:+b}});
+      await api("/email/send-selected",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({selections:arr})});
+      toast("送信しました");
+    }
 
-      if (btn.dataset.action === "delete-one") {
-        const [member_id,year] = btn.dataset.k.split("|");
-        await api("/delete-selected",{method:"POST",body:JSON.stringify({member_id,year:Number(year)})});
-        await loadDashboard();
-      }
+    if(btn.dataset.act==="deleteOne"){
+      await api("/delete-selected",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({member_id:btn.dataset.mid,year:+btn.dataset.year})});
+      toast("削除しました");
+      await load();
+    }
 
-      if (btn.dataset.action === "send-one") {
-        const [member_id,year] = btn.dataset.k.split("|");
-        await api("/email/send-one",{method:"POST",body:JSON.stringify({member_id,year:Number(year)})});
-        alert("送信完了");
-      }
-
-    } catch(e) {
-      alert("エラー: " + e.message);
+    if(btn.dataset.act==="sendOne"){
+      await api("/email/send-one",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({member_id:btn.dataset.mid,year:+btn.dataset.year})});
+      toast("送信しました");
     }
   });
 
-  document.addEventListener("change", e=>{
-    const chk = e.target.closest("input[type=checkbox]");
-    if (!chk) return;
-    const k = chk.dataset.k;
-    chk.checked ? selected.add(k) : selected.delete(k);
-    selCountEl.textContent = selected.size;
+  tbody.addEventListener("change",e=>{
+    const c=e.target.closest("input[type=checkbox]");
+    if(!c)return;
+    const k=keyOf(c.dataset.mid,c.dataset.year);
+    c.checked?selected.add(k):selected.delete(k);
+    el("selCount").textContent=selected.size;
   });
 
-  yearEl.value = new Date().getFullYear() - 1;
-  loadDashboard();
+  el("reloadBtn").onclick=load;
+  el("selAllBtn").onclick=()=>{allRows.forEach(r=>r.status==="DONE"&&selected.add(keyOf(r.member_id,r.year)));render()};
+  el("selNoneBtn").onclick=()=>{selected.clear();render()};
+
+  // init
+  el("year").value=new Date().getFullYear()-1;
+  load();
 })();
 </script>
 </body>
