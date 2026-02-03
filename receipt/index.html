@@ -660,7 +660,7 @@ selNoneBtn.addEventListener("click", () => {
   render();
 });
 
-// ✅ 選択送信
+// ✅ 選択送信（apiFetch直叩き版：関数未定義事故をゼロに）
 sendSelectedBtn.addEventListener("click", async () => {
   const selections = getSelectedSelectionsFromVisible();
   if (!selections.length) {
@@ -672,7 +672,12 @@ sendSelectedBtn.addEventListener("click", async () => {
 
   setBusy(sendSelectedBtn, true, "送信中…");
   try {
-    const res = await sendSelected(selections);
+    const res = await apiFetch(EP.sendSelected, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ selections })
+    });
+
     const stamp = new Date().toLocaleTimeString("ja-JP", { hour: "2-digit", minute: "2-digit" });
     for (const s of selections) sentMap.set(keyOf(s.member_id, s.year), stamp);
 
@@ -685,7 +690,8 @@ sendSelectedBtn.addEventListener("click", async () => {
   }
 });
 
-// ✅ 選択削除（D1 + R2）
+
+// ✅ 選択削除（apiFetch直叩き版：関数未定義事故をゼロに）
 deleteSelectedBtn.addEventListener("click", async () => {
   const selections = getSelectedSelectionsFromVisible();
   if (!selections.length) {
@@ -697,7 +703,12 @@ deleteSelectedBtn.addEventListener("click", async () => {
 
   setBusy(deleteSelectedBtn, true, "削除中…");
   try {
-    const res = await deleteSelected(selections);
+    const res = await apiFetch(EP.deleteSelected, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ selections })
+    });
+
     toast(`選択削除 完了\nok: ${res?.deleted_ok ?? "—"} / ng: ${res?.deleted_ng ?? "—"}`, "ok", 12000);
     await loadDashboard();
   } catch (e) {
