@@ -399,20 +399,27 @@
 
   // endpoints
   const EP = {
-    version: "/_version",
-    dashboard: "/dashboard",
-    validate: "/import/validate",
-    import: "/import",
-    cont: "/import/continue",
-    sendOne: "/email/send-one",
-    sendBulk: "/email/send-bulk",
-    sendSelected: "/email/send-selected",
+  version: "/_version",
+  dashboard: "/dashboard",
 
-    deleteSelected: "/delete-selected",
-    bulkDeleteYear: "/bulk-delete-year",
-    setEmail: "/set-email",
-    missingEmail: "/missing-email",
-  };
+  // validate は軽量版でOK（警告出しても続行）
+  validate: "/import/validate",
+
+  // ★Queues版：start/status を使う
+  importStart: "/import/start",
+  importStatus: "/import/status",
+
+  // 旧contは使わない（残してもOKだが呼ばない）
+  // cont: "/import/continue",
+
+  sendOne: "/email/send-one",
+  sendBulk: "/email/send-bulk",
+  sendSelected: "/email/send-selected",
+  deleteSelected: "/delete-selected",
+  bulkDeleteYear: "/bulk-delete-year",
+  setEmail: "/set-email",
+  missingEmail: "/missing-email",
+};
 
   // ========= elements =========
   const el = (id) => document.getElementById(id);
@@ -731,13 +738,13 @@
     });
   }
 
-  async function importCsv(csvText){
-    return await apiFetch(EP.import, {
-      method:"POST",
-      headers:{ "Content-Type":"text/csv" },
-      body: csvText
-    });
-  }
+  async function importStartCsv(csvText){
+  return await apiFetch(EP.importStart, {
+    method:"POST",
+    headers:{ "Content-Type":"text/csv" },
+    body: csvText
+  });
+}
 
   async function continueImport(jobId, batch=2){
     return await apiFetch(`${EP.cont}?job_id=${encodeURIComponent(jobId)}&batch=${encodeURIComponent(batch)}`, {
@@ -909,71 +916,51 @@ async function importAndAutoRun(csvText){
   if (_autoRunning) return;
   _autoRunning = true;
 
-  try {
+  try{
     showProgress(true);
     barFillEl.style.width = "0%";
     progressTextEl.textContent = "アップロード中…";
 
-    const importData = await importCsv(csvText);
-    const jobId = importData?.job_id;
-    const year = importData?.year;
-    if (!jobId) throw new Error("import_failed: job_id_not_returned");
+    // 1) import/start（ここでQueueへ投げるだけ。すぐ返る）
+    const startRes = await importStartCsv(csvText);
+    const jobId = startRes?.job_id;
+    const year = startRes?.year;
 
-    const BATCH = 2;
-    let safety = 0;
-    let retry = 0;
+    if (!jobId) throw new Error("import_start_failed: no_job_id");
+
+    toast(`アップロード完了。バックグラウンドで生成を開始しました。\njob_id: ${jobId}`, "ok", 9000);
+
+    // 2) statusポーリング
+    const POLL_MS = 2000;
+    const MAX_POLLS = 3600; // 2秒×3600=2時間（安全）
+    let polls = 0;
 
     while (true) {
-      safety++;
-      if (safety > 4000) throw new Error("auto_continue_safety_stop");
+      polls++;
+      if (polls > MAX_POLLS) throw new Error("poll_timeout");
 
-      try {
-        const cont = await continueImport(jobId, BATCH);
-        retry = 0;
+      const st = await apiFetch(`${EP.importStatus}?job_id=${encodeURIComponent(jobId)}`, { method:"GET" });
+      const job = st?.job;
 
-        const job = cont?.job;
-        if (job) updateProgress(job);
+      if (job) updateProgress(job);
 
-        const status = String(job?.status || "").toUpperCase();
-        if (status === "ERROR") {
-          toast("取込中にエラーが発生しました。", "bad", 12000);
-          break;
-        }
-
-        if (status === "DONE" || cont?.done === true) {
-          toast("自動生成が完了しました。一覧を更新します。", "ok", 9000);
-          if (year) yearEl.value = String(year);
-          await loadDashboard();
-          showProgress(false);
-          break;
-        }
-
-        await new Promise(r => setTimeout(r, 300));
-
-      } catch (e) {
-        const msg = String(e?.message || e);
-        const retryable =
-          msg.includes("HTTP 503") ||
-          msg.includes("HTTP 502") ||
-          msg.includes("HTTP 504") ||
-          msg.includes("HTTP 500") ||              // ← 500も一時扱いにする
-          msg.includes("exceeded resource limits") ||
-          msg.includes("NetworkError") ||
-          msg.includes("Failed to fetch");
-
-        if (!retryable) throw e;
-
-        retry++;
-        if (retry > 10) {
-          toast(`一時エラーが続いたため停止しました（${retry}回）\n${msg}`, "bad", 12000);
-          throw e;
-        }
-
-        const wait = Math.min(20000, 2000 * retry); // 2s,4s,6s...最大20s
-        progressTextEl.textContent = `一時エラーで再試行します… (${retry}/10)\n${msg}\n${Math.round(wait)}ms 待機`;
-        await new Promise(r => setTimeout(r, wait));
-        continue;
+      const status = String(job?.status || "").toUpperCase();
+      if (status === "DONE") {
+        toast("自動生成が完了しました。一覧を更新します。", "ok", 9000);
+        if (year) yearEl.value = String(year);
+        await loadDashboard();
+        showProgress(false);
+        break;
       }
+
+      if (status === "ERROR") {
+        toast(`取込エラー：${job?.last_error || "unknown"}`, "bad", 12000);
+        showProgress(false);
+        break;
+      }
+
+      // RUNNING / PARSING / PROCESSING
+      await new Promise(r => setTimeout(r, POLL_MS));
     }
 
   } finally {
